@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -345,8 +346,12 @@ export default function AuthScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          !isSignUp && !isForgotPassword && !isPasswordRecovery && styles.scrollContentCenter,
+        ]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
@@ -669,6 +674,7 @@ export default function AuthScreen() {
                             options={dayOptions}
                             value={birthDay}
                             onSelect={(v) => {
+                              Keyboard.dismiss();
                               setBirthDay(v);
                               if (errors.dob)
                                 setErrors({ ...errors, dob: undefined });
@@ -684,6 +690,7 @@ export default function AuthScreen() {
                             options={monthOptions}
                             value={birthMonth}
                             onSelect={(v) => {
+                              Keyboard.dismiss();
                               setBirthMonth(v);
                               if (errors.dob)
                                 setErrors({ ...errors, dob: undefined });
@@ -699,6 +706,7 @@ export default function AuthScreen() {
                             options={yearOptions}
                             value={birthYear}
                             onSelect={(v) => {
+                              Keyboard.dismiss();
                               setBirthYear(v);
                               if (errors.dob)
                                 setErrors({ ...errors, dob: undefined });
@@ -742,6 +750,7 @@ export default function AuthScreen() {
                             },
                           ]}
                           onPress={() => {
+                            Keyboard.dismiss();
                             setGender("male");
                             if (errors.gender)
                               setErrors({ ...errors, gender: undefined });
@@ -782,6 +791,7 @@ export default function AuthScreen() {
                             },
                           ]}
                           onPress={() => {
+                            Keyboard.dismiss();
                             setGender("female");
                             if (errors.gender)
                               setErrors({ ...errors, gender: undefined });
@@ -1096,13 +1106,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
+    paddingBottom: 40,
+  },
+  scrollContentCenter: {
     flexGrow: 1,
+    justifyContent: "center",
   },
   content: {
-    flex: 1,
-    justifyContent: "center",
     padding: Spacing.xxl,
-    minHeight: "100%",
   },
   topBar: {
     flexDirection: "row",
