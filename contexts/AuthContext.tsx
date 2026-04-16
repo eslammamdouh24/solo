@@ -70,8 +70,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(session);
       if (event === "SIGNED_IN" && session?.user) {
         // Fetch fresh user data from server to get latest metadata
-        const { data } = await supabase.auth.getUser();
-        setUser(data?.user ?? session.user);
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data?.user) {
+          // User no longer exists (e.g. deleted account with stale token)
+          setUser(null);
+          setSession(null);
+          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        } else {
+          setUser(data.user);
+        }
       } else {
         setUser(session?.user ?? null);
       }
@@ -350,8 +357,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      // Sign out
-      await supabase.auth.signOut();
+      // Clear local state immediately — the auth user may already be gone
+      setUser(null);
+      setSession(null);
+
+      // Sign out to clear the local session token
+      // Ignore errors here since the user may already be deleted from auth.users
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // Expected if user was fully deleted via RPC
+      }
     } catch (error: any) {
       const message = error.message || "Failed to delete account";
       throw new Error(message);
