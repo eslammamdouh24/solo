@@ -348,7 +348,10 @@ export default function AuthScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          !isSignUp && !isForgotPassword && !isPasswordRecovery && styles.scrollContentCenter,
+          !isSignUp &&
+            !isForgotPassword &&
+            !isPasswordRecovery &&
+            styles.scrollContentCenter,
         ]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
