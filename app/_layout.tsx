@@ -71,6 +71,13 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
       transition: background-color 5000s ease-in-out 0s;
       caret-color: #FFFFFF;
     }
+    /* Prevent aria-hidden focus trap from React Navigation */
+    [aria-hidden="true"] * {
+      pointer-events: none !important;
+    }
+    [aria-hidden="true"]:focus-within {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -113,7 +120,14 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, freezeOnBlur: true }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        ...(Platform.OS === "web"
+          ? { animation: "none", freezeOnBlur: true }
+          : {}),
+      }}
+    >
       <Stack.Screen name="auth" />
       <Stack.Screen name="index" />
       <Stack.Screen name="profile" />
