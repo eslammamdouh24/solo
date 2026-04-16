@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +25,8 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateProfile: (data: Record<string, any>) => Promise<void>;
+  isPasswordRecovery: boolean;
+  changePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -37,6 +40,8 @@ const AuthContext = createContext<AuthContextType>({
   resetPassword: async () => {},
   deleteAccount: async () => {},
   updateProfile: async () => {},
+  isPasswordRecovery: false,
+  changePassword: async () => {},
 });
 
 export const useAuth = () => {
@@ -54,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [signInInProgress, setSignInInProgress] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     // Check active session
@@ -68,7 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      if (event === "SIGNED_IN" && session?.user) {
+      if (event === "PASSWORD_RECOVERY") {
+        // User clicked password reset link — let them set a new password
+        setIsPasswordRecovery(true);
+        setUser(session?.user ?? null);
+      } else if (event === "SIGNED_IN" && session?.user) {
         // Fetch fresh user data from server to get latest metadata
         const { data, error } = await supabase.auth.getUser();
         if (error || !data?.user) {
@@ -231,9 +241,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const { data: gameState } = await supabase
             .from("game_states")
-            .select("id, username, email")
+            .select("id, username, email, deleted_at")
             .eq("user_id", data.user.id)
             .maybeSingle();
+
+          // Check if account was soft-deleted
+          if (gameState?.deleted_at) {
+            const deletedAt = new Date(gameState.deleted_at);
+            const daysSinceDelete = Math.floor(
+              (Date.now() - deletedAt.getTime()) / (1000 * 60 * 60 * 24),
+            );
+
+            if (daysSinceDelete >= 30) {
+              // Past 30-day grace period — permanently delete
+              await supabase.rpc("permanently_delete_user_account");
+              await supabase.auth.signOut();
+              setSignInInProgress(false);
+              throw new Error("ACCOUNT_EXPIRED");
+            } else {
+              // Within grace period — restore the account
+              await supabase.rpc("restore_user_account");
+            }
+          }
 
           if (gameState && !gameState.username) {
             // Backfill username/email for existing users
@@ -318,13 +347,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Email is required");
       }
 
+      // Build redirect URL — use current origin on web, or app scheme on native
+      const redirectTo =
+        Platform.OS === "web" && typeof window !== "undefined"
+          ? window.location.origin
+          : undefined;
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: undefined,
+        redirectTo,
       });
 
       if (error) throw error;
     } catch (error: any) {
       const message = error.message || "Failed to send reset email";
+      throw new Error(message);
+    }
+  };
+
+  const changePassword = async (newPassword: string) => {
+    try {
+      if (!newPassword || newPassword.length < 8) {
+        throw new Error("Password must be at least 8 characters");
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      // Clear recovery state
+      setIsPasswordRecovery(false);
+    } catch (error: any) {
+      const message = error.message || "Failed to change password";
       throw new Error(message);
     }
   };
@@ -335,39 +390,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("No user logged in");
       }
 
-      // Try the database function first (fully deletes auth user + game state)
-      const { error: rpcError } = await supabase.rpc("delete_user_account");
+      // Soft delete — mark account as deleted (30-day recovery period)
+      const { error: rpcError } = await supabase.rpc(
+        "soft_delete_user_account",
+      );
 
       if (rpcError) {
-        // Fallback: delete game state manually, then sign out
-        // The auth user remains but has no game data
+        // Fallback: set deleted_at manually
         console.warn(
-          "RPC not available, using fallback delete:",
+          "RPC not available, using fallback soft delete:",
           rpcError.message,
         );
 
-        const { error: deleteError } = await supabase
+        const { error: updateError } = await supabase
           .from("game_states")
-          .delete()
+          .update({ deleted_at: new Date().toISOString() })
           .eq("user_id", user.id);
 
-        if (deleteError) {
-          console.error("Error deleting game state:", deleteError);
+        if (updateError) {
+          console.error("Error soft-deleting game state:", updateError);
           throw new Error("Failed to delete your account. Please try again.");
         }
       }
 
-      // Clear local state immediately — the auth user may already be gone
+      // Clear local state
       setUser(null);
       setSession(null);
 
-      // Sign out to clear the local session token
-      // Ignore errors here since the user may already be deleted from auth.users
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch {
-        // Expected if user was fully deleted via RPC
-      }
+      // Sign out normally (auth user still exists for 30-day recovery)
+      await supabase.auth.signOut();
     } catch (error: any) {
       const message = error.message || "Failed to delete account";
       throw new Error(message);
@@ -414,6 +465,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         resetPassword,
         deleteAccount,
         updateProfile,
+        isPasswordRecovery,
+        changePassword,
       }}
     >
       {children}

@@ -66,7 +66,12 @@ export default function AuthScreen() {
   const [toastType, setToastType] = useState<"success" | "error" | "info">(
     "info",
   );
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, isPasswordRecovery, changePassword } =
+    useAuth();
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const isRTL = language === "ar";
   const fontRegular = getFont(language, "regular");
   const fontSemibold = getFont(language, "semibold");
@@ -131,6 +136,36 @@ export default function AuthScreen() {
   };
 
   const handleSubmit = async () => {
+    // Handle password change (recovery mode)
+    if (isPasswordRecovery) {
+      const newErrors: ValidationErrors = {};
+      if (!newPassword) {
+        newErrors.password = t(language, "auth.passwordRequired");
+      } else if (newPassword.length < 8) {
+        newErrors.password = t(language, "auth.passwordMinLength");
+      }
+      if (newPassword !== confirmNewPassword) {
+        newErrors.confirmPassword = t(language, "auth.passwordMismatch");
+      }
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+      setLoading(true);
+      try {
+        await changePassword(newPassword);
+        setLoading(false);
+        showToast(t(language, "auth.passwordChanged"), "success");
+        setNewPassword("");
+        setConfirmNewPassword("");
+        setErrors({});
+      } catch (error: any) {
+        setLoading(false);
+        showToast(error.message || t(language, "auth.errorOccurred"), "error");
+      }
+      return;
+    }
+
     // Clear previous errors
     setErrors({});
     const newErrors: ValidationErrors = {};
@@ -270,6 +305,8 @@ export default function AuthScreen() {
         showToast(t(language, "auth.emailNotVerified"), "error");
       } else if (errorMessage.includes("User not found")) {
         showToast(t(language, "auth.accountNotFound"), "error");
+      } else if (errorMessage.includes("ACCOUNT_EXPIRED")) {
+        showToast(t(language, "auth.accountExpired"), "error");
       } else {
         showToast(errorMessage, "error");
       }
@@ -337,62 +374,169 @@ export default function AuthScreen() {
                 { color: C.textSecondary, fontFamily: fontSemibold },
               ]}
             >
-              {isForgotPassword
-                ? t(language, "auth.resetPassword")
-                : isSignUp
-                  ? t(language, "auth.createAccount")
-                  : t(language, "auth.welcomeBack")}
+              {isPasswordRecovery
+                ? t(language, "auth.setNewPassword")
+                : isForgotPassword
+                  ? t(language, "auth.resetPassword")
+                  : isSignUp
+                    ? t(language, "auth.createAccount")
+                    : t(language, "auth.welcomeBack")}
             </Text>
           </View>
 
           <View style={styles.form}>
-            <View>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.email && styles.inputError,
-                  {
-                    backgroundColor: C.surfaceHighlight,
-                    color: C.text,
-                    borderColor: C.surface,
-                    textAlign: isRTL ? "right" : "left",
-                  },
-                ]}
-                placeholder={
-                  isSignUp || isForgotPassword
-                    ? t(language, "auth.email")
-                    : t(language, "auth.emailOrUsername")
-                }
-                placeholderTextColor={C.textSecondary}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) setErrors({ ...errors, email: undefined });
-                }}
-                autoCapitalize="none"
-                keyboardType={isSignUp ? "email-address" : "default"}
-                editable={!loading}
-                autoComplete={isSignUp ? "email" : "username"}
-              />
-              {errors.email && (
-                <Text
-                  style={[
-                    styles.errorText,
-                    { textAlign: isRTL ? "right" : "left" },
-                  ]}
-                >
-                  {errors.email}
-                </Text>
-              )}
-            </View>
+            {isPasswordRecovery ? (
+              <>
+                {/* New password field */}
+                <View>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        isRTL ? styles.passwordInputRTL : styles.passwordInput,
+                        errors.password && styles.inputError,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          color: C.text,
+                          borderColor: C.surface,
+                          textAlign: isRTL ? "right" : "left",
+                        },
+                      ]}
+                      placeholder={t(language, "auth.newPassword")}
+                      placeholderTextColor={C.textSecondary}
+                      value={newPassword}
+                      onChangeText={(text) => {
+                        setNewPassword(text);
+                        if (errors.password)
+                          setErrors({ ...errors, password: undefined });
+                      }}
+                      secureTextEntry={!showNewPassword}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={[
+                        styles.eyeButton,
+                        isRTL ? { left: 12, right: undefined } : {},
+                      ]}
+                      onPress={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      <MaterialCommunityIcons
+                        name={showNewPassword ? "eye-off" : "eye"}
+                        size={22}
+                        color={C.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {errors.password && (
+                    <Text
+                      style={[
+                        styles.errorText,
+                        { textAlign: isRTL ? "right" : "left" },
+                      ]}
+                    >
+                      {errors.password}
+                    </Text>
+                  )}
+                </View>
 
-            {isSignUp && !isForgotPassword && (
+                {/* Confirm new password field */}
+                <View>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        isRTL ? styles.passwordInputRTL : styles.passwordInput,
+                        errors.confirmPassword && styles.inputError,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          color: C.text,
+                          borderColor: C.surface,
+                          textAlign: isRTL ? "right" : "left",
+                        },
+                      ]}
+                      placeholder={t(language, "auth.confirmNewPassword")}
+                      placeholderTextColor={C.textSecondary}
+                      value={confirmNewPassword}
+                      onChangeText={(text) => {
+                        setConfirmNewPassword(text);
+                        if (errors.confirmPassword)
+                          setErrors({
+                            ...errors,
+                            confirmPassword: undefined,
+                          });
+                      }}
+                      secureTextEntry={!showConfirmNewPassword}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={[
+                        styles.eyeButton,
+                        isRTL ? { left: 12, right: undefined } : {},
+                      ]}
+                      onPress={() =>
+                        setShowConfirmNewPassword(!showConfirmNewPassword)
+                      }
+                    >
+                      <MaterialCommunityIcons
+                        name={showConfirmNewPassword ? "eye-off" : "eye"}
+                        size={22}
+                        color={C.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {errors.confirmPassword && (
+                    <Text
+                      style={[
+                        styles.errorText,
+                        { textAlign: isRTL ? "right" : "left" },
+                      ]}
+                    >
+                      {errors.confirmPassword}
+                    </Text>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: C.primary,
+                      boxShadow: `0px 4px 8px ${C.primary}4D`,
+                    },
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  <View style={styles.buttonContent}>
+                    {loading && (
+                      <Animated.View
+                        style={[
+                          styles.spinner,
+                          { transform: [{ rotate: spin }] },
+                        ]}
+                      >
+                        <View style={styles.spinnerInner} />
+                      </Animated.View>
+                    )}
+                    <Text
+                      style={[
+                        styles.buttonText,
+                        { color: "#fff", fontFamily: fontBold },
+                      ]}
+                    >
+                      {t(language, "auth.changePassword").toUpperCase()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            ) : (
               <>
                 <View>
                   <TextInput
                     style={[
                       styles.input,
-                      errors.fullName && styles.inputError,
+                      errors.email && styles.inputError,
                       {
                         backgroundColor: C.surfaceHighlight,
                         color: C.text,
@@ -400,475 +544,538 @@ export default function AuthScreen() {
                         textAlign: isRTL ? "right" : "left",
                       },
                     ]}
-                    placeholder={t(language, "auth.fullName")}
+                    placeholder={
+                      isSignUp || isForgotPassword
+                        ? t(language, "auth.email")
+                        : t(language, "auth.emailOrUsername")
+                    }
                     placeholderTextColor={C.textSecondary}
-                    value={fullName}
+                    value={email}
                     onChangeText={(text) => {
-                      setFullName(text);
-                      if (errors.fullName)
-                        setErrors({ ...errors, fullName: undefined });
-                    }}
-                    editable={!loading}
-                    autoComplete="name"
-                  />
-                  {errors.fullName && (
-                    <Text
-                      style={[
-                        styles.errorText,
-                        { textAlign: isRTL ? "right" : "left" },
-                      ]}
-                    >
-                      {errors.fullName}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors.username && styles.inputError,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        color: C.text,
-                        borderColor: C.surface,
-                        textAlign: isRTL ? "right" : "left",
-                      },
-                    ]}
-                    placeholder={t(language, "auth.username")}
-                    placeholderTextColor={C.textSecondary}
-                    value={username}
-                    onChangeText={(text) => {
-                      setUsername(text);
-                      if (errors.username)
-                        setErrors({ ...errors, username: undefined });
+                      setEmail(text);
+                      if (errors.email)
+                        setErrors({ ...errors, email: undefined });
                     }}
                     autoCapitalize="none"
+                    keyboardType={isSignUp ? "email-address" : "default"}
                     editable={!loading}
-                    autoComplete="username"
+                    autoComplete={isSignUp ? "email" : "username"}
                   />
-                  {errors.username && (
+                  {errors.email && (
                     <Text
                       style={[
                         styles.errorText,
                         { textAlign: isRTL ? "right" : "left" },
                       ]}
                     >
-                      {errors.username}
+                      {errors.email}
                     </Text>
                   )}
                 </View>
 
-                <View>
+                {isSignUp && !isForgotPassword && (
+                  <>
+                    <View>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          errors.fullName && styles.inputError,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                          },
+                        ]}
+                        placeholder={t(language, "auth.fullName")}
+                        placeholderTextColor={C.textSecondary}
+                        value={fullName}
+                        onChangeText={(text) => {
+                          setFullName(text);
+                          if (errors.fullName)
+                            setErrors({ ...errors, fullName: undefined });
+                        }}
+                        editable={!loading}
+                        autoComplete="name"
+                      />
+                      {errors.fullName && (
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { textAlign: isRTL ? "right" : "left" },
+                          ]}
+                        >
+                          {errors.fullName}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          errors.username && styles.inputError,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                          },
+                        ]}
+                        placeholder={t(language, "auth.username")}
+                        placeholderTextColor={C.textSecondary}
+                        value={username}
+                        onChangeText={(text) => {
+                          setUsername(text);
+                          if (errors.username)
+                            setErrors({ ...errors, username: undefined });
+                        }}
+                        autoCapitalize="none"
+                        editable={!loading}
+                        autoComplete="username"
+                      />
+                      {errors.username && (
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { textAlign: isRTL ? "right" : "left" },
+                          ]}
+                        >
+                          {errors.username}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View>
+                      <Text
+                        style={[
+                          styles.dobLabel,
+                          {
+                            color: C.textSecondary,
+                            textAlign: isRTL ? "right" : "left",
+                          },
+                        ]}
+                      >
+                        {t(language, "auth.age")}
+                      </Text>
+                      <View
+                        style={[
+                          styles.dobRow,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <DropdownPicker
+                            options={dayOptions}
+                            value={birthDay}
+                            onSelect={(v) => {
+                              setBirthDay(v);
+                              if (errors.dob)
+                                setErrors({ ...errors, dob: undefined });
+                            }}
+                            placeholder={t(language, "auth.birthDay")}
+                            disabled={loading}
+                            hasError={!!errors.dob}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <DropdownPicker
+                            options={monthOptions}
+                            value={birthMonth}
+                            onSelect={(v) => {
+                              setBirthMonth(v);
+                              if (errors.dob)
+                                setErrors({ ...errors, dob: undefined });
+                            }}
+                            placeholder={t(language, "auth.birthMonth")}
+                            disabled={loading}
+                            hasError={!!errors.dob}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                        <View style={{ flex: 1.5 }}>
+                          <DropdownPicker
+                            options={yearOptions}
+                            value={birthYear}
+                            onSelect={(v) => {
+                              setBirthYear(v);
+                              if (errors.dob)
+                                setErrors({ ...errors, dob: undefined });
+                            }}
+                            placeholder={t(language, "auth.birthYear")}
+                            disabled={loading}
+                            hasError={!!errors.dob}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                      </View>
+                      {errors.dob && (
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { textAlign: isRTL ? "right" : "left" },
+                          ]}
+                        >
+                          {errors.dob}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View>
+                      <View
+                        style={[
+                          styles.genderContainer,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <TouchableOpacity
+                          style={[
+                            styles.genderOption,
+                            {
+                              borderColor: C.surface,
+                              backgroundColor: C.surfaceHighlight,
+                            },
+                            gender === "male" && {
+                              borderColor: C.primary,
+                              backgroundColor: `${C.primary}22`,
+                            },
+                          ]}
+                          onPress={() => {
+                            setGender("male");
+                            if (errors.gender)
+                              setErrors({ ...errors, gender: undefined });
+                          }}
+                          disabled={loading}
+                        >
+                          <MaterialCommunityIcons
+                            name="gender-male"
+                            size={20}
+                            color={
+                              gender === "male" ? C.primary : C.textSecondary
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.genderText,
+                              {
+                                color:
+                                  gender === "male"
+                                    ? C.primary
+                                    : C.textSecondary,
+                              },
+                            ]}
+                          >
+                            {t(language, "auth.genderMale")}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.genderOption,
+                            {
+                              borderColor: C.surface,
+                              backgroundColor: C.surfaceHighlight,
+                            },
+                            gender === "female" && {
+                              borderColor: C.primary,
+                              backgroundColor: `${C.primary}22`,
+                            },
+                          ]}
+                          onPress={() => {
+                            setGender("female");
+                            if (errors.gender)
+                              setErrors({ ...errors, gender: undefined });
+                          }}
+                          disabled={loading}
+                        >
+                          <MaterialCommunityIcons
+                            name="gender-female"
+                            size={20}
+                            color={
+                              gender === "female" ? C.primary : C.textSecondary
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.genderText,
+                              {
+                                color:
+                                  gender === "female"
+                                    ? C.primary
+                                    : C.textSecondary,
+                              },
+                            ]}
+                          >
+                            {t(language, "auth.genderFemale")}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      {errors.gender && (
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { textAlign: isRTL ? "right" : "left" },
+                          ]}
+                        >
+                          {errors.gender}
+                        </Text>
+                      )}
+                    </View>
+                  </>
+                )}
+
+                {!isForgotPassword && (
+                  <View>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          isRTL
+                            ? styles.passwordInputRTL
+                            : styles.passwordInput,
+                          errors.password && styles.inputError,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                          },
+                        ]}
+                        placeholder={t(language, "auth.password")}
+                        placeholderTextColor={C.textSecondary}
+                        value={password}
+                        onChangeText={(text) => {
+                          setPassword(text);
+                          if (errors.password)
+                            setErrors({ ...errors, password: undefined });
+                        }}
+                        secureTextEntry={!showPassword}
+                        editable={!loading}
+                        autoComplete="password"
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.eyeButton,
+                          { [isRTL ? "left" : "right"]: 0 },
+                        ]}
+                        onPress={() => setShowPassword(!showPassword)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <MaterialCommunityIcons
+                          name={showPassword ? "eye-off" : "eye"}
+                          size={22}
+                          color={C.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.password && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { textAlign: isRTL ? "right" : "left" },
+                        ]}
+                      >
+                        {errors.password}
+                      </Text>
+                    )}
+                  </View>
+                )}
+
+                {!isForgotPassword && isSignUp && (
+                  <View>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          isRTL
+                            ? styles.passwordInputRTL
+                            : styles.passwordInput,
+                          errors.confirmPassword && styles.inputError,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                          },
+                        ]}
+                        placeholder={t(language, "auth.confirmPassword")}
+                        placeholderTextColor={C.textSecondary}
+                        value={confirmPassword}
+                        onChangeText={(text) => {
+                          setConfirmPassword(text);
+                          if (errors.confirmPassword)
+                            setErrors({
+                              ...errors,
+                              confirmPassword: undefined,
+                            });
+                        }}
+                        secureTextEntry={!showConfirmPassword}
+                        editable={!loading}
+                        autoComplete="password"
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.eyeButton,
+                          { [isRTL ? "left" : "right"]: 0 },
+                        ]}
+                        onPress={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <MaterialCommunityIcons
+                          name={showConfirmPassword ? "eye-off" : "eye"}
+                          size={22}
+                          color={C.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.confirmPassword && (
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { textAlign: isRTL ? "right" : "left" },
+                        ]}
+                      >
+                        {errors.confirmPassword}
+                      </Text>
+                    )}
+                  </View>
+                )}
+
+                {!isForgotPassword && !isSignUp && (
+                  <TouchableOpacity
+                    style={[
+                      styles.rememberMeContainer,
+                      { flexDirection: isRTL ? "row-reverse" : "row" },
+                    ]}
+                    onPress={() => setRememberMe(!rememberMe)}
+                    disabled={loading}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        { borderColor: C.textSecondary },
+                        rememberMe && {
+                          backgroundColor: C.primary,
+                          borderColor: C.primary,
+                        },
+                      ]}
+                    >
+                      {rememberMe && (
+                        <MaterialCommunityIcons
+                          name="check"
+                          size={16}
+                          color="#fff"
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.rememberMeText,
+                        { color: C.text, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {t(language, "auth.rememberMe")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: C.primary,
+                      boxShadow: `0px 4px 8px ${C.primary}4D`,
+                    },
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  <View style={styles.buttonContent}>
+                    {loading && (
+                      <Animated.View
+                        style={[
+                          styles.spinner,
+                          { transform: [{ rotate: spin }] },
+                        ]}
+                      >
+                        <View style={styles.spinnerInner} />
+                      </Animated.View>
+                    )}
+                    <Text
+                      style={[
+                        styles.buttonText,
+                        { color: "#fff", fontFamily: fontBold },
+                      ]}
+                    >
+                      {isForgotPassword
+                        ? t(language, "auth.sendResetLink").toUpperCase()
+                        : isSignUp
+                          ? t(language, "auth.signUp").toUpperCase()
+                          : t(language, "auth.signIn").toUpperCase()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {!isForgotPassword && (
+                  <TouchableOpacity
+                    style={styles.forgotPassword}
+                    onPress={() => {
+                      setIsForgotPassword(true);
+                      setErrors({});
+                      setEmail("");
+                      setPassword("");
+                    }}
+                    disabled={loading}
+                  >
+                    <Text
+                      style={[
+                        styles.forgotPasswordText,
+                        { color: C.primary, fontFamily: fontSemibold },
+                      ]}
+                    >
+                      {t(language, "auth.forgotPassword")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  style={styles.switchButton}
+                  onPress={() => {
+                    if (isForgotPassword) {
+                      setIsForgotPassword(false);
+                    } else {
+                      setIsSignUp(!isSignUp);
+                    }
+                    setErrors({});
+                    setEmail("");
+                    setConfirmPassword("");
+                    setPassword("");
+                    setFullName("");
+                    setBirthDay("");
+                    setBirthMonth("");
+                    setBirthYear("");
+                    setGender("");
+                  }}
+                  disabled={loading}
+                >
                   <Text
                     style={[
-                      styles.dobLabel,
-                      {
-                        color: C.textSecondary,
-                        textAlign: isRTL ? "right" : "left",
-                      },
+                      styles.switchText,
+                      { color: C.textSecondary, fontFamily: fontRegular },
                     ]}
                   >
-                    {t(language, "auth.age")}
+                    {isForgotPassword
+                      ? t(language, "auth.backToSignIn")
+                      : isSignUp
+                        ? t(language, "auth.haveAccount")
+                        : t(language, "auth.noAccount")}
                   </Text>
-                  <View
-                    style={[
-                      styles.dobRow,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <DropdownPicker
-                        options={dayOptions}
-                        value={birthDay}
-                        onSelect={(v) => {
-                          setBirthDay(v);
-                          if (errors.dob)
-                            setErrors({ ...errors, dob: undefined });
-                        }}
-                        placeholder={t(language, "auth.birthDay")}
-                        disabled={loading}
-                        hasError={!!errors.dob}
-                        isRTL={isRTL}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <DropdownPicker
-                        options={monthOptions}
-                        value={birthMonth}
-                        onSelect={(v) => {
-                          setBirthMonth(v);
-                          if (errors.dob)
-                            setErrors({ ...errors, dob: undefined });
-                        }}
-                        placeholder={t(language, "auth.birthMonth")}
-                        disabled={loading}
-                        hasError={!!errors.dob}
-                        isRTL={isRTL}
-                      />
-                    </View>
-                    <View style={{ flex: 1.5 }}>
-                      <DropdownPicker
-                        options={yearOptions}
-                        value={birthYear}
-                        onSelect={(v) => {
-                          setBirthYear(v);
-                          if (errors.dob)
-                            setErrors({ ...errors, dob: undefined });
-                        }}
-                        placeholder={t(language, "auth.birthYear")}
-                        disabled={loading}
-                        hasError={!!errors.dob}
-                        isRTL={isRTL}
-                      />
-                    </View>
-                  </View>
-                  {errors.dob && (
-                    <Text
-                      style={[
-                        styles.errorText,
-                        { textAlign: isRTL ? "right" : "left" },
-                      ]}
-                    >
-                      {errors.dob}
-                    </Text>
-                  )}
-                </View>
-
-                <View>
-                  <View
-                    style={[
-                      styles.genderContainer,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        styles.genderOption,
-                        {
-                          borderColor: C.surface,
-                          backgroundColor: C.surfaceHighlight,
-                        },
-                        gender === "male" && {
-                          borderColor: C.primary,
-                          backgroundColor: `${C.primary}22`,
-                        },
-                      ]}
-                      onPress={() => {
-                        setGender("male");
-                        if (errors.gender)
-                          setErrors({ ...errors, gender: undefined });
-                      }}
-                      disabled={loading}
-                    >
-                      <MaterialCommunityIcons
-                        name="gender-male"
-                        size={20}
-                        color={gender === "male" ? C.primary : C.textSecondary}
-                      />
-                      <Text
-                        style={[
-                          styles.genderText,
-                          {
-                            color:
-                              gender === "male" ? C.primary : C.textSecondary,
-                          },
-                        ]}
-                      >
-                        {t(language, "auth.genderMale")}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.genderOption,
-                        {
-                          borderColor: C.surface,
-                          backgroundColor: C.surfaceHighlight,
-                        },
-                        gender === "female" && {
-                          borderColor: C.primary,
-                          backgroundColor: `${C.primary}22`,
-                        },
-                      ]}
-                      onPress={() => {
-                        setGender("female");
-                        if (errors.gender)
-                          setErrors({ ...errors, gender: undefined });
-                      }}
-                      disabled={loading}
-                    >
-                      <MaterialCommunityIcons
-                        name="gender-female"
-                        size={20}
-                        color={
-                          gender === "female" ? C.primary : C.textSecondary
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.genderText,
-                          {
-                            color:
-                              gender === "female" ? C.primary : C.textSecondary,
-                          },
-                        ]}
-                      >
-                        {t(language, "auth.genderFemale")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  {errors.gender && (
-                    <Text
-                      style={[
-                        styles.errorText,
-                        { textAlign: isRTL ? "right" : "left" },
-                      ]}
-                    >
-                      {errors.gender}
-                    </Text>
-                  )}
-                </View>
+                </TouchableOpacity>
               </>
             )}
-
-            {!isForgotPassword && (
-              <View>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      isRTL ? styles.passwordInputRTL : styles.passwordInput,
-                      errors.password && styles.inputError,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        color: C.text,
-                        borderColor: C.surface,
-                        textAlign: isRTL ? "right" : "left",
-                      },
-                    ]}
-                    placeholder={t(language, "auth.password")}
-                    placeholderTextColor={C.textSecondary}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      if (errors.password)
-                        setErrors({ ...errors, password: undefined });
-                    }}
-                    secureTextEntry={!showPassword}
-                    editable={!loading}
-                    autoComplete="password"
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.eyeButton,
-                      { [isRTL ? "left" : "right"]: 0 },
-                    ]}
-                    onPress={() => setShowPassword(!showPassword)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <MaterialCommunityIcons
-                      name={showPassword ? "eye-off" : "eye"}
-                      size={22}
-                      color={C.textSecondary}
-                    />
-                  </TouchableOpacity>
-                </View>
-                {errors.password && (
-                  <Text
-                    style={[
-                      styles.errorText,
-                      { textAlign: isRTL ? "right" : "left" },
-                    ]}
-                  >
-                    {errors.password}
-                  </Text>
-                )}
-              </View>
-            )}
-
-            {!isForgotPassword && isSignUp && (
-              <View>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      isRTL ? styles.passwordInputRTL : styles.passwordInput,
-                      errors.confirmPassword && styles.inputError,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        color: C.text,
-                        borderColor: C.surface,
-                        textAlign: isRTL ? "right" : "left",
-                      },
-                    ]}
-                    placeholder={t(language, "auth.confirmPassword")}
-                    placeholderTextColor={C.textSecondary}
-                    value={confirmPassword}
-                    onChangeText={(text) => {
-                      setConfirmPassword(text);
-                      if (errors.confirmPassword)
-                        setErrors({ ...errors, confirmPassword: undefined });
-                    }}
-                    secureTextEntry={!showConfirmPassword}
-                    editable={!loading}
-                    autoComplete="password"
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.eyeButton,
-                      { [isRTL ? "left" : "right"]: 0 },
-                    ]}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <MaterialCommunityIcons
-                      name={showConfirmPassword ? "eye-off" : "eye"}
-                      size={22}
-                      color={C.textSecondary}
-                    />
-                  </TouchableOpacity>
-                </View>
-                {errors.confirmPassword && (
-                  <Text
-                    style={[
-                      styles.errorText,
-                      { textAlign: isRTL ? "right" : "left" },
-                    ]}
-                  >
-                    {errors.confirmPassword}
-                  </Text>
-                )}
-              </View>
-            )}
-
-            {!isForgotPassword && !isSignUp && (
-              <TouchableOpacity
-                style={[
-                  styles.rememberMeContainer,
-                  { flexDirection: isRTL ? "row-reverse" : "row" },
-                ]}
-                onPress={() => setRememberMe(!rememberMe)}
-                disabled={loading}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    { borderColor: C.textSecondary },
-                    rememberMe && {
-                      backgroundColor: C.primary,
-                      borderColor: C.primary,
-                    },
-                  ]}
-                >
-                  {rememberMe && (
-                    <MaterialCommunityIcons
-                      name="check"
-                      size={16}
-                      color="#fff"
-                    />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.rememberMeText,
-                    { color: C.text, fontFamily: fontRegular },
-                  ]}
-                >
-                  {t(language, "auth.rememberMe")}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                {
-                  backgroundColor: C.primary,
-                  boxShadow: `0px 4px 8px ${C.primary}4D`,
-                },
-                loading && styles.buttonDisabled,
-              ]}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              <View style={styles.buttonContent}>
-                {loading && (
-                  <Animated.View
-                    style={[styles.spinner, { transform: [{ rotate: spin }] }]}
-                  >
-                    <View style={styles.spinnerInner} />
-                  </Animated.View>
-                )}
-                <Text
-                  style={[
-                    styles.buttonText,
-                    { color: "#fff", fontFamily: fontBold },
-                  ]}
-                >
-                  {isForgotPassword
-                    ? t(language, "auth.sendResetLink").toUpperCase()
-                    : isSignUp
-                      ? t(language, "auth.signUp").toUpperCase()
-                      : t(language, "auth.signIn").toUpperCase()}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {!isForgotPassword && (
-              <TouchableOpacity
-                style={styles.forgotPassword}
-                onPress={() => {
-                  setIsForgotPassword(true);
-                  setErrors({});
-                  setEmail("");
-                  setPassword("");
-                }}
-                disabled={loading}
-              >
-                <Text
-                  style={[
-                    styles.forgotPasswordText,
-                    { color: C.primary, fontFamily: fontSemibold },
-                  ]}
-                >
-                  {t(language, "auth.forgotPassword")}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={styles.switchButton}
-              onPress={() => {
-                if (isForgotPassword) {
-                  setIsForgotPassword(false);
-                } else {
-                  setIsSignUp(!isSignUp);
-                }
-                setErrors({});
-                setEmail("");
-                setConfirmPassword("");
-                setPassword("");
-                setFullName("");
-                setBirthDay("");
-                setBirthMonth("");
-                setBirthYear("");
-                setGender("");
-              }}
-              disabled={loading}
-            >
-              <Text
-                style={[
-                  styles.switchText,
-                  { color: C.textSecondary, fontFamily: fontRegular },
-                ]}
-              >
-                {isForgotPassword
-                  ? t(language, "auth.backToSignIn")
-                  : isSignUp
-                    ? t(language, "auth.haveAccount")
-                    : t(language, "auth.noAccount")}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <Toast

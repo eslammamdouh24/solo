@@ -44,11 +44,13 @@ export const translations = {
       resetConfirm: "Reset",
       deleteTitle: "Delete Account?",
       deleteMessage:
-        "This will permanently delete your account and all game progress. You will need to create a new account. This action cannot be undone.",
+        "Your account will be deactivated and scheduled for permanent deletion after 30 days. You can recover your account by signing in again within 30 days.",
       deleteConfirm: "Delete Account",
       resetSuccess: "Your progress has been reset",
       resetError: "Failed to reset progress",
       deleteError: "Failed to delete account",
+      deleteSuccess:
+        "Your account has been deactivated. You can recover it within 30 days by signing in again.",
       permissionDenied: "Permission Denied",
       photoPermission: "You need to allow access to your photos",
       personalInfo: "PERSONAL INFORMATION",
@@ -113,6 +115,14 @@ export const translations = {
       invalidCredentials: "Invalid email or password. Please try again.",
       emailNotVerified: "Please verify your email address first.",
       accountNotFound: "No account found with this email.",
+      accountRestored: "Welcome back! Your account has been restored.",
+      accountExpired:
+        "Your account was deleted over 30 days ago and has been permanently removed.",
+      newPassword: "New Password (min 8 characters)",
+      confirmNewPassword: "Confirm New Password",
+      changePassword: "Change Password",
+      setNewPassword: "Set New Password",
+      passwordChanged: "Password changed successfully! You can now sign in.",
     },
     // Common
     common: {
@@ -319,11 +329,12 @@ export const translations = {
       resetConfirm: "إعادة",
       deleteTitle: "حذف الحساب؟",
       deleteMessage:
-        "ده هيمسح حسابك نهائي وكل تقدمك في اللعبة. هتحتاج تعمل حساب جديد. مفيش رجوع بعد كده.",
+        "حسابك هيتوقف وهيتحذف نهائي بعد ٣٠ يوم. تقدر ترجع حسابك لو سجلت دخول تاني خلال ٣٠ يوم.",
       deleteConfirm: "حذف الحساب",
       resetSuccess: "تم إعادة تقدمك",
       resetError: "مقدرناش نعيد التقدم",
       deleteError: "مقدرناش نمسح الحساب",
+      deleteSuccess: "حسابك اتوقف. تقدر ترجعه خلال ٣٠ يوم لو سجلت دخول تاني.",
       permissionDenied: "الإذن مرفوض",
       photoPermission: "لازم تسمح بالوصول للصور بتاعتك",
       personalInfo: "المعلومات الشخصية",
@@ -387,6 +398,13 @@ export const translations = {
       invalidCredentials: "إيميل أو كلمة سر غلط. جرب تاني.",
       emailNotVerified: "لازم تأكد الإيميل بتاعك الأول.",
       accountNotFound: "ملقيناش حساب بالإيميل ده.",
+      accountRestored: "أهلاً بيك تاني! حسابك رجع زي الأول.",
+      accountExpired: "حسابك اتحذف من أكتر من ٣٠ يوم واتمسح نهائي.",
+      newPassword: "كلمة السر الجديدة (٨ حروف على الأقل)",
+      confirmNewPassword: "تأكيد كلمة السر الجديدة",
+      changePassword: "تغيير كلمة السر",
+      setNewPassword: "كلمة سر جديدة",
+      passwordChanged: "كلمة السر اتغيرت بنجاح! تقدر تسجل دخول دلوقتي.",
     },
     // Common
     common: {

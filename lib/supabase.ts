@@ -32,7 +32,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: createStorageAdapter(),
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: Platform.OS === "web",
   },
 });
 
@@ -56,4 +56,5 @@ export interface GameState {
   daily_bonus_claimed: string | null;
   session_count: number;
   updated_at: string;
+  deleted_at: string | null;
 }

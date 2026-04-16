@@ -83,7 +83,7 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
 }
 
 function RootLayoutNav() {
-  const { user, loading, signInInProgress } = useAuth();
+  const { user, loading, signInInProgress, isPasswordRecovery } = useAuth();
   const C = useColors();
   const segments = useSegments();
   const router = useRouter();
@@ -95,14 +95,20 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === "auth";
 
+    // If in password recovery mode, always show auth screen
+    if (isPasswordRecovery && !inAuthGroup) {
+      router.replace("/auth");
+      return;
+    }
+
     if (!user && !inAuthGroup) {
       // Redirect to auth screen if not logged in
       router.replace("/auth");
-    } else if (user && inAuthGroup) {
-      // Redirect to main app if logged in
+    } else if (user && inAuthGroup && !isPasswordRecovery) {
+      // Redirect to main app if logged in (but NOT during password recovery)
       router.replace("/");
     }
-  }, [user, loading, segments, signInInProgress]);
+  }, [user, loading, segments, signInInProgress, isPasswordRecovery]);
 
   if (loading) {
     return (
