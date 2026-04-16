@@ -184,11 +184,11 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
           }),
         ]),
         // Hold longer
-        Animated.delay(2000),
+        Animated.delay(3500),
         // Fade out
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 500,
+          duration: 600,
           useNativeDriver: Platform.OS !== "web",
         }),
       ]).start(() => {
