@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo App Icon Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .icon-container {
+            margin: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .instructions h2 {
+            margin-top: 0;
+        }
+        .instructions code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        .size-label {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Solo App Icon</h1>
+    
+    <!-- Main Icon (1024x1024) -->
+    <div class="icon-container">
+        <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" id="mainIcon">
+            <!-- Background -->
+            <rect width="1024" height="1024" fill="#0A0E27" rx="226"/>
+            
+            <!-- Simple S Letter Form -->
+            <g transform="translate(512, 512)">
+                <!-- Modern S shape with geometric blocks -->
+                <path d="M -140 -200 L 140 -200 L 140 -80 L -40 -80 L -40 0 L 140 0 L 140 120 L -140 120 L -140 0 L 40 0 L 40 -80 L -140 -80 Z" 
+                      fill="#00E5FF" 
+                      stroke="none"/>
+                
+                <!-- Minimal accent dot -->
+                <circle cx="180" cy="-180" r="35" fill="#00E5FF"/>
+            </g>
+        </svg>
+        <div class="size-label">1024 × 1024 px (Main Icon)</div>
+    </div>
+
+    <!-- Android Foreground (432x432) -->
+    <div class="icon-container">
+        <svg width="432" height="432" viewBox="0 0 432 432" xmlns="http://www.w3.org/2000/svg" id="androidForeground">
+            <g transform="translate(216, 216)">
+                <!-- Modern S shape -->
+                <path d="M -60 -85 L 60 -85 L 60 -34 L -17 -34 L -17 0 L 60 0 L 60 51 L -60 51 L -60 0 L 17 0 L 17 -34 L -60 -34 Z" 
+                      fill="#00E5FF" 
+                      stroke="none"/>
+                
+                <!-- Accent dot -->
+                <circle cx="77" cy="-77" r="15" fill="#00E5FF"/>
+            </g>
+        </svg>
+        <div class="size-label">432 × 432 px (Android Foreground - transparent)</div>
+    </div>
+
+    <div class="instructions">
+        <h2>📱 How to Use These Icons</h2>
+        <ol>
+            <li><strong>Right-click on each icon above</strong> and save as PNG:
+                <ul>
+                    <li>Main Icon → save as <code>icon.png</code> (1024×1024)</li>
+                    <li>Android Foreground → save as <code>android-icon-foreground.png</code> (432×432)</li>
+                </ul>
+            </li>
+            <li><strong>Move files</strong> to <code>assets/images/</code></li>
+            <li><strong>Generate all sizes automatically:</strong><br>
+                <code>npx @expo/image-utils resize-icons assets/images/icon.png</code>
+            </li>
+            <li><strong>For Android adaptive icon:</strong>
+                <ul>
+                    <li>Background is solid color (already set in app.json: #E6F4FE)</li>
+                    <li>Or create <code>android-icon-background.png</code> with your preferred design</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <h3>Alternative: Screenshot Method</h3>
+        <p>If right-click save doesn't work:</p>
+        <ol>
+            <li>Take a screenshot of each icon</li>
+            <li>Crop to exact dimensions</li>
+            <li>Save as PNG with the filenames above</li>
+        </ol>
+
+        <h3>Quick Command</h3>
+        <p>After saving the icons, run:</p>
+        <code style="display: block; margin: 10px 0;">npm start -- --clear</code>
+        <p>This will clear the cache and load your new icon.</p>
+    </div>
+
+    <script>
+        // Add download buttons
+        function downloadSVG(svgId, filename) {
+            const svg = document.getElementById(svgId);
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                });
+                
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+
+        // Add download buttons to each container
+        const containers = document.querySelectorAll('.icon-container');
+        containers[0].innerHTML += '<button onclick="downloadSVG(\'mainIcon\', \'icon.png\')" style="margin-top: 10px; padding: 10px 20px; background: #00E5FF; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Download PNG</button>';
+        containers[1].innerHTML += '<button onclick="downloadSVG(\'androidForeground\', \'android-icon-foreground.png\')" style="margin-top: 10px; padding: 10px 20px; background: #00E5FF; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Download PNG</button>';
+    </script>
+</body>
+</html>
