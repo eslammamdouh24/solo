@@ -1,7 +1,15 @@
 import { MuscleGroup } from "@/constants/exercises";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import {
+    getGameState,
+    saveGameState as saveGameStateToDb,
+    updateGameState as updateGameStateInDb,
+} from "@/lib/stateApi";
 import { useCallback, useEffect, useState } from "react";
+
+// Global cache to prevent multiple API calls for the same user
+const globalData = new Map<string, GameStateData>();
+const loadingPromises = new Map<string, Promise<GameStateData>>();
 
 interface GameStateData {
   level: number;
@@ -33,6 +41,23 @@ export const useGameStateWithDB = () => {
   );
   const [sessionCount, setSessionCount] = useState(0);
 
+  // Helper to apply data from DB (handles snake_case from raw Supabase rows)
+  const applyData = (data: any) => {
+    setLevel(data.level ?? 1);
+    setXp(data.xp ?? 0);
+    setStrength(data.strength ?? 0);
+    setEndurance(data.endurance ?? 0);
+    setDiscipline(data.discipline ?? 0);
+    setSkillPoints(data.skill_points ?? data.skillPoints ?? 0);
+    setCurrentStreak(data.current_streak ?? data.currentStreak ?? 0);
+    setLastWorkoutDate(data.last_workout_date ?? data.lastWorkoutDate ?? null);
+    setDailyBonusClaimed(
+      data.daily_bonus_claimed ?? data.dailyBonusClaimed ?? null,
+    );
+    setSessionCount(data.session_count ?? data.sessionCount ?? 0);
+    setLoading(false);
+  };
+
   // Load game state from database
   const loadGameState = useCallback(async () => {
     if (!user) {
@@ -40,12 +65,23 @@ export const useGameStateWithDB = () => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from("game_states")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+    // Check if already loading
+    if (loadingPromises.has(user.id)) {
+      const data = await loadingPromises.get(user.id)!;
+      applyData(data);
+      return;
+    }
+
+    // Check global cache first
+    if (globalData.has(user.id)) {
+      const cached = globalData.get(user.id)!;
+      applyData(cached);
+      return;
+    }
+
+    // Start loading
+    const loadPromise = (async (): Promise<GameStateData> => {
+      const { data, error } = await getGameState(user.id);
 
       // If no game state exists, create one
       if (error && error.code === "PGRST116") {
@@ -54,81 +90,62 @@ export const useGameStateWithDB = () => {
         for (let attempt = 0; attempt < 3; attempt++) {
           await new Promise((r) => setTimeout(r, 500));
 
-          const { data: rechecked } = await supabase
-            .from("game_states")
-            .select("*")
-            .eq("user_id", user.id)
-            .maybeSingle();
+          const { data: rechecked, error: retryError } = await getGameState(
+            user.id,
+          );
 
+          if (retryError) continue;
           if (rechecked) {
-            setLevel(rechecked.level);
-            setXp(rechecked.xp);
-            setStrength(rechecked.strength);
-            setEndurance(rechecked.endurance);
-            setDiscipline(rechecked.discipline);
-            setSkillPoints(rechecked.skill_points);
-            setCurrentStreak(rechecked.current_streak);
-            setLastWorkoutDate(rechecked.last_workout_date);
-            setDailyBonusClaimed(rechecked.daily_bonus_claimed);
-            setSessionCount(rechecked.session_count);
-            return; // Done — signUp created the state
+            globalData.set(user.id, rechecked);
+            return rechecked;
           }
         }
 
         // After retries, still no data — create it ourselves
-        const { data: newData } = await supabase
-          .from("game_states")
-          .upsert(
-            [
-              {
-                user_id: user.id,
-                level: 1,
-                xp: 0,
-                strength: 0,
-                endurance: 0,
-                discipline: 0,
-                skill_points: 0,
-                current_streak: 0,
-                last_workout_date: null,
-                daily_bonus_claimed: null,
-                session_count: 0,
-              },
-            ],
-            { onConflict: "user_id" },
-          )
-          .select()
-          .single();
+        const { data: newData, error: createError } = await saveGameStateToDb(
+          user.id,
+          {
+            level: 1,
+            xp: 0,
+            strength: 0,
+            endurance: 0,
+            discipline: 0,
+            skill_points: 0,
+            current_streak: 0,
+            last_workout_date: null,
+            daily_bonus_claimed: null,
+            session_count: 0,
+          },
+        );
 
-        if (newData) {
-          setLevel(newData.level);
-          setXp(newData.xp);
-          setStrength(newData.strength);
-          setEndurance(newData.endurance);
-          setDiscipline(newData.discipline);
-          setSkillPoints(newData.skill_points);
-          setCurrentStreak(newData.current_streak);
-          setLastWorkoutDate(newData.last_workout_date);
-          setDailyBonusClaimed(newData.daily_bonus_claimed);
-          setSessionCount(newData.session_count);
+        if (createError) {
+          console.error("Error creating game state:", createError);
+          throw createError;
+        } else if (newData) {
+          globalData.set(user.id, newData);
+          return newData;
         }
       } else if (error) {
         console.error("Error loading game state:", error);
+        throw error;
       } else if (data) {
-        setLevel(data.level);
-        setXp(data.xp);
-        setStrength(data.strength);
-        setEndurance(data.endurance);
-        setDiscipline(data.discipline);
-        setSkillPoints(data.skill_points);
-        setCurrentStreak(data.current_streak);
-        setLastWorkoutDate(data.last_workout_date);
-        setDailyBonusClaimed(data.daily_bonus_claimed);
-        setSessionCount(data.session_count);
+        globalData.set(user.id, data);
+        return data;
       }
+
+      throw new Error("No data returned");
+    })();
+
+    loadingPromises.set(user.id, loadPromise);
+
+    try {
+      const data = await loadPromise;
+      applyData(data);
     } catch (error) {
       console.error("Error loading game state:", error);
-    } finally {
       setLoading(false);
+    } finally {
+      loadingPromises.delete(user.id);
     }
   }, [user]);
 
@@ -143,6 +160,10 @@ export const useGameStateWithDB = () => {
     try {
       const updatePayload: Record<string, any> = {
         updated_at: new Date().toISOString(),
+        username:
+          user.user_metadata?.username ||
+          user.email?.split("@")[0] ||
+          "Unknown",
       };
 
       if (state.level !== undefined) updatePayload.level = state.level;
@@ -163,10 +184,7 @@ export const useGameStateWithDB = () => {
       if (state.sessionCount !== undefined)
         updatePayload.session_count = state.sessionCount;
 
-      const { error } = await supabase
-        .from("game_states")
-        .update(updatePayload)
-        .eq("user_id", user.id);
+      const { error } = await updateGameStateInDb(user.id, updatePayload);
 
       if (error) {
         console.error("Error saving game state:", error);
@@ -342,6 +360,9 @@ export const useGameStateWithDB = () => {
     setDailyBonusClaimed(null);
     setSessionCount(0);
 
+    // Clear global cache
+    globalData.delete(user.id);
+
     // Update database
     await saveGameState(initialState);
   };
@@ -374,7 +395,10 @@ export const useGameStateWithDB = () => {
     upgradeDiscipline,
     batchUpdate,
     resetProgress,
-    refetch: loadGameState,
+    refetch: useCallback(async () => {
+      if (user) globalData.delete(user.id);
+      await loadGameState();
+    }, [user, loadGameState]),
   };
 };
 

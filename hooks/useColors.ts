@@ -1,4 +1,5 @@
-import { Colors } from "@/constants/theme-colors";
+import { Colors } from "@/constants/colors";
+import { Theme } from "@/constants/enums";
 import { useApp } from "@/contexts/AppContext";
 import { useMemo } from "react";
 
@@ -10,7 +11,7 @@ export function useColors() {
   const { theme } = useApp();
 
   return useMemo(() => {
-    if (theme === "light") {
+    if (theme === Theme.LIGHT) {
       return {
         ...Colors,
         // Core

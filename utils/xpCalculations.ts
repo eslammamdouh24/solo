@@ -58,7 +58,3 @@ export const applyStreakMultiplier = (xp: number, streak: number): number => {
 export const calculateStatBonus = (statValue: number): number => {
   return 1 + statValue * 0.01;
 };
-
-export const isBossLevel = (level: number): boolean => {
-  return level % 5 === 0;
-};

@@ -1,9 +1,6 @@
-import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+import { Colors } from "@/constants/colors";
+import { FontSize } from "@/constants/font-size";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useRef } from "react";

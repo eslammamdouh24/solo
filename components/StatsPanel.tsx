@@ -1,11 +1,8 @@
+import { Colors } from "@/constants/colors";
+import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { STATS_HEADER_ICON } from "@/constants/stats";
-import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -29,6 +26,9 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({
   endurance,
   discipline,
   skillPoints,
+  onUpgradeStrength,
+  onUpgradeEndurance,
+  onUpgradeDiscipline,
 }) => {
   const C = useColors();
   const { language } = useApp();
@@ -79,16 +79,22 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({
           label={t(language, "stats.strength").toUpperCase()}
           value={strength}
           iconName="strength"
+          onUpgrade={onUpgradeStrength}
+          canUpgrade={!!skillPoints && skillPoints > 0}
         />
         <StatRow
           label={t(language, "stats.endurance").toUpperCase()}
           value={endurance}
           iconName="endurance"
+          onUpgrade={onUpgradeEndurance}
+          canUpgrade={!!skillPoints && skillPoints > 0}
         />
         <StatRow
           label={t(language, "stats.discipline").toUpperCase()}
           value={discipline}
           iconName="discipline"
+          onUpgrade={onUpgradeDiscipline}
+          canUpgrade={!!skillPoints && skillPoints > 0}
         />
       </View>
     </View>

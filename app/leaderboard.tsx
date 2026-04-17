@@ -1,11 +1,8 @@
 import { TopBar } from "@/components/TopBar";
+import { Colors } from "@/constants/colors";
+import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
-import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,18 +12,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 interface LeaderboardEntry {
   user_id: string;
-  email: string;
+  username: string;
   level: number;
   xp: number;
   total_stats: number;
@@ -56,6 +52,7 @@ export default function LeaderboardScreen() {
         .select(
           `
           user_id,
+          username,
           level,
           xp,
           strength,
@@ -65,19 +62,19 @@ export default function LeaderboardScreen() {
         `,
         )
         .order(timeFilter === "level" ? "level" : "xp", { ascending: false })
+        .order(timeFilter === "level" ? "xp" : "level", { ascending: false })
         .limit(100);
 
       if (error) throw error;
 
       if (data) {
-        // Get user emails from auth.users
-        const leaderboardData: LeaderboardEntry[] = await Promise.all(
-          data.map(async (entry, index) => ({
+        const leaderboardData: LeaderboardEntry[] = data.map(
+          (entry, index) => ({
             ...entry,
-            email: `User ${index + 1}`, // Simplified - would need to join with users table
+            username: entry.username || `Player ${index + 1}`,
             total_stats: entry.strength + entry.endurance + entry.discipline,
             rank: index + 1,
-          })),
+          }),
         );
 
         setLeaderboard(leaderboardData);
@@ -104,22 +101,13 @@ export default function LeaderboardScreen() {
     if (rank === 1) return "trophy";
     if (rank === 2) return "medal";
     if (rank === 3) return "medal-outline";
-    return "numeric-" + rank;
+    if (rank <= 9) return "numeric-" + rank;
+    return "account";
   };
 
   return (
     <View style={[styles.container, { backgroundColor: C.background }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TopBar showBack />
-      </View>
-
-      {/* Screen Title */}
-      <Text
-        style={[styles.screenTitle, { color: C.text, fontFamily: fontBold }]}
-      >
-        {t(language, "leaderboard.title")}
-      </Text>
+      <TopBar showBack title={t(language, "leaderboard.title")} />
 
       {/* Filter Tabs */}
       <View
@@ -177,8 +165,11 @@ export default function LeaderboardScreen() {
           <ActivityIndicator size="large" color={C.primary} />
         </View>
       ) : (
-        <ScrollView style={styles.listContainer}>
-          {leaderboard.map((entry) => (
+        <FlatList
+          data={leaderboard}
+          keyExtractor={(item) => item.user_id}
+          style={styles.listContainer}
+          renderItem={({ item: entry }) => (
             <View
               key={entry.user_id}
               style={[
@@ -226,9 +217,9 @@ export default function LeaderboardScreen() {
                   ]}
                   numberOfLines={1}
                 >
-                  {entry.user_id === user?.id
-                    ? t(language, "common.you")
-                    : entry.email}
+                  {entry.username}
+                  {entry.user_id === user?.id &&
+                    ` (${t(language, "common.you")})`}
                 </Text>
                 <View
                   style={[
@@ -299,8 +290,8 @@ export default function LeaderboardScreen() {
                 </View>
               </View>
             </View>
-          ))}
-        </ScrollView>
+          )}
+        />
       )}
     </View>
   );
@@ -311,11 +302,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === "web" ? Spacing.md : 50,
-    paddingBottom: Spacing.sm,
-  },
+
   screenTitle: {
     fontSize: FontSize.xxl,
     fontWeight: "900",

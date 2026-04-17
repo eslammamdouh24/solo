@@ -1,63 +1,60 @@
 import { CardioGrid } from "@/components/CardioGrid";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { LevelUpCelebration } from "@/components/LevelUpCelebration";
-import {
-  getMilestoneBonusXP,
-  MilestoneModal,
-} from "@/components/MilestoneModal";
+import { MilestoneModal } from "@/components/MilestoneModal";
 import { MuscleGroupGrid } from "@/components/MuscleGroupGrid";
 import { StatsPanel } from "@/components/StatsPanel";
 import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import { XPBar } from "@/components/XPBar";
+import { Colors } from "@/constants/colors";
 import {
-  calculateCardioXP,
-  calculateXP,
-  CardioType,
-  EXERCISES,
-  MuscleGroup,
+    calculateCardioXP,
+    calculateXP,
+    CardioType,
+    EXERCISES,
+    MuscleGroup,
 } from "@/constants/exercises";
+import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
-import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+import { getMilestoneBonusXP } from "@/constants/milestones";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { useFloatingXP } from "@/hooks/useFloatingXP";
 import {
-  useDiminishingReturns,
-  useGameStateWithDB,
+    useDiminishingReturns,
+    useGameStateWithDB,
 } from "@/hooks/useGameStateWithDB";
 import { useSound } from "@/hooks/useSound";
 import {
-  calculateStreakPenalty,
-  updateStatsForWorkout,
-  updateStreak,
+    calculateNewStreak,
+    calculateStreakPenalty,
+    getStatGains,
+    updateStatsForWorkout,
 } from "@/utils/workoutHelpers";
 import { calculateBonuses, processWorkout } from "@/utils/workoutProcessor";
 import {
-  calculateStatBonus,
-  getRequiredXP,
-  safeNumber,
+    calculateStatBonus,
+    getDayDiff,
+    getRequiredXP,
+    getToday,
+    safeNumber,
 } from "@/utils/xpCalculations";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 export default function HomeScreen() {
@@ -128,9 +125,9 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Simply reload the component will re-fetch from database
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+    await gameState.refetch();
+    setRefreshing(false);
+  }, [gameState.refetch]);
 
   const handleLogWorkout = (muscleGroup: MuscleGroup) => {
     const {
@@ -144,8 +141,6 @@ export default function HomeScreen() {
       setDailyBonusClaimed,
       setSessionCount,
     } = gameState;
-
-    console.log("[Solo] Workout:", { muscleGroup, level, xp });
 
     // Calculate base XP with diminishing returns
     const dimMultiplier = diminishingReturns.calculateMultiplier(muscleGroup);
@@ -189,10 +184,22 @@ export default function HomeScreen() {
     }
 
     // Batch update: single DB write with all values
+    const statGains = getStatGains(muscleGroup);
+    const newStreak = calculateNewStreak(
+      gameState.lastWorkoutDate,
+      currentStreak,
+    );
+    const today = getToday();
+
     gameState.batchUpdate({
       level: result.newLevel,
       xp: finalXp,
       skillPoints: result.newSkillPoints,
+      strength: gameState.strength + statGains.strength,
+      endurance: gameState.endurance + statGains.endurance,
+      discipline: discipline + statGains.discipline,
+      currentStreak: newStreak,
+      lastWorkoutDate: today,
     });
 
     if (result.newLevel > level) {
@@ -209,22 +216,6 @@ export default function HomeScreen() {
       setMilestoneLevel(result.milestoneLevel);
       setMilestoneVisible(true);
     }
-
-    // Update streak
-    updateStreak({
-      lastWorkoutDate: gameState.lastWorkoutDate,
-      currentStreak,
-      setCurrentStreak: gameState.setCurrentStreak,
-      setLastWorkoutDate: gameState.setLastWorkoutDate,
-    });
-
-    // Update stats
-    updateStatsForWorkout({
-      muscleGroup,
-      setStrength: gameState.setStrength,
-      setEndurance: gameState.setEndurance,
-      setDiscipline: gameState.setDiscipline,
-    });
 
     // Show feedback
     showFloatingXP(sessionXP, [...messages, ...result.messages]);
@@ -243,23 +234,24 @@ export default function HomeScreen() {
       setSessionCount,
     } = gameState;
 
-    console.log("[Solo] Cardio:", { cardioType, level, xp });
-
     // Reset diminishing returns for cardio
     diminishingReturns.reset();
 
     // Calculate cardio XP
     const baseXP = calculateCardioXP(30);
     const statBonus = calculateStatBonus(endurance);
-    const { xp: sessionXP, messages } = calculateBonuses({
+    const {
+      xp: sessionXP,
+      messages,
+      newDailyBonusClaimed,
+      newSessionCount,
+    } = calculateBonuses({
       baseXP,
       currentStreak,
       statBonus,
       discipline,
       dailyBonusClaimed,
       sessionCount,
-      setDailyBonusClaimed,
-      setSessionCount,
       language,
     });
 
@@ -284,41 +276,31 @@ export default function HomeScreen() {
       finalXp += bonusXP;
     }
 
+    // Update streak and stats
+    const today = getToday();
+    let newStreak = currentStreak;
+    if (!gameState.lastWorkoutDate) {
+      newStreak = 1;
+    } else {
+      const diff = getDayDiff(today, gameState.lastWorkoutDate);
+      if (diff === 1) {
+        newStreak = currentStreak + 1;
+      } else if (diff > 1) {
+        newStreak = 1;
+      }
+    }
+
     // Batch update: single DB write with all values
     gameState.batchUpdate({
       level: result.newLevel,
       xp: finalXp,
       skillPoints: result.newSkillPoints,
-    });
-
-    if (result.newLevel > level) {
-      playLevelUpSound();
-      // Show level-up celebration
-      setNewLevel(result.newLevel);
-      setLevelUpVisible(true);
-    } else if (sessionXP > 0) {
-      playXPSound();
-    }
-
-    // Check for milestone
-    if (result.milestoneReached && result.milestoneLevel) {
-      setMilestoneLevel(result.milestoneLevel);
-      setMilestoneVisible(true);
-    }
-
-    // Update streak and stats
-    updateStreak({
-      lastWorkoutDate: gameState.lastWorkoutDate,
-      currentStreak,
-      setCurrentStreak: gameState.setCurrentStreak,
-      setLastWorkoutDate: gameState.setLastWorkoutDate,
-    });
-
-    updateStatsForWorkout({
-      muscleGroup: "cardio",
-      setStrength: gameState.setStrength,
-      setEndurance: gameState.setEndurance,
-      setDiscipline: gameState.setDiscipline,
+      currentStreak: newStreak,
+      lastWorkoutDate: today,
+      endurance: endurance + 2,
+      discipline: discipline + 1,
+      dailyBonusClaimed: newDailyBonusClaimed || dailyBonusClaimed,
+      sessionCount: newSessionCount || sessionCount,
     });
 
     showFloatingXP(sessionXP, [...messages, ...result.messages]);
@@ -336,6 +318,7 @@ export default function HomeScreen() {
     "biceps",
     "triceps",
     "legs",
+    "forearms",
   ];
 
   const muscleLabels: Record<MuscleGroup, string> = {
@@ -346,15 +329,13 @@ export default function HomeScreen() {
     biceps: t(language, "muscles.biceps"),
     triceps: t(language, "muscles.triceps"),
     abs: t(language, "muscles.abs"),
+    forearms: t(language, "muscles.forearms"),
   };
 
   return (
     <>
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        {/* Sticky Header */}
-        <View style={[styles.stickyHeader, { backgroundColor: C.background }]}>
-          <TopBar />
-        </View>
+        <TopBar />
 
         <ScrollView
           contentContainerStyle={styles.content}
@@ -428,7 +409,12 @@ export default function HomeScreen() {
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <MuscleGroupGrid
                 muscleGroups={muscleGroups}
-                onPress={handleLogWorkout}
+                onPress={(group) =>
+                  router.push({
+                    pathname: "/exercise-list",
+                    params: { muscle: group },
+                  })
+                }
                 labels={muscleLabels}
               />
             </View>
@@ -580,11 +566,7 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     gap: Spacing.xxl,
   },
-  stickyHeader: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === "web" ? Spacing.md : 50,
-    paddingBottom: Spacing.md,
-  },
+
   profileCard: {
     alignItems: "center",
     paddingVertical: Spacing.lg,

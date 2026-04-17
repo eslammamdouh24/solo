@@ -138,6 +138,8 @@ function RootLayoutNav() {
       <Stack.Screen name="index" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="leaderboard" />
+      <Stack.Screen name="exercise-list" />
+      <Stack.Screen name="exercise-detail" />
     </Stack>
   );
 }

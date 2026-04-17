@@ -1,5 +1,7 @@
-import { getFont } from "@/constants/fonts";
-import { BorderRadius, FontSize, Spacing } from "@/constants/theme-colors";
+import { Language, Theme, isRTL as checkRTL, isWeb } from "@/constants/enums";
+import { FontSize } from "@/constants/font-size";
+import { fonts, getFont } from "@/constants/fonts";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -11,109 +13,133 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 interface TopBarProps {
   showBack?: boolean;
   hideLogo?: boolean;
+  title?: string;
 }
 
-export function TopBar({ showBack = false, hideLogo = false }: TopBarProps) {
+export function TopBar({
+  showBack = false,
+  hideLogo = false,
+  title,
+}: TopBarProps) {
   const { theme, language, toggleTheme, setLanguage } = useApp();
   const C = useColors();
   const router = useRouter();
-  const isRTL = language === "ar";
+  const isRTL = checkRTL(language);
   const fontBlack = getFont(language, "black");
 
   return (
-    <View
-      style={[
-        styles.container,
-        { flexDirection: isRTL ? "row-reverse" : "row" },
-      ]}
-    >
-      {/* Left side: Back arrow + SOLO logo + slogan */}
+    <View style={[styles.wrapper, { backgroundColor: C.background }]}>
       <View
         style={[
-          styles.leftSide,
+          styles.container,
           { flexDirection: isRTL ? "row-reverse" : "row" },
         ]}
       >
-        {showBack && (
+        {/* Left side: Back arrow + SOLO logo + slogan */}
+        <View
+          style={[
+            styles.leftSide,
+            { flexDirection: isRTL ? "row-reverse" : "row" },
+          ]}
+        >
+          {showBack && (
+            <TouchableOpacity
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
+              style={styles.backButton}
+              hitSlop={8}
+            >
+              <MaterialCommunityIcons
+                name={isRTL ? "arrow-right" : "arrow-left"}
+                size={22}
+                color={C.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
+          {!hideLogo && (
+            <TouchableOpacity
+              onPress={() => router.push("/")}
+              activeOpacity={0.7}
+              style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}
+            >
+              <Text
+                style={[
+                  styles.logoText,
+                  { color: C.primary, fontFamily: fontBlack },
+                ]}
+              >
+                SOLO
+              </Text>
+              <Text style={[styles.sloganText, { color: C.gold }]}>
+                {t(language, "auth.slogan")}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Right side: Theme + Language toggles */}
+        <View
+          style={[
+            styles.rightSide,
+            { flexDirection: isRTL ? "row-reverse" : "row" },
+          ]}
+        >
           <TouchableOpacity
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-            style={styles.backButton}
+            onPress={toggleTheme}
+            style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
             hitSlop={8}
+            activeOpacity={0.7}
           >
             <MaterialCommunityIcons
-              name={isRTL ? "arrow-right" : "arrow-left"}
-              size={22}
-              color={C.textSecondary}
+              name={theme === Theme.DARK ? "weather-sunny" : "weather-night"}
+              size={20}
+              color={theme === Theme.DARK ? "#FF8C00" : "#FFD700"}
             />
           </TouchableOpacity>
-        )}
-        {!hideLogo && (
           <TouchableOpacity
-            onPress={() => router.push("/")}
+            onPress={() =>
+              setLanguage(language === Language.EN ? Language.AR : Language.EN)
+            }
+            style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
+            hitSlop={8}
             activeOpacity={0.7}
-            style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}
           >
-            <Text
-              style={[
-                styles.logoText,
-                { color: C.primary, fontFamily: fontBlack },
-              ]}
-            >
-              SOLO
-            </Text>
-            <Text style={[styles.sloganText, { color: C.gold }]}>
-              {t(language, "auth.slogan")}
+            <MaterialCommunityIcons
+              name="translate"
+              size={20}
+              color={C.primary}
+            />
+            <Text style={[styles.langText, { color: C.primary }]}>
+              {language === Language.EN ? "AR" : "EN"}
             </Text>
           </TouchableOpacity>
-        )}
+        </View>
       </View>
-
-      {/* Right side: Theme + Language toggles */}
-      <View
-        style={[
-          styles.rightSide,
-          { flexDirection: isRTL ? "row-reverse" : "row" },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={toggleTheme}
-          style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
-          hitSlop={8}
-          activeOpacity={0.7}
+      {title ? (
+        <Text
+          style={[
+            styles.screenTitle,
+            { color: C.text, fontFamily: fonts.en.black },
+          ]}
         >
-          <MaterialCommunityIcons
-            name={theme === "dark" ? "weather-sunny" : "weather-night"}
-            size={20}
-            color={theme === "dark" ? "#FF8C00" : "#FFD700"}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setLanguage(language === "en" ? "ar" : "en")}
-          style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
-          hitSlop={8}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons
-            name="translate"
-            size={20}
-            color={C.primary}
-          />
-          <Text style={[styles.langText, { color: C.primary }]}>
-            {language === "en" ? "AR" : "EN"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {title}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: isWeb ? Spacing.md : 50,
+    paddingBottom: Spacing.sm,
+  },
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -153,5 +179,14 @@ const styles = StyleSheet.create({
   langText: {
     fontSize: FontSize.sm,
     fontWeight: "700",
+  },
+  screenTitle: {
+    fontSize: FontSize.xxl,
+    lineHeight: 30,
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: 3,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
 });

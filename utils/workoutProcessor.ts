@@ -130,8 +130,8 @@ interface BonusCalculationParams {
   discipline: number;
   dailyBonusClaimed: string | null;
   sessionCount: number;
-  setDailyBonusClaimed: (value: string | null) => void;
-  setSessionCount: (value: number) => void;
+  setDailyBonusClaimed?: (value: string | null) => void;
+  setSessionCount?: (value: number) => void;
   language?: Language;
 }
 
@@ -145,7 +145,12 @@ export const calculateBonuses = ({
   setDailyBonusClaimed,
   setSessionCount,
   language = "en",
-}: BonusCalculationParams): { xp: number; messages: string[] } => {
+}: BonusCalculationParams): {
+  xp: number;
+  messages: string[];
+  newDailyBonusClaimed?: string | null;
+  newSessionCount?: number;
+} => {
   let xp = baseXP;
   const messages: string[] = [];
 
@@ -173,16 +178,19 @@ export const calculateBonuses = ({
 
   // Daily bonus
   const today = getToday();
+  let newDailyBonusClaimed = dailyBonusClaimed;
   if (dailyBonusClaimed !== today) {
     const disciplineBonus = calculateStatBonus(discipline);
     const bonusAmount = Math.floor(DAILY_BONUS * disciplineBonus);
     xp += bonusAmount;
     messages.push(t(language, "workout.dailyBonus", { amount: bonusAmount }));
-    setDailyBonusClaimed(today);
+    newDailyBonusClaimed = today;
+    if (setDailyBonusClaimed) setDailyBonusClaimed(today);
   }
 
   // Track session count (for future features if needed)
-  setSessionCount(sessionCount + 1);
+  const newSessionCount = sessionCount + 1;
+  if (setSessionCount) setSessionCount(newSessionCount);
 
-  return { xp, messages };
+  return { xp, messages, newDailyBonusClaimed, newSessionCount };
 };

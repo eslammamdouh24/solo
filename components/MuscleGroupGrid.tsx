@@ -1,16 +1,17 @@
 import { MuscleGroup } from "@/constants/exercises";
 import { getFont } from "@/constants/fonts";
+import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useRef } from "react";
 import {
-  Animated,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 interface MuscleGroupGridProps {
@@ -30,6 +31,7 @@ const MUSCLE_ICONS: Record<
   triceps: "arm-flex-outline",
   abs: "shield-star",
   legs: "shoe-sneaker",
+  forearms: "hand-back-left",
 };
 
 const MuscleCard: React.FC<{
@@ -99,10 +101,11 @@ export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
   labels,
 }) => {
   const C = useColors();
+  const { language } = useApp();
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { color: C.textSecondary }]}>
-        MUSCLE GROUPS
+        {t(language, "home.muscleGroups")}
       </Text>
       <View style={styles.grid}>
         {muscleGroups.map((group, index) => (
@@ -110,7 +113,9 @@ export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
             key={group}
             group={group}
             onPress={() => onPress(group)}
-            isFullWidth={index === muscleGroups.length - 1}
+            isFullWidth={
+              index === muscleGroups.length - 1 && muscleGroups.length % 2 !== 0
+            }
             label={labels?.[group]}
           />
         ))}

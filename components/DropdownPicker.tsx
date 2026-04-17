@@ -1,4 +1,5 @@
-import { BorderRadius, FontSize, Spacing } from "@/constants/theme-colors";
+import { FontSize } from "@/constants/font-size";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";

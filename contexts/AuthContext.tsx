@@ -62,12 +62,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
-      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        const { data: freshUser, error: freshUserError } =
+          await supabase.auth.getUser();
+        if (!freshUserError && freshUser?.user) {
+          setUser(freshUser.user);
+        } else {
+          setUser(session.user);
+        }
+      } else {
+        setUser(null);
+      }
+
       setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
@@ -118,6 +134,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (password.length < 8) {
         throw new Error("Password must be at least 8 characters");
+      }
+
+      // Check if username is already taken
+      if (username) {
+        const { data: existingUser } = await supabase
+          .from("game_states")
+          .select("user_id")
+          .ilike("username", username.trim())
+          .maybeSingle();
+
+        if (existingUser) {
+          throw new Error("USERNAME_TAKEN");
+        }
       }
 
       const { data, error } = await supabase.auth.signUp({

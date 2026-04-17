@@ -2,154 +2,37 @@ import { ConfirmationBottomSheet } from "@/components/ConfirmationBottomSheet";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { TopBar } from "@/components/TopBar";
-import { getFont } from "@/constants/fonts";
+import { Colors } from "@/constants/colors";
 import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+    DAY_OPTIONS,
+    MONTH_OPTIONS,
+    YEAR_OPTIONS,
+} from "@/constants/dob-options";
+import { FontSize } from "@/constants/font-size";
+import { getFont } from "@/constants/fonts";
+import { MILESTONES } from "@/constants/milestones";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { useGameStateWithDB } from "@/hooks/useGameStateWithDB";
-import { supabase } from "@/lib/supabase";
+import { uploadAvatarToStorage } from "@/lib/profileApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
-
-const MILESTONES = [
-  {
-    level: 5,
-    titleKey: "milestone.bronzeChampion",
-    amount: 50,
-    icon: "trophy-outline",
-  },
-  {
-    level: 10,
-    titleKey: "milestone.silverWarrior",
-    amount: 100,
-    icon: "trophy",
-  },
-  {
-    level: 15,
-    titleKey: "milestone.goldAthlete",
-    amount: 200,
-    icon: "trophy-award",
-  },
-  {
-    level: 20,
-    titleKey: "milestone.platinumLegend",
-    amount: 300,
-    icon: "crown",
-  },
-  {
-    level: 25,
-    titleKey: "milestone.diamondMaster",
-    amount: 500,
-    icon: "diamond",
-  },
-  { level: 30, titleKey: "milestone.eliteChampion", amount: 750, icon: "star" },
-  {
-    level: 35,
-    titleKey: "milestone.supremeVictor",
-    amount: 1000,
-    icon: "star-circle",
-  },
-  {
-    level: 40,
-    titleKey: "milestone.legendaryHero",
-    amount: 1500,
-    icon: "medal",
-  },
-  {
-    level: 45,
-    titleKey: "milestone.mythicTitan",
-    amount: 2000,
-    icon: "shield-star",
-  },
-  {
-    level: 50,
-    titleKey: "milestone.ultimateMaster",
-    amount: 3000,
-    icon: "trophy-variant",
-  },
-  // Post-50 milestones
-  {
-    level: 55,
-    titleKey: "milestone.immortalWarrior",
-    amount: 4000,
-    icon: "sword-cross",
-  },
-  {
-    level: 60,
-    titleKey: "milestone.cosmicForce",
-    amount: 5000,
-    icon: "weather-lightning",
-  },
-  {
-    level: 65,
-    titleKey: "milestone.titanSlayer",
-    amount: 6000,
-    icon: "axe-battle",
-  },
-  {
-    level: 70,
-    titleKey: "milestone.dragonHeart",
-    amount: 7500,
-    icon: "fire",
-  },
-  {
-    level: 75,
-    titleKey: "milestone.celestialKing",
-    amount: 9000,
-    icon: "star-shooting",
-  },
-  {
-    level: 80,
-    titleKey: "milestone.eternaChampion",
-    amount: 10000,
-    icon: "infinity",
-  },
-  {
-    level: 85,
-    titleKey: "milestone.shadowMaster",
-    amount: 12000,
-    icon: "ninja",
-  },
-  {
-    level: 90,
-    titleKey: "milestone.warlord",
-    amount: 15000,
-    icon: "creation",
-  },
-  {
-    level: 95,
-    titleKey: "milestone.universalLegend",
-    amount: 18000,
-    icon: "meteor",
-  },
-  {
-    level: 100,
-    titleKey: "milestone.theOne",
-    amount: 25000,
-    icon: "crown-circle",
-  },
-];
 
 export default function ProfileScreen() {
   const { user, signOut, deleteAccount, updateProfile } = useAuth();
@@ -189,30 +72,10 @@ export default function ProfileScreen() {
   const fontBold = getFont(language, "bold");
   const fontBlack = getFont(language, "black");
 
-  // Generate dropdown options for DOB
-  const dayOptions = useMemo(
-    () =>
-      Array.from({ length: 31 }, (_, i) => ({
-        label: String(i + 1).padStart(2, "0"),
-        value: String(i + 1),
-      })),
-    [],
-  );
-  const monthOptions = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        label: String(i + 1).padStart(2, "0"),
-        value: String(i + 1),
-      })),
-    [],
-  );
-  const yearOptions = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    return Array.from({ length: currentYear - 1900 - 12 }, (_, i) => ({
-      label: String(currentYear - 13 - i),
-      value: String(currentYear - 13 - i),
-    }));
-  }, []);
+  useEffect(() => {
+    setProfileImage(user?.user_metadata?.profile_image || null);
+    setImageError(false);
+  }, [user?.user_metadata?.profile_image]);
 
   if (gameState.loading) {
     return (
@@ -303,35 +166,10 @@ export default function ProfileScreen() {
         setImageError(false);
 
         try {
-          // Upload to Supabase Storage
           const userId = user?.id;
           if (!userId) throw new Error("No user ID");
 
-          const fileExt = imageUri.split(".").pop()?.split("?")[0] || "jpg";
-          const fileName = `${userId}/avatar.${fileExt}`;
-
-          // Fetch the image as a blob
-          const response = await fetch(imageUri);
-          const blob = await response.blob();
-
-          // Convert blob to ArrayBuffer for Supabase
-          const arrayBuffer = await new Response(blob).arrayBuffer();
-
-          const { error: uploadError } = await supabase.storage
-            .from("avatars")
-            .upload(fileName, arrayBuffer, {
-              contentType: blob.type || `image/${fileExt}`,
-              upsert: true,
-            });
-
-          if (uploadError) throw uploadError;
-
-          // Get the public URL
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("avatars").getPublicUrl(fileName);
-
-          // Save public URL to user_metadata
+          const publicUrl = await uploadAvatarToStorage(userId, imageUri);
           setProfileImage(publicUrl);
           await updateProfile({ profile_image: publicUrl });
         } catch (error) {
@@ -372,17 +210,7 @@ export default function ProfileScreen() {
   return (
     <>
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        {/* Sticky TopBar */}
-        <View style={[styles.stickyTopBar, { backgroundColor: C.background }]}>
-          <TopBar showBack />
-        </View>
-
-        {/* Screen Title */}
-        <Text
-          style={[styles.screenTitle, { color: C.text, fontFamily: fontBlack }]}
-        >
-          {t(language, "profile.title")}
-        </Text>
+        <TopBar showBack title={t(language, "profile.title")} />
 
         <ScrollView
           contentContainerStyle={styles.content}
@@ -575,7 +403,7 @@ export default function ProfileScreen() {
                     >
                       <View style={{ flex: 1 }}>
                         <DropdownPicker
-                          options={dayOptions}
+                          options={DAY_OPTIONS}
                           value={editBirthDay}
                           onSelect={setEditBirthDay}
                           placeholder={t(language, "auth.birthDay")}
@@ -584,7 +412,7 @@ export default function ProfileScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <DropdownPicker
-                          options={monthOptions}
+                          options={MONTH_OPTIONS}
                           value={editBirthMonth}
                           onSelect={setEditBirthMonth}
                           placeholder={t(language, "auth.birthMonth")}
@@ -593,7 +421,7 @@ export default function ProfileScreen() {
                       </View>
                       <View style={{ flex: 1.5 }}>
                         <DropdownPicker
-                          options={yearOptions}
+                          options={YEAR_OPTIONS}
                           value={editBirthYear}
                           onSelect={setEditBirthYear}
                           placeholder={t(language, "auth.birthYear")}
@@ -1461,11 +1289,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  stickyTopBar: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === "web" ? Spacing.md : 50,
-    paddingBottom: Spacing.sm,
-  },
+
   screenTitle: {
     fontSize: FontSize.xxl,
     fontWeight: "900",

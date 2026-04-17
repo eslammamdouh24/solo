@@ -1,8 +1,6 @@
+import { Language, Theme } from "@/constants/enums";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
-type Language = "en" | "ar";
 
 interface AppContextType {
   theme: Theme;
@@ -12,8 +10,8 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType>({
-  theme: "dark",
-  language: "en",
+  theme: Theme.DARK,
+  language: Language.EN,
   toggleTheme: () => {},
   setLanguage: () => {},
 });
@@ -29,8 +27,8 @@ export const useApp = () => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [language, setLanguageState] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>(Theme.DARK);
+  const [language, setLanguageState] = useState<Language>(Language.EN);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -53,7 +51,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const toggleTheme = async () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
+    const newTheme = theme === Theme.DARK ? Theme.LIGHT : Theme.DARK;
     setTheme(newTheme);
     try {
       await AsyncStorage.setItem("theme", newTheme);

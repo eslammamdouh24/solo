@@ -45,13 +45,6 @@ export const STRETCHING_EXERCISES: StretchingExercise[] = [
 
 export type StretchingType = (typeof STRETCHING_EXERCISES)[number]["name"];
 
-// Balanced stretching XP calculation
-export const calculateStretchingXP = (durationSeconds: number): number => {
-  // 0.5 XP per 15 seconds (reduced for balance)
-  const baseXP = Math.floor((durationSeconds / 15) * 0.5);
-  return Math.max(1, Math.min(4, baseXP)); // 1-4 XP range
-};
-
 // Calculate flexibility/recovery bonus
 export const calculateFlexibilityBonus = (flexibility: number): number => {
   // Each point of flexibility gives 1% recovery bonus

@@ -3,13 +3,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-  Animated,
-  Dimensions,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
+    Animated,
+    Dimensions,
+    Modal,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -215,7 +216,7 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="none">
-      <View style={styles.overlay}>
+      <Pressable style={styles.overlay} onPress={onComplete}>
         {/* Confetti */}
         {confettiPieces.map((piece, i) => {
           const anim = confettiAnims[i];
@@ -259,43 +260,77 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
           ]}
         >
           <LinearGradient
-            colors={["#FFD700", "#FFA500", "#FF8C00"]}
+            colors={["#8B5CF6", "#7C3AED", "#6D28D9"]}
             style={styles.gradient}
           >
-            {/* Trophy Icon */}
-            <MaterialCommunityIcons
-              name="trophy"
-              size={120}
-              color="#FFF"
-              style={styles.trophy}
-            />
+            {/* Hexagonal badge background */}
+            <View style={styles.hexagonContainer}>
+              {/* Star burst effect */}
+              {[...Array(8)].map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.burstLine,
+                    {
+                      transform: [{ rotate: `${i * 45}deg` }],
+                    },
+                  ]}
+                />
+              ))}
 
-            {/* Sparkles */}
+              {/* Center badge */}
+              <View style={styles.badge}>
+                <MaterialCommunityIcons
+                  name="shield-star"
+                  size={80}
+                  color="#FFD700"
+                  style={styles.badgeIcon}
+                />
+              </View>
+            </View>
+
+            {/* Floating sparkles */}
             <MaterialCommunityIcons
-              name="star-four-points"
-              size={40}
-              color="#FFF"
+              name="creation"
+              size={32}
+              color="#FFD700"
               style={[styles.sparkle, styles.sparkle1]}
             />
             <MaterialCommunityIcons
-              name="star-four-points"
-              size={40}
-              color="#FFF"
+              name="creation"
+              size={32}
+              color="#FFD700"
               style={[styles.sparkle, styles.sparkle2]}
             />
             <MaterialCommunityIcons
-              name="star-four-points"
-              size={40}
+              name="star-shooting"
+              size={36}
               color="#FFF"
               style={[styles.sparkle, styles.sparkle3]}
             />
 
             {/* Level Text */}
             <Text style={styles.levelUpText}>{celebrationText}</Text>
-            <Text style={styles.levelNumber}>{level}</Text>
+            <View style={styles.levelContainer}>
+              <Text style={styles.levelLabel}>LEVEL</Text>
+              <Text style={styles.levelNumber}>{level}</Text>
+            </View>
+
+            {/* Dismiss button */}
+            <Pressable style={styles.dismissButton} onPress={onComplete}>
+              <Text style={styles.dismissButtonText}>Continue</Text>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color="#FFF"
+              />
+            </Pressable>
+
+            {/* Tap hint */}
+            <Text style={styles.tapHint}>Tap anywhere to continue</Text>
           </LinearGradient>
         </Animated.View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -303,72 +338,133 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0, 0, 0, 0.85)",
     justifyContent: "center",
     alignItems: "center",
   },
   container: {
-    width: 280,
-    height: 280,
-    borderRadius: 140,
+    width: SCREEN_WIDTH * 0.85,
+    maxWidth: 380,
+    borderRadius: 24,
     overflow: "hidden",
-    boxShadow: "0px 0px 30px rgba(255, 215, 0, 0.8)",
+    elevation: 20,
+    shadowColor: "#8B5CF6",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 30,
   },
   gradient: {
     width: "100%",
-    height: "100%",
-    justifyContent: "center",
+    paddingVertical: 48,
+    paddingHorizontal: 32,
     alignItems: "center",
   },
-  trophy: {
-    marginBottom: 10,
+  hexagonContainer: {
+    width: 160,
+    height: 160,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  burstLine: {
+    position: "absolute",
+    width: 4,
+    height: 80,
+    backgroundColor: "rgba(255, 215, 0, 0.3)",
+    borderRadius: 2,
+  },
+  badge: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 4,
+    borderColor: "rgba(255, 215, 0, 0.5)",
+  },
+  badgeIcon: {
     ...(Platform.OS === "web"
-      ? { textShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)" }
+      ? { textShadow: "0px 4px 12px rgba(0, 0, 0, 0.4)" }
+      : {
+          textShadowColor: "rgba(0, 0, 0, 0.4)",
+          textShadowOffset: { width: 0, height: 4 },
+          textShadowRadius: 12,
+        }),
+  } as any,
+  levelUpText: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: "#FFF",
+    letterSpacing: 2,
+    marginBottom: 16,
+    textAlign: "center",
+    ...(Platform.OS === "web"
+      ? { textShadow: "0px 3px 6px rgba(0, 0, 0, 0.3)" }
       : {
           textShadowColor: "rgba(0, 0, 0, 0.3)",
+          textShadowOffset: { width: 0, height: 3 },
+          textShadowRadius: 6,
+        }),
+  } as any,
+  levelContainer: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  levelLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.7)",
+    letterSpacing: 3,
+    marginBottom: 4,
+  },
+  levelNumber: {
+    fontSize: 64,
+    fontWeight: "900",
+    color: "#FFD700",
+    ...(Platform.OS === "web"
+      ? { textShadow: "0px 4px 8px rgba(0, 0, 0, 0.4)" }
+      : {
+          textShadowColor: "rgba(0, 0, 0, 0.4)",
           textShadowOffset: { width: 0, height: 4 },
           textShadowRadius: 8,
         }),
   } as any,
-  levelUpText: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: "#FFF",
-    letterSpacing: 3,
-    ...(Platform.OS === "web"
-      ? { textShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)" }
-      : {
-          textShadowColor: "rgba(0, 0, 0, 0.3)",
-          textShadowOffset: { width: 0, height: 2 },
-          textShadowRadius: 4,
-        }),
-  } as any,
-  levelNumber: {
-    fontSize: 56,
-    fontWeight: "900",
-    color: "#FFF",
-    ...(Platform.OS === "web"
-      ? { textShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)" }
-      : {
-          textShadowColor: "rgba(0, 0, 0, 0.3)",
-          textShadowOffset: { width: 0, height: 4 },
-          textShadowRadius: 6,
-        }),
-  } as any,
   sparkle: {
     position: "absolute",
-    opacity: 0.8,
+    opacity: 0.9,
   },
   sparkle1: {
-    top: 30,
-    left: 30,
+    top: 60,
+    left: 20,
   },
   sparkle2: {
-    top: 30,
-    right: 30,
+    top: 60,
+    right: 20,
   },
   sparkle3: {
-    bottom: 40,
-    left: Dimensions.get("window").width / 2 - 140,
+    bottom: 100,
+    right: 30,
+  },
+  dismissButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    marginTop: 8,
+    gap: 6,
+  },
+  dismissButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  tapHint: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.4)",
+    marginTop: 12,
+    textAlign: "center",
   },
 });

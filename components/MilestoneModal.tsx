@@ -1,16 +1,18 @@
+import { MILESTONE_MAP } from "@/constants/milestones";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  Dimensions,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Modal,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 interface MilestoneModalProps {
@@ -19,64 +21,13 @@ interface MilestoneModalProps {
   onClose: () => void;
 }
 
-const MILESTONE_REWARDS: Record<
-  number,
-  { titleKey: string; amount: number; icon: string }
-> = {
-  5: {
-    titleKey: "milestone.bronzeChampion",
-    amount: 50,
-    icon: "trophy-outline",
-  },
-  10: { titleKey: "milestone.silverWarrior", amount: 100, icon: "trophy" },
-  15: { titleKey: "milestone.goldAthlete", amount: 200, icon: "trophy-award" },
-  20: { titleKey: "milestone.platinumLegend", amount: 300, icon: "crown" },
-  25: { titleKey: "milestone.diamondMaster", amount: 500, icon: "diamond" },
-  30: { titleKey: "milestone.eliteChampion", amount: 750, icon: "star" },
-  35: {
-    titleKey: "milestone.supremeVictor",
-    amount: 1000,
-    icon: "star-circle",
-  },
-  40: { titleKey: "milestone.legendaryHero", amount: 1500, icon: "medal" },
-  45: { titleKey: "milestone.mythicTitan", amount: 2000, icon: "shield-star" },
-  50: {
-    titleKey: "milestone.ultimateMaster",
-    amount: 3000,
-    icon: "trophy-variant",
-  },
-  // Post-50 milestones
-  55: {
-    titleKey: "milestone.immortalWarrior",
-    amount: 4000,
-    icon: "sword-cross",
-  },
-  60: {
-    titleKey: "milestone.cosmicForce",
-    amount: 5000,
-    icon: "weather-lightning",
-  },
-  65: { titleKey: "milestone.titanSlayer", amount: 6000, icon: "axe-battle" },
-  70: { titleKey: "milestone.dragonHeart", amount: 7500, icon: "fire" },
-  75: {
-    titleKey: "milestone.celestialKing",
-    amount: 9000,
-    icon: "star-shooting",
-  },
-  80: { titleKey: "milestone.eternaChampion", amount: 10000, icon: "infinity" },
-  85: { titleKey: "milestone.shadowMaster", amount: 12000, icon: "ninja" },
-  90: { titleKey: "milestone.warlord", amount: 15000, icon: "creation" },
-  95: { titleKey: "milestone.universalLegend", amount: 18000, icon: "meteor" },
-  100: { titleKey: "milestone.theOne", amount: 25000, icon: "crown-circle" },
-};
-
 export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   visible,
   level,
   onClose,
 }) => {
   const { language } = useApp();
-  const reward = MILESTONE_REWARDS[level];
+  const reward = MILESTONE_MAP[level];
   const milestoneTitle = reward
     ? t(language, reward.titleKey)
     : t(language, "milestone.levelMilestone", { level });
@@ -86,6 +37,16 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
   });
   const milestoneIcon = reward ? reward.icon : "trophy";
 
+  // Pre-compute star positions to avoid re-randomizing on every render
+  const starPositions = React.useMemo(
+    () =>
+      [...Array(8)].map(() => ({
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+      })),
+    [],
+  );
+
   return (
     <Modal
       visible={visible}
@@ -93,15 +54,18 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable
+          style={styles.container}
+          onPress={(e) => e.stopPropagation()}
+        >
           <LinearGradient
             colors={["#1a1a2e", "#16213e", "#0f3460"]}
             style={styles.gradient}
           >
             {/* Star decorations */}
             <View style={styles.starsContainer}>
-              {[...Array(8)].map((_, i) => (
+              {starPositions.map((pos, i) => (
                 <MaterialCommunityIcons
                   key={i}
                   name="star-four-points"
@@ -110,8 +74,8 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                   style={[
                     styles.star,
                     {
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
+                      top: pos.top as any,
+                      left: pos.left as any,
                     },
                   ]}
                 />
@@ -157,9 +121,12 @@ export const MilestoneModal: React.FC<MilestoneModalProps> = ({
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
+
+            {/* Tap anywhere hint */}
+            <Text style={styles.tapHint}>Tap outside to dismiss</Text>
           </LinearGradient>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
@@ -258,10 +225,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1a1a2e",
   },
+  tapHint: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.4)",
+    marginTop: 12,
+    textAlign: "center",
+  },
 });
-
-export const getMilestoneBonusXP = (level: number): number => {
-  const milestone = MILESTONE_REWARDS[level];
-  if (!milestone) return level * 50; // Default bonus
-  return milestone.amount;
-};

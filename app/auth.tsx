@@ -1,32 +1,39 @@
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
-import { getFont } from "@/constants/fonts";
+import { Colors } from "@/constants/colors";
 import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+    DAY_OPTIONS,
+    MONTH_OPTIONS,
+    YEAR_OPTIONS,
+} from "@/constants/dob-options";
+import {
+    isRTL as checkRTL,
+    isIOS,
+    isWeb,
+    useNativeDriver,
+} from "@/constants/enums";
+import { FontSize } from "@/constants/font-size";
+import { getFont } from "@/constants/fonts";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    Easing,
+    Keyboard,
+    KeyboardAvoidingView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 interface ValidationErrors {
@@ -73,36 +80,11 @@ export default function AuthScreen() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
-  const isRTL = language === "ar";
+  const isRTL = checkRTL(language);
   const fontRegular = getFont(language, "regular");
   const fontSemibold = getFont(language, "semibold");
   const fontBold = getFont(language, "bold");
   const fontBlack = getFont(language, "black");
-
-  // Generate dropdown options for DOB
-  const dayOptions = useMemo(
-    () =>
-      Array.from({ length: 31 }, (_, i) => ({
-        label: String(i + 1).padStart(2, "0"),
-        value: String(i + 1),
-      })),
-    [],
-  );
-  const monthOptions = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        label: String(i + 1).padStart(2, "0"),
-        value: String(i + 1),
-      })),
-    [],
-  );
-  const yearOptions = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    return Array.from({ length: currentYear - 1900 - 12 }, (_, i) => ({
-      label: String(currentYear - 13 - i),
-      value: String(currentYear - 13 - i),
-    }));
-  }, []);
 
   // Custom circular spinner animation
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -114,7 +96,7 @@ export default function AuthScreen() {
           toValue: 1,
           duration: 800,
           easing: Easing.linear,
-          useNativeDriver: Platform.OS !== "web",
+          useNativeDriver: useNativeDriver,
         }),
       ).start();
     }
@@ -297,6 +279,9 @@ export default function AuthScreen() {
         setIsSignUp(false);
         setPassword("");
         setErrors({});
+      } else if (errorMessage.includes("USERNAME_TAKEN")) {
+        showToast(t(language, "auth.usernameTaken"), "error");
+        setErrors({ username: t(language, "auth.usernameTaken") });
       } else if (
         errorMessage.includes("Invalid login credentials") ||
         errorMessage.includes("Invalid email or password")
@@ -330,7 +315,7 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={isIOS ? "padding" : "height"}
       style={[styles.container, { backgroundColor: C.background }]}
     >
       {/* Sticky TopBar */}
@@ -674,7 +659,7 @@ export default function AuthScreen() {
                       >
                         <View style={{ flex: 1 }}>
                           <DropdownPicker
-                            options={dayOptions}
+                            options={DAY_OPTIONS}
                             value={birthDay}
                             onSelect={(v) => {
                               Keyboard.dismiss();
@@ -690,7 +675,7 @@ export default function AuthScreen() {
                         </View>
                         <View style={{ flex: 1 }}>
                           <DropdownPicker
-                            options={monthOptions}
+                            options={MONTH_OPTIONS}
                             value={birthMonth}
                             onSelect={(v) => {
                               Keyboard.dismiss();
@@ -706,7 +691,7 @@ export default function AuthScreen() {
                         </View>
                         <View style={{ flex: 1.5 }}>
                           <DropdownPicker
-                            options={yearOptions}
+                            options={YEAR_OPTIONS}
                             value={birthYear}
                             onSelect={(v) => {
                               Keyboard.dismiss();
@@ -1326,7 +1311,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingTop: Platform.OS === "web" ? Spacing.md : 50,
+    paddingTop: isWeb ? Spacing.md : 50,
     paddingBottom: Spacing.sm,
   },
 });

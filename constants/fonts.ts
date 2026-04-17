@@ -25,11 +25,13 @@ const cairoFonts: Record<FontWeight, string> = {
  * @param language - "en" or "ar"
  * @param weight - font weight (default: "regular")
  */
+import { Language } from "@/constants/enums";
+
 export function getFont(
   language: string,
   weight: FontWeight = "regular",
 ): string {
-  return language === "ar" ? cairoFonts[weight] : interFonts[weight];
+  return language === Language.AR ? cairoFonts[weight] : interFonts[weight];
 }
 
 /**

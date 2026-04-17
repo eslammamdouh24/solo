@@ -4,15 +4,23 @@ import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface StatRowProps {
   label: string;
   value: number | string;
   iconName: keyof typeof STAT_ICONS;
+  onUpgrade?: () => void;
+  canUpgrade?: boolean;
 }
 
-export const StatRow: React.FC<StatRowProps> = ({ label, value, iconName }) => {
+export const StatRow: React.FC<StatRowProps> = ({
+  label,
+  value,
+  iconName,
+  onUpgrade,
+  canUpgrade,
+}) => {
   const C = useColors();
   const { language } = useApp();
   const isRTL = language === "ar";
@@ -46,9 +54,29 @@ export const StatRow: React.FC<StatRowProps> = ({ label, value, iconName }) => {
           {label.toUpperCase()}
         </Text>
       </View>
-      <Text style={[styles.value, { color: C.primary, fontFamily: fontBold }]}>
-        {value}
-      </Text>
+      <View
+        style={[
+          styles.valueSection,
+          { flexDirection: isRTL ? "row-reverse" : "row" },
+        ]}
+      >
+        <Text
+          style={[styles.value, { color: C.primary, fontFamily: fontBold }]}
+        >
+          {value}
+        </Text>
+        {canUpgrade && onUpgrade && (
+          <TouchableOpacity
+            onPress={onUpgrade}
+            style={[
+              styles.upgradeButton,
+              { backgroundColor: `${C.primary}33` },
+            ]}
+          >
+            <MaterialCommunityIcons name="plus" size={16} color={C.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
@@ -78,5 +106,17 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "900",
     color: "#00E5FF",
+  },
+  valueSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  upgradeButton: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

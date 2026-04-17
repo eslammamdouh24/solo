@@ -1,10 +1,7 @@
+import { Colors } from "@/constants/colors";
+import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
-import {
-  BorderRadius,
-  Colors,
-  FontSize,
-  Spacing,
-} from "@/constants/theme-colors";
+import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
