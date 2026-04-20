@@ -10,7 +10,7 @@
 <p align="center">A gamified fitness RPG that turns every workout into an adventure.<br/>Track exercises, earn XP, unlock milestones, and climb the leaderboard.</p>
 
 <p align="center">
-  <a href="https://solo-eslam24394.vercel.app">🌐 Live Demo</a>
+  <a href="https://solo-eslam24394.netlify.app">🌐 Live Demo</a>
 </p>
 
 ---
@@ -67,7 +67,7 @@
 | Router     | [Expo Router v6](https://docs.expo.dev/router/introduction/) (file-based routing) |
 | Language   | [TypeScript 5.8](https://www.typescriptlang.org/)                                 |
 | Auth & DB  | [Supabase](https://supabase.com) (Auth, PostgreSQL, Storage)                      |
-| Web Deploy | [Vercel](https://vercel.com) (auto-deploy on push)                                |
+| Web Deploy | [Netlify](https://netlify.com) (auto-deploy on push)                              |
 | Fonts      | [@expo-google-fonts](https://github.com/expo/google-fonts) (Inter + Cairo)        |
 | Animations | React Native Animated API                                                         |
 | Icons      | [MaterialCommunityIcons](https://materialdesignicons.com/)                        |
@@ -120,14 +120,14 @@ npm run ios
 npm run android
 ```
 
-### 5. Deploy to Vercel
+### 5. Deploy to Netlify
 
 ```bash
 npx expo export --platform web
-npx vercel --prod
+npx netlify deploy --prod
 ```
 
-Or just push to `master` — Vercel auto-deploys on every push.
+Or just push to `master` — Netlify auto-deploys on every push.
 
 ---
 
