@@ -1,35 +1,46 @@
 /* Solo PWA service worker — caches app shell + exercise GIFs for offline use */
-const VERSION = "v3";
+const VERSION = "v4";
 const SHELL_CACHE = `solo-shell-${VERSION}`;
 const ASSET_CACHE = `solo-assets-${VERSION}`;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(SHELL_CACHE);
-      // Fetch index.html to discover and pre-cache the JS bundle + assets
+      const shell = await caches.open(SHELL_CACHE);
+      const assets = await caches.open(ASSET_CACHE);
+
       try {
         const htmlRes = await fetch("/index.html", { cache: "no-store" });
         if (htmlRes.ok) {
-          await cache.put("/index.html", htmlRes.clone());
-          await cache.put("/", htmlRes.clone());
-          const html = await htmlRes.text();
-          const urls = new Set();
-          const re = /(?:src|href)="((?:\/_expo\/|\/assets\/)[^"]+)"/g;
-          let m;
-          while ((m = re.exec(html)) !== null) urls.add(m[1]);
-          urls.add("/manifest.json");
-          await Promise.all(
-            Array.from(urls).map((u) =>
-              fetch(u, { cache: "no-store" })
-                .then((r) => (r.ok ? cache.put(u, r.clone()) : null))
-                .catch(() => null),
-            ),
-          );
+          await shell.put("/index.html", htmlRes.clone());
+          await shell.put("/", htmlRes.clone());
         }
-      } catch (e) {
-        // No network during install
-      }
+      } catch (e) {}
+
+      try {
+        const manRes = await fetch("/manifest.json", { cache: "no-store" });
+        if (manRes.ok) await shell.put("/manifest.json", manRes.clone());
+      } catch (e) {}
+
+      try {
+        const res = await fetch("/precache-manifest.json", {
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const { assets: urls } = await res.json();
+          const chunkSize = 12;
+          for (let i = 0; i < urls.length; i += chunkSize) {
+            const chunk = urls.slice(i, i + chunkSize);
+            await Promise.all(
+              chunk.map((u) =>
+                fetch(u, { cache: "no-store" })
+                  .then((r) => (r.ok ? assets.put(u, r.clone()) : null))
+                  .catch(() => null),
+              ),
+            );
+          }
+        }
+      } catch (e) {}
     })(),
   );
   self.skipWaiting();
@@ -68,7 +79,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
 
-  // Navigation requests → network-first, fallback to cached index.html
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
@@ -99,7 +109,6 @@ self.addEventListener("fetch", (event) => {
     );
 
   if (isAsset) {
-    // Cache-first for static assets
     event.respondWith(
       (async () => {
         const cache = await caches.open(ASSET_CACHE);
@@ -117,7 +126,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else: network-first with cache fallback
   event.respondWith(
     (async () => {
       try {
