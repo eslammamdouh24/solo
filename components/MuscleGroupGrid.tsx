@@ -29,9 +29,10 @@ const MUSCLE_ICONS: Record<
   shoulders: "human",
   biceps: "arm-flex",
   triceps: "arm-flex-outline",
-  abs: "shield-star",
-  legs: "shoe-sneaker",
-  forearms: "hand-back-left",
+  waist_core: "shield-star",
+  upper_legs: "shoe-sneaker",
+  lower_legs: "walk",
+  lower_arms: "hand-back-left",
 };
 
 const MuscleCard: React.FC<{

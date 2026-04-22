@@ -8,13 +8,16 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { Exercise, getExercisesByMuscle, MuscleGroup } from "@/lib/exerciseApi";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
     FlatList,
     Image,
+    ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -33,6 +36,49 @@ const ExerciseListScreen: React.FC = () => {
     | MuscleGroup
     | undefined;
   const exercises = muscle ? getExercisesByMuscle(muscle, userGender) : [];
+
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("All");
+
+  // Get unique equipment types from exercises
+  const equipmentTypes = useMemo(() => {
+    const types = new Set(exercises.map((ex) => ex.equipment));
+    return ["All", ...Array.from(types).sort()];
+  }, [exercises]);
+
+  // Filter exercises
+  const filteredExercises = useMemo(() => {
+    return exercises.filter((exercise) => {
+      // Search by name
+      const matchesSearch = exercise.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      // Filter by difficulty
+      const matchesDifficulty =
+        selectedDifficulty === "All" ||
+        exercise.difficulty === selectedDifficulty;
+
+      // Filter by equipment
+      const matchesEquipment =
+        selectedEquipment === "All" || exercise.equipment === selectedEquipment;
+
+      return matchesSearch && matchesDifficulty && matchesEquipment;
+    });
+  }, [exercises, searchQuery, selectedDifficulty, selectedEquipment]);
+
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    selectedDifficulty !== "All" ||
+    selectedEquipment !== "All";
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedDifficulty("All");
+    setSelectedEquipment("All");
+  };
 
   if (!muscle) {
     return (
@@ -81,7 +127,6 @@ const ExerciseListScreen: React.FC = () => {
         style={[
           styles.info,
           {
-            alignItems: isRTL ? "flex-end" : "flex-start",
             marginRight: isRTL ? 14 : 0,
             marginLeft: isRTL ? 0 : 14,
           },
@@ -103,7 +148,10 @@ const ExerciseListScreen: React.FC = () => {
         <View
           style={[
             styles.setsRow,
-            { flexDirection: isRTL ? "row-reverse" : "row" },
+            {
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignSelf: isRTL ? "flex-end" : "flex-start",
+            },
           ]}
         >
           <View
@@ -112,24 +160,37 @@ const ExerciseListScreen: React.FC = () => {
             <Text
               style={[
                 styles.tagText,
-                { color: C.primary, fontFamily: fontBold },
+                {
+                  color: C.primary,
+                  fontFamily: fontBold,
+                  textAlign: isRTL ? "right" : "left",
+                },
               ]}
             >
-              {item.sets} × {item.reps}
+              {item.duration
+                ? `${item.sets} × ${item.duration}s`
+                : `${item.sets} × ${item.reps}`}
             </Text>
           </View>
         </View>
         <View
           style={[
             styles.tagsRow,
-            { flexDirection: isRTL ? "row-reverse" : "row" },
+            {
+              flexDirection: isRTL ? "row-reverse" : "row",
+              alignSelf: isRTL ? "flex-end" : "flex-start",
+            },
           ]}
         >
           <View style={[styles.tag, { backgroundColor: C.surfaceHighlight }]}>
             <Text
               style={[
                 styles.tagText,
-                { color: C.textSecondary, fontFamily: fontSemibold },
+                {
+                  color: C.textSecondary,
+                  fontFamily: fontSemibold,
+                  textAlign: isRTL ? "right" : "left",
+                },
               ]}
             >
               {t(language, `equipmentNames.${item.equipment}`)}
@@ -139,7 +200,11 @@ const ExerciseListScreen: React.FC = () => {
             <Text
               style={[
                 styles.tagText,
-                { color: C.textSecondary, fontFamily: fontSemibold },
+                {
+                  color: C.textSecondary,
+                  fontFamily: fontSemibold,
+                  textAlign: isRTL ? "right" : "left",
+                },
               ]}
             >
               {t(language, `difficultyNames.${item.difficulty}`)}
@@ -152,17 +217,256 @@ const ExerciseListScreen: React.FC = () => {
 
   const muscleTitle = t(language, `muscles.${muscle}`);
 
+  const renderFilterChip = (
+    label: string,
+    isSelected: boolean,
+    onPress: () => void,
+    key?: string,
+  ) => (
+    <TouchableOpacity
+      key={key ?? label}
+      style={[
+        styles.filterChip,
+        {
+          backgroundColor: isSelected ? C.primary : C.surfaceHighlight,
+          borderColor: isSelected ? C.primary : "transparent",
+        },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text
+        style={[
+          styles.filterChipText,
+          {
+            color: isSelected ? "#fff" : C.textSecondary,
+            fontFamily: isSelected ? fontBold : fontSemibold,
+            textAlign: "center",
+            fontSize: isRTL ? 12 : 12,
+          },
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <Ionicons name="search-outline" size={64} color={C.textSecondary} />
+      <Text
+        style={[
+          styles.emptyStateTitle,
+          { color: C.text, fontFamily: fontBold, textAlign: "center" },
+        ]}
+      >
+        {t(language, "exerciseList.noResults")}
+      </Text>
+      <Text
+        style={[
+          styles.emptyStateText,
+          {
+            color: C.textSecondary,
+            fontFamily: fontSemibold,
+            textAlign: "center",
+          },
+        ]}
+      >
+        {t(language, "exerciseList.tryDifferentFilters")}
+      </Text>
+      {hasActiveFilters && (
+        <TouchableOpacity
+          style={[styles.clearButton, { backgroundColor: C.primary }]}
+          onPress={clearFilters}
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[
+              styles.clearButtonText,
+              { color: "#fff", fontFamily: fontBold, textAlign: "center" },
+            ]}
+          >
+            {t(language, "exerciseList.clearFilters")}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: C.background }]}>
       <TopBar showBack title={muscleTitle} />
+
+      {/* Search Bar */}
+      <View
+        style={[
+          styles.searchContainer,
+          {
+            backgroundColor: C.surface,
+            flexDirection: isRTL ? "row-reverse" : "row",
+          },
+        ]}
+      >
+        <Ionicons
+          name="search"
+          size={20}
+          color={C.textSecondary}
+          style={[
+            styles.searchIcon,
+            isRTL ? { marginLeft: 8 } : { marginRight: 8 },
+          ]}
+        />
+        <TextInput
+          style={[
+            styles.searchInput,
+            {
+              color: C.text,
+              fontFamily: fontSemibold,
+              textAlign: isRTL ? "right" : "left",
+            },
+          ]}
+          placeholder={t(language, "exerciseList.searchPlaceholder")}
+          placeholderTextColor={C.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery !== "" && (
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            style={styles.clearIcon}
+          >
+            <Ionicons name="close-circle" size={20} color={C.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Difficulty Filter */}
+      <View style={styles.filterSection}>
+        <Text
+          style={[
+            styles.filterLabel,
+            {
+              color: C.text,
+              fontFamily: fontBold,
+              textAlign: isRTL ? "right" : "left",
+              paddingLeft: isRTL ? 0 : Spacing.lg,
+              paddingRight: isRTL ? Spacing.lg : 0,
+            },
+          ]}
+        >
+          {t(language, "exerciseList.difficulty")}
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.filterChipsContainer,
+            {
+              paddingHorizontal: Spacing.lg,
+              flexDirection: isRTL ? "row-reverse" : "row",
+            },
+          ]}
+          style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+          inverted={isRTL}
+        >
+          {["All", "Beginner", "Intermediate", "Advanced"].map((difficulty) =>
+            renderFilterChip(
+              difficulty === "All"
+                ? t(language, "exerciseList.all")
+                : t(language, `difficultyNames.${difficulty}`),
+              selectedDifficulty === difficulty,
+              () => setSelectedDifficulty(difficulty),
+              `diff-${difficulty}`,
+            ),
+          )}
+        </ScrollView>
+      </View>
+
+      {/* Equipment Filter */}
+      <View style={styles.filterSection}>
+        <Text
+          style={[
+            styles.filterLabel,
+            {
+              color: C.text,
+              fontFamily: fontBold,
+              textAlign: isRTL ? "right" : "left",
+              paddingLeft: isRTL ? 0 : Spacing.lg,
+              paddingRight: isRTL ? Spacing.lg : 0,
+            },
+          ]}
+        >
+          {t(language, "exerciseList.equipment")}
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.filterChipsContainer,
+            {
+              paddingHorizontal: Spacing.lg,
+              flexDirection: isRTL ? "row-reverse" : "row",
+            },
+          ]}
+          style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+          inverted={isRTL}
+        >
+          {equipmentTypes.map((equipment) =>
+            renderFilterChip(
+              equipment === "All"
+                ? t(language, "exerciseList.all")
+                : t(language, `equipmentNames.${equipment}`),
+              selectedEquipment === equipment,
+              () => setSelectedEquipment(equipment),
+              `eq-${equipment}`,
+            ),
+          )}
+        </ScrollView>
+      </View>
+
+      {/* Results Count & Clear Filters */}
+      <View
+        style={[
+          styles.resultsBar,
+          {
+            flexDirection: isRTL ? "row-reverse" : "row",
+            paddingHorizontal: Spacing.lg,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.resultsText,
+            { color: C.textSecondary, fontFamily: fontSemibold },
+          ]}
+        >
+          {filteredExercises.length} {t(language, "exerciseList.exercises")}
+        </Text>
+        {hasActiveFilters && (
+          <TouchableOpacity onPress={clearFilters} activeOpacity={0.7}>
+            <Text
+              style={[
+                styles.clearFiltersText,
+                { color: C.primary, fontFamily: fontBold },
+              ]}
+            >
+              {t(language, "exerciseList.clearAll")}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Exercise List */}
       <FlatList
-        data={exercises}
+        data={filteredExercises}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
           paddingBottom: 24,
           paddingHorizontal: Spacing.lg,
+          flexGrow: 1,
         }}
+        ListEmptyComponent={renderEmptyState}
       />
     </View>
   );
@@ -172,7 +476,97 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
+  searchContainer: {
+    marginHorizontal: Spacing.lg,
+    marginTop: 12,
+    marginBottom: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 10,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    // @ts-expect-error web-only
+    outlineStyle: "none",
+  },
+  clearIcon: {
+    padding: 4,
+  },
+  filterSection: {
+    marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 13,
+    marginBottom: 8,
+    paddingHorizontal: Spacing.lg,
+  },
+  filterChipsContainer: {
+    paddingHorizontal: Spacing.lg,
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    minHeight: 26,
+    justifyContent: "center",
+  },
+  filterChipText: {
+    lineHeight: 16,
+    fontSize: 12,
+  },
+  resultsBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    marginBottom: 4,
+  },
+  resultsText: {
+    fontSize: 13,
+  },
+  clearFiltersText: {
+    fontSize: 13,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+    paddingTop: 60,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  clearButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  clearButtonText: {
+    fontSize: 15,
+  },
   card: {
     alignItems: "center",
     borderRadius: 16,

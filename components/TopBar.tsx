@@ -1,9 +1,11 @@
-import { Language, Theme, isRTL as checkRTL, isWeb } from "@/constants/enums";
+import { isRTL as checkRTL, isWeb } from "@/constants/enums";
 import { FontSize } from "@/constants/font-size";
 import { fonts, getFont } from "@/constants/fonts";
 import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
+import { useNetwork } from "@/contexts/NetworkContext";
+import { useSideDrawer } from "@/contexts/SideDrawerContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -21,7 +23,9 @@ export function TopBar({
   hideLogo = false,
   title,
 }: TopBarProps) {
-  const { theme, language, toggleTheme, setLanguage } = useApp();
+  const { language } = useApp();
+  const { isOnline } = useNetwork();
+  const { open: openDrawer } = useSideDrawer();
   const C = useColors();
   const router = useRouter();
   const isRTL = checkRTL(language);
@@ -82,7 +86,21 @@ export function TopBar({
           )}
         </View>
 
-        {/* Right side: Theme + Language toggles */}
+        {/* Center: Offline indicator only */}
+        {!isOnline && (
+          <View
+            style={[styles.syncStatus, { backgroundColor: C.error + "20" }]}
+          >
+            <MaterialCommunityIcons
+              name="cloud-off-outline"
+              size={14}
+              color={C.error}
+            />
+            <Text style={[styles.syncText, { color: C.error }]}>Offline</Text>
+          </View>
+        )}
+
+        {/* Right side: Hamburger menu */}
         <View
           style={[
             styles.rightSide,
@@ -90,33 +108,13 @@ export function TopBar({
           ]}
         >
           <TouchableOpacity
-            onPress={toggleTheme}
+            onPress={openDrawer}
             style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
             hitSlop={8}
             activeOpacity={0.7}
+            accessibilityLabel="Open menu"
           >
-            <MaterialCommunityIcons
-              name={theme === Theme.DARK ? "weather-sunny" : "weather-night"}
-              size={20}
-              color={theme === Theme.DARK ? "#FF8C00" : "#FFD700"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              setLanguage(language === Language.EN ? Language.AR : Language.EN)
-            }
-            style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
-            hitSlop={8}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="translate"
-              size={20}
-              color={C.primary}
-            />
-            <Text style={[styles.langText, { color: C.primary }]}>
-              {language === Language.EN ? "AR" : "EN"}
-            </Text>
+            <MaterialCommunityIcons name="menu" size={22} color={C.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -179,6 +177,18 @@ const styles = StyleSheet.create({
   langText: {
     fontSize: FontSize.sm,
     fontWeight: "700",
+  },
+  syncStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  syncText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
   screenTitle: {
     fontSize: FontSize.xxl,

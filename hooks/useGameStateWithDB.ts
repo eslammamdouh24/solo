@@ -1,15 +1,31 @@
 import { MuscleGroup } from "@/constants/exercises";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSyncQueue } from "@/contexts/SyncQueueContext";
 import {
     getGameState,
     saveGameState as saveGameStateToDb,
-    updateGameState as updateGameStateInDb,
 } from "@/lib/stateApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 
 // Global cache to prevent multiple API calls for the same user
 const globalData = new Map<string, GameStateData>();
 const loadingPromises = new Map<string, Promise<GameStateData>>();
+
+const cacheKey = (userId: string) => `game_state_cache_${userId}`;
+
+const persistCache = (userId: string, data: GameStateData) => {
+  AsyncStorage.setItem(cacheKey(userId), JSON.stringify(data)).catch(() => {});
+};
+
+const loadCache = async (userId: string): Promise<GameStateData | null> => {
+  try {
+    const raw = await AsyncStorage.getItem(cacheKey(userId));
+    return raw ? (JSON.parse(raw) as GameStateData) : null;
+  } catch {
+    return null;
+  }
+};
 
 interface GameStateData {
   level: number;
@@ -26,6 +42,7 @@ interface GameStateData {
 
 export const useGameStateWithDB = () => {
   const { user } = useAuth();
+  const { queueOperation } = useSyncQueue();
   const [loading, setLoading] = useState(true);
   const [error] = useState<string | null>(null);
   const [level, setLevel] = useState(1);
@@ -79,6 +96,14 @@ export const useGameStateWithDB = () => {
       return;
     }
 
+    // Try persistent cache (localStorage on web, AsyncStorage on native)
+    const persisted = await loadCache(user.id);
+    if (persisted) {
+      globalData.set(user.id, persisted);
+      applyData(persisted);
+      // Continue to refresh from server in background (non-blocking)
+    }
+
     // Start loading
     const loadPromise = (async (): Promise<GameStateData> => {
       const { data, error } = await getGameState(user.id);
@@ -97,6 +122,7 @@ export const useGameStateWithDB = () => {
           if (retryError) continue;
           if (rechecked) {
             globalData.set(user.id, rechecked);
+            persistCache(user.id, rechecked);
             return rechecked;
           }
         }
@@ -123,6 +149,7 @@ export const useGameStateWithDB = () => {
           throw createError;
         } else if (newData) {
           globalData.set(user.id, newData);
+          persistCache(user.id, newData);
           return newData;
         }
       } else if (error) {
@@ -130,6 +157,7 @@ export const useGameStateWithDB = () => {
         throw error;
       } else if (data) {
         globalData.set(user.id, data);
+        persistCache(user.id, data);
         return data;
       }
 
@@ -184,13 +212,32 @@ export const useGameStateWithDB = () => {
       if (state.sessionCount !== undefined)
         updatePayload.session_count = state.sessionCount;
 
-      const { error } = await updateGameStateInDb(user.id, updatePayload);
+      // Queue the stats update (works offline)
+      await queueOperation("stats_update", {
+        user_id: user.id,
+        ...updatePayload,
+      });
 
-      if (error) {
-        console.error("Error saving game state:", error);
-      }
+      // Update persistent cache so reloads preserve offline changes
+      const existing = globalData.get(user.id) ?? ({} as GameStateData);
+      const merged: GameStateData = {
+        level: state.level ?? existing.level ?? 1,
+        xp: state.xp ?? existing.xp ?? 0,
+        strength: state.strength ?? existing.strength ?? 0,
+        endurance: state.endurance ?? existing.endurance ?? 0,
+        discipline: state.discipline ?? existing.discipline ?? 0,
+        skillPoints: state.skillPoints ?? existing.skillPoints ?? 0,
+        currentStreak: state.currentStreak ?? existing.currentStreak ?? 0,
+        lastWorkoutDate:
+          state.lastWorkoutDate ?? existing.lastWorkoutDate ?? null,
+        dailyBonusClaimed:
+          state.dailyBonusClaimed ?? existing.dailyBonusClaimed ?? null,
+        sessionCount: state.sessionCount ?? existing.sessionCount ?? 0,
+      };
+      globalData.set(user.id, merged);
+      persistCache(user.id, merged);
     } catch (error) {
-      console.error("Error saving game state:", error);
+      console.error("Error queueing game state:", error);
     }
   };
 

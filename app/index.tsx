@@ -54,7 +54,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 export default function HomeScreen() {
@@ -312,24 +312,26 @@ export default function HomeScreen() {
 
   const muscleGroups: MuscleGroup[] = [
     "chest",
-    "abs",
+    "waist_core",
     "back",
+    "upper_legs",
+    "lower_legs",
     "shoulders",
     "biceps",
     "triceps",
-    "legs",
-    "forearms",
+    "lower_arms",
   ];
 
   const muscleLabels: Record<MuscleGroup, string> = {
     chest: t(language, "muscles.chest"),
     back: t(language, "muscles.back"),
-    legs: t(language, "muscles.legs"),
+    upper_legs: t(language, "muscles.upper_legs"),
+    lower_legs: t(language, "muscles.lower_legs"),
     shoulders: t(language, "muscles.shoulders"),
     biceps: t(language, "muscles.biceps"),
     triceps: t(language, "muscles.triceps"),
-    abs: t(language, "muscles.abs"),
-    forearms: t(language, "muscles.forearms"),
+    waist_core: t(language, "muscles.waist_core"),
+    lower_arms: t(language, "muscles.lower_arms"),
   };
 
   return (

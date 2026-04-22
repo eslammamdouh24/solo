@@ -26,24 +26,26 @@ export enum Difficulty {
 export enum MuscleGroup {
   CHEST = "chest",
   BACK = "back",
-  LEGS = "legs",
+  UPPER_LEGS = "upper_legs",
+  LOWER_LEGS = "lower_legs",
   SHOULDERS = "shoulders",
   BICEPS = "biceps",
   TRICEPS = "triceps",
-  ABS = "abs",
-  FOREARMS = "forearms",
+  WAIST_CORE = "waist_core",
+  LOWER_ARMS = "lower_arms",
 }
 
 // Extended groups used in stat calculations
 export enum ActivityGroup {
   CHEST = "chest",
   BACK = "back",
-  LEGS = "legs",
+  UPPER_LEGS = "upper_legs",
+  LOWER_LEGS = "lower_legs",
   SHOULDERS = "shoulders",
   BICEPS = "biceps",
   TRICEPS = "triceps",
-  ABS = "abs",
-  FOREARMS = "forearms",
+  WAIST_CORE = "waist_core",
+  LOWER_ARMS = "lower_arms",
   CARDIO = "cardio",
   STRETCHING = "stretching",
 }

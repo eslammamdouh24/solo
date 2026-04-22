@@ -1,3 +1,5 @@
+import { useSyncQueue } from "@/contexts/SyncQueueContext";
+import { useColors } from "@/hooks/useColors";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -8,6 +10,9 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInInProgress: boolean;
+  isAdmin: boolean;
+  adminChecked: boolean;
+  checkAdminStatus: () => Promise<void>;
   signUp: (
     email: string,
     password: string,
@@ -34,6 +39,9 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signInInProgress: false,
+  isAdmin: false,
+  adminChecked: false,
+  checkAdminStatus: async () => {},
   signUp: async () => {},
   signIn: async () => {},
   signOut: async () => {},
@@ -60,6 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [signInInProgress, setSignInInProgress] = useState(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
+  const { queueOperation } = useSyncQueue();
+  const C = useColors();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -456,30 +468,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateProfile = async (data: Record<string, any>) => {
     try {
-      const { data: updatedUser, error } = await supabase.auth.updateUser({
-        data,
-      });
-      if (error) throw error;
-      if (updatedUser.user) {
-        setUser(updatedUser.user);
-        // Sync username to game_states if it changed
-        if (data.username) {
-          const { error: updateError } = await supabase
-            .from("game_states")
-            .update({ username: data.username.toLowerCase() })
-            .eq("user_id", updatedUser.user.id);
-          if (updateError) {
-            console.warn(
-              "Failed to sync username to game_states:",
-              updateError.message,
-            );
-          }
-        }
+      // Queue profile update (works offline)
+      await queueOperation("profile_update", data);
+
+      // Update local user state immediately for better UX
+      if (user) {
+        setUser({
+          ...user,
+          user_metadata: {
+            ...user.user_metadata,
+            ...data,
+          },
+        });
       }
     } catch (error: any) {
-      throw new Error(error.message || "Failed to update profile");
+      throw new Error(error.message || "Failed to queue profile update");
     }
   };
+
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      setAdminChecked(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("game_states")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!error && data) {
+        setIsAdmin(data.role === "admin");
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+    } finally {
+      setAdminChecked(true);
+    }
+  };
+
+  // Check admin status when user changes
+  useEffect(() => {
+    if (user) {
+      setAdminChecked(false);
+      checkAdminStatus();
+    } else {
+      setIsAdmin(false);
+      setAdminChecked(true);
+    }
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider
@@ -488,6 +531,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         session,
         loading,
         signInInProgress,
+        isAdmin,
+        adminChecked,
+        checkAdminStatus,
         signUp,
         signIn,
         signOut,

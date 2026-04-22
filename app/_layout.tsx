@@ -26,6 +26,10 @@ import "react-native-reanimated";
 
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ConfirmDialogProvider } from "@/contexts/ConfirmDialogContext";
+import { NetworkProvider } from "@/contexts/NetworkContext";
+import { SideDrawerProvider } from "@/contexts/SideDrawerContext";
+import { SyncQueueProvider } from "@/contexts/SyncQueueContext";
 import { useColors } from "@/hooks/useColors";
 import { useEffect } from "react";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
@@ -149,30 +153,32 @@ function ThemedApp() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-        <View
-          style={[
-            webStyles.outerContainer,
-            { backgroundColor: theme === "light" ? "#E2E8F0" : "#050816" },
-          ]}
-        >
+      <SideDrawerProvider>
+        <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
           <View
             style={[
-              webStyles.appContainer,
-              {
-                borderColor:
-                  theme === "light"
-                    ? "rgba(0,0,0,0.08)"
-                    : "rgba(255, 255, 255, 0.06)",
-                overflow: "hidden",
-              },
+              webStyles.outerContainer,
+              { backgroundColor: theme === "light" ? "#E2E8F0" : "#050816" },
             ]}
           >
-            <RootLayoutNav />
+            <View
+              style={[
+                webStyles.appContainer,
+                {
+                  borderColor:
+                    theme === "light"
+                      ? "rgba(0,0,0,0.08)"
+                      : "rgba(255, 255, 255, 0.06)",
+                  overflow: "hidden",
+                },
+              ]}
+            >
+              <RootLayoutNav />
+            </View>
           </View>
-        </View>
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-      </ThemeProvider>
+          <StatusBar style={theme === "dark" ? "light" : "dark"} />
+        </ThemeProvider>
+      </SideDrawerProvider>
     </AuthProvider>
   );
 }
@@ -214,9 +220,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppProvider>
-        <ThemedApp />
-      </AppProvider>
+      <NetworkProvider>
+        <AppProvider>
+          <SyncQueueProvider>
+            <ConfirmDialogProvider>
+              <ThemedApp />
+            </ConfirmDialogProvider>
+          </SyncQueueProvider>
+        </AppProvider>
+      </NetworkProvider>
     </GestureHandlerRootView>
   );
 }

@@ -65,6 +65,53 @@ export const translations = {
       saveProfile: "Save",
       yearsOld: "years old",
     },
+    // Sidebar navigation
+    nav: {
+      dashboard: "Dashboard",
+      leaderboard: "Leaderboard",
+      profile: "Profile",
+      admin: "Admin Dashboard",
+    },
+    settings: {
+      theme: "Theme",
+      language: "Language",
+    },
+    // Admin Screen
+    admin: {
+      title: "ADMIN DASHBOARD",
+      accessDenied: "Access Denied",
+      adminOnly: "This area is only accessible to administrators.",
+      totalUsers: "Total Users",
+      totalWorkouts: "Total Workouts",
+      totalXP: "Total XP",
+      avgLevel: "Avg Level",
+      allUsers: "All Users",
+      adminBadge: "ADMIN",
+      level: "Level",
+      workouts: "Workouts",
+      promote: "Make Admin",
+      demote: "Remove Admin",
+      delete: "Delete",
+      confirmTitle: "Confirm Action",
+      confirmPromote:
+        "Promote this user to admin? They will have full access to manage the app.",
+      confirmDemote: "Remove admin privileges from this user?",
+      deleteUserTitle: "Delete User?",
+      deleteUserMessage:
+        "Are you sure you want to permanently delete {{username}}? This cannot be undone.",
+      cancel: "Cancel",
+      confirm: "Confirm",
+      successTitle: "Success",
+      roleUpdated: "User role updated successfully",
+      userDeleted: "User deleted successfully",
+      deleteAll: "Delete All",
+      deleteAllTitle: "Delete All Users?",
+      deleteAllMessage:
+        "This will permanently delete ALL users except you. This action cannot be undone!",
+      allUsersDeleted: "All users deleted successfully",
+      errorTitle: "Error",
+      errorMessage: "Failed to perform action. Please try again.",
+    },
     // Auth Screen
     auth: {
       title: "SOLO",
@@ -152,12 +199,13 @@ export const translations = {
     muscles: {
       chest: "Chest",
       back: "Back",
-      legs: "Legs",
+      upper_legs: "Upper Legs",
+      lower_legs: "Lower Legs",
       shoulders: "Shoulders",
       biceps: "Biceps",
       triceps: "Triceps",
-      abs: "Abs",
-      forearms: "Forearms",
+      waist_core: "Waist / Core",
+      lower_arms: "Lower Arms",
     },
     // Cardio
     cardio: {
@@ -276,6 +324,18 @@ export const translations = {
       plank: "Plank",
       legRaises: "Leg Raises",
     },
+    // Exercise List Screen
+    exerciseList: {
+      searchPlaceholder: "Search exercises...",
+      difficulty: "Difficulty",
+      equipment: "Equipment",
+      all: "All",
+      exercises: "exercises",
+      clearAll: "Clear All",
+      noResults: "No exercises found",
+      tryDifferentFilters: "Try adjusting your search or filters",
+      clearFilters: "Clear Filters",
+    },
     // Exercise Detail Screen
     exerciseDetail: {
       details: "Details",
@@ -303,6 +363,8 @@ export const translations = {
       loggedMessage: "Saved {{name}} and earned {{xp}} XP.",
       errorTitle: "Error",
       errorMessage: "Failed to log exercise.",
+      offlineTitle: "Saved Offline",
+      savedOffline: "Your workout will sync when you're back online.",
       tooQuickTitle: "Too Quick! ⚡",
       tooQuickMessage:
         "Spend at least {{seconds}}s for proper form. You got this! 💪",
@@ -319,6 +381,8 @@ export const translations = {
       Kettlebell: "Kettlebell",
       Cable: "Cable",
       "EZ Bar": "EZ Bar",
+      "Smith Machine": "Smith Machine",
+      Band: "Band",
       "Stability Ball": "Stability Ball",
       Other: "Other",
     },
@@ -341,6 +405,7 @@ export const translations = {
       Glutes: "Glutes",
       Hamstrings: "Hamstrings",
       Calves: "Calves",
+      Soleus: "Soleus",
       Traps: "Traps",
       "Upper Back": "Upper Back",
       "Serratus Anterior": "Serratus Anterior",
@@ -356,6 +421,8 @@ export const translations = {
       Glutes: "Glutes",
       Hamstrings: "Hamstrings",
       Calves: "Calves",
+      Soleus: "Soleus",
+      "Ankle Stabilizers": "Ankle Stabilizers",
       Chest: "Chest",
       "Upper Back": "Upper Back",
       "Upper Chest": "Upper Chest",
@@ -471,7 +538,51 @@ export const translations = {
       saveProfile: "حفظ",
       yearsOld: "سنة",
     },
-    // Auth Screen
+    // Sidebar navigation
+    nav: {
+      dashboard: "الرئيسية",
+      leaderboard: "المتصدرين",
+      profile: "البروفايل",
+      admin: "لوحة الإدارة",
+    },
+    settings: {
+      theme: "المظهر",
+      language: "اللغة",
+    }, // Admin Screen
+    admin: {
+      title: "لوحة الإدارة",
+      accessDenied: "الوصول مرفوض",
+      adminOnly: "هذه المنطقة متاحة للمشرفين فقط.",
+      totalUsers: "إجمالي المستخدمين",
+      totalWorkouts: "إجمالي التمارين",
+      totalXP: "إجمالي XP",
+      avgLevel: "متوسط المستوى",
+      allUsers: "كل المستخدمين",
+      adminBadge: "مشرف",
+      level: "المستوى",
+      workouts: "التمارين",
+      promote: "ترقية لمشرف",
+      demote: "إزالة الصلاحيات",
+      delete: "حذف",
+      confirmTitle: "تأكيد العملية",
+      confirmPromote:
+        "ترقية هذا المستخدم لمشرف؟ سيكون لديه وصول كامل لإدارة التطبيق.",
+      confirmDemote: "إزالة صلاحيات المشرف من هذا المستخدم؟",
+      deleteUserTitle: "حذف المستخدم؟",
+      deleteUserMessage:
+        "هل أنت متأكد من حذف {{username}} نهائياً؟ لا يمكن التراجع عن هذا.",
+      cancel: "إلغاء",
+      confirm: "تأكيد",
+      successTitle: "نجح",
+      roleUpdated: "تم تحديث صلاحيات المستخدم بنجاح",
+      userDeleted: "تم حذف المستخدم بنجاح",
+      deleteAll: "حذف الكل",
+      deleteAllTitle: "حذف كل المستخدمين؟",
+      deleteAllMessage: "ده هيحذف كل المستخدمين ما عداك. مفيش رجوع بعد كده!",
+      allUsersDeleted: "تم حذف كل المستخدمين بنجاح",
+      errorTitle: "خطأ",
+      errorMessage: "فشلت العملية. حاول مرة أخرى.",
+    }, // Auth Screen
     auth: {
       title: "SOLO",
       slogan: "اتمرن لوحدك. ارفع مستواك.",
@@ -556,12 +667,13 @@ export const translations = {
     muscles: {
       chest: "الصدر",
       back: "الضهر",
-      legs: "الرجلين",
+      upper_legs: "الفخذ",
+      lower_legs: "السمانة",
       shoulders: "الكتف",
       biceps: "الباي",
       triceps: "التراي",
-      abs: "البطن",
-      forearms: "الساعد",
+      waist_core: "الوسط / البطن",
+      lower_arms: "الساعد",
     },
     // Cardio
     cardio: {
@@ -678,8 +790,18 @@ export const translations = {
       crunches: "كرانشز",
       plank: "بلانك",
       legRaises: "رفع رجلين",
-    },
-    // Exercise Detail Screen
+    }, // Exercise List Screen
+    exerciseList: {
+      searchPlaceholder: "ابحث عن تمرين...",
+      difficulty: "المستوى",
+      equipment: "الأدوات",
+      all: "الكل",
+      exercises: "تمرين",
+      clearAll: "مسح الكل",
+      noResults: "لا توجد تمارين",
+      tryDifferentFilters: "جرب تعديل البحث أو الفلاتر",
+      clearFilters: "مسح الفلاتر",
+    }, // Exercise Detail Screen
     exerciseDetail: {
       details: "التفاصيل",
       equipment: "المعدات",
@@ -706,6 +828,8 @@ export const translations = {
       loggedMessage: "{{name}} اتحفظ وكسبت {{xp}} XP.",
       errorTitle: "خطأ",
       errorMessage: "مقدرناش نسجل التمرين.",
+      offlineTitle: "اتحفظ أوفلاين",
+      savedOffline: "التمرين هيتزامن لما ترجع أونلاين.",
       tooQuickTitle: "سريع أوي! ⚡",
       tooQuickMessage:
         "خد على الأقل {{seconds}} ثانية عشان الأداء يكون صح. أنت تقدر! 💪",
@@ -722,6 +846,8 @@ export const translations = {
       Kettlebell: "كيتل بيل",
       Cable: "كابل",
       "EZ Bar": "بار EZ",
+      "Smith Machine": "سميث ماشين",
+      Band: "استك مقاومة",
       "Stability Ball": "كورة توازن",
       Other: "تاني",
     },

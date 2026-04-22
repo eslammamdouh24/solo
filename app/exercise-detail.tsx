@@ -11,17 +11,19 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { useGameStateWithDB } from "@/hooks/useGameStateWithDB";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useSound } from "@/hooks/useSound";
 import { getExerciseById, MuscleGroup } from "@/lib/exerciseApi";
-import { logWorkout } from "@/lib/workoutApi";
 import { calculateNewStreak, getStatGains } from "@/utils/workoutHelpers";
 import { processWorkout } from "@/utils/workoutProcessor";
 import { getToday } from "@/utils/xpCalculations";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Alert,
     Image,
+    Modal,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -44,6 +46,11 @@ const ExerciseDetailScreen: React.FC = () => {
   const fontBold = getFont(language, "bold");
   const gameState = useGameStateWithDB();
   const { playLevelUpSound } = useSound();
+  const {
+    logWorkout: logWorkoutOffline,
+    isOnline,
+    pendingSync,
+  } = useOfflineSync();
 
   const exercise = useMemo(() => {
     if (!muscle || !exerciseId) return null;
@@ -61,6 +68,7 @@ const ExerciseDetailScreen: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [levelUpVisible, setLevelUpVisible] = useState(false);
   const [newLevel, setNewLevel] = useState(0);
+  const [gifFullscreen, setGifFullscreen] = useState(false);
   const C = useColors();
 
   const xpEstimate = useMemo(() => {
@@ -104,7 +112,8 @@ const ExerciseDetailScreen: React.FC = () => {
       return false;
 
     try {
-      const { error } = await logWorkout({
+      // Queue workout log (works offline)
+      await logWorkoutOffline({
         user_id: user.id,
         muscle_group: muscle || "",
         exercise_id: exercise.id,
@@ -116,10 +125,6 @@ const ExerciseDetailScreen: React.FC = () => {
         equipment: exercise.equipment,
         difficulty: exercise.difficulty,
       });
-
-      if (error) {
-        throw error;
-      }
 
       // Process XP through level system (handles level-up, skill points, milestones)
       const result = processWorkout({
@@ -166,11 +171,18 @@ const ExerciseDetailScreen: React.FC = () => {
 
       return true;
     } catch (error: any) {
-      Alert.alert(
-        t(language, "exerciseDetail.errorTitle"),
-        error.message || t(language, "exerciseDetail.errorMessage"),
-      );
-      return false;
+      const errorMsg = isOnline
+        ? error.message || t(language, "exerciseDetail.errorMessage")
+        : t(language, "exerciseDetail.savedOffline");
+
+      if (!isOnline) {
+        // Show success for offline save
+        Alert.alert(t(language, "exerciseDetail.offlineTitle"), errorMsg);
+        return true;
+      } else {
+        Alert.alert(t(language, "exerciseDetail.errorTitle"), errorMsg);
+        return false;
+      }
     }
   };
 
@@ -208,9 +220,13 @@ const ExerciseDetailScreen: React.FC = () => {
     setFinished(true);
 
     // MINIMUM TIME GATE — industry-standard anti-cheat
-    // Calculate minimum realistic time: ~1.5s per rep across all sets
+    // For time-based exercises (planks, carries): minTime = sets × duration
+    // For rep-based: ~1.5s per rep across all sets
+    const isTimeBased = !!exercise.duration;
     const totalReps = exercise.sets * exercise.reps;
-    const minTime = Math.max(20, Math.floor(totalReps * 1.5));
+    const minTime = isTimeBased
+      ? Math.max(15, exercise.sets * (exercise.duration ?? 0))
+      : Math.max(20, Math.floor(totalReps * 1.5));
 
     // Optimal zone: proper tempo + rest periods
     const TEMPO_BY_DIFFICULTY = {
@@ -219,7 +235,9 @@ const ExerciseDetailScreen: React.FC = () => {
       Advanced: { repTime: 4, rest: 90 },
     };
     const { repTime, rest } = TEMPO_BY_DIFFICULTY[exercise.difficulty];
-    const workTime = totalReps * repTime;
+    const workTime = isTimeBased
+      ? exercise.sets * (exercise.duration ?? 0)
+      : totalReps * repTime;
     const totalRest = (exercise.sets - 1) * rest;
     const optimalLow = Math.floor((workTime + totalRest) * 0.8);
     const optimalHigh = Math.floor((workTime + totalRest) * 1.2);
@@ -268,7 +286,10 @@ const ExerciseDetailScreen: React.FC = () => {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={[styles.imageWrapper, { backgroundColor: C.surface }]}>
+        <Pressable
+          onPress={() => setGifFullscreen(true)}
+          style={[styles.imageWrapper, { backgroundColor: C.surface }]}
+        >
           <Image
             source={
               exerciseImages[exercise.gif] ||
@@ -277,7 +298,15 @@ const ExerciseDetailScreen: React.FC = () => {
             style={styles.image}
             resizeMode="contain"
           />
-        </View>
+          <View
+            style={[
+              styles.expandBadge,
+              { backgroundColor: C.background + "cc" },
+            ]}
+          >
+            <Ionicons name="expand-outline" size={18} color={C.text} />
+          </View>
+        </Pressable>
 
         <View style={[styles.card, { backgroundColor: C.surface }]}>
           <Text
@@ -408,7 +437,9 @@ const ExerciseDetailScreen: React.FC = () => {
             <Text
               style={[styles.value, { color: C.text, fontFamily: fontBold }]}
             >
-              {exercise.sets} x {exercise.reps}
+              {exercise.duration
+                ? `${exercise.sets} x ${exercise.duration}s`
+                : `${exercise.sets} x ${exercise.reps}`}
             </Text>
           </View>
           {(exercise.caloriesPerMinute ?? 0) > 0 && (
@@ -584,6 +615,35 @@ const ExerciseDetailScreen: React.FC = () => {
           onComplete={() => setLevelUpVisible(false)}
         />
       </ScrollView>
+
+      {/* Fullscreen GIF viewer */}
+      <Modal
+        visible={gifFullscreen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGifFullscreen(false)}
+      >
+        <Pressable
+          style={styles.fullscreenBackdrop}
+          onPress={() => setGifFullscreen(false)}
+        >
+          <Image
+            source={
+              exerciseImages[exercise.gif] ||
+              (exercise.gifUrl ? { uri: exercise.gifUrl } : undefined)
+            }
+            style={styles.fullscreenImage}
+            resizeMode="contain"
+          />
+          <Pressable
+            onPress={() => setGifFullscreen(false)}
+            style={styles.fullscreenClose}
+            hitSlop={12}
+          >
+            <Ionicons name="close" size={28} color="#fff" />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -609,6 +669,37 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+  },
+  expandBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullscreenBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullscreenImage: {
+    width: "100%",
+    height: "100%",
+  },
+  fullscreenClose: {
+    position: "absolute",
+    top: 48,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
     borderRadius: 20,

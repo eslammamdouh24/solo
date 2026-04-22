@@ -64,14 +64,16 @@ export const getStatGains = (
     case ActivityGroup.CHEST:
     case ActivityGroup.BACK:
       return { strength: 2, endurance: 0, discipline: 1 };
-    case ActivityGroup.LEGS:
+    case ActivityGroup.UPPER_LEGS:
       return { strength: 2, endurance: 1, discipline: 1 };
+    case ActivityGroup.LOWER_LEGS:
+      return { strength: 1, endurance: 1, discipline: 1 };
     case ActivityGroup.SHOULDERS:
     case ActivityGroup.BICEPS:
     case ActivityGroup.TRICEPS:
-    case ActivityGroup.FOREARMS:
+    case ActivityGroup.LOWER_ARMS:
       return { strength: 1, endurance: 0, discipline: 1 };
-    case ActivityGroup.ABS:
+    case ActivityGroup.WAIST_CORE:
       return { strength: 1, endurance: 1, discipline: 2 };
     case ActivityGroup.CARDIO:
       return { strength: 0, endurance: 2, discipline: 1 };
@@ -90,15 +92,19 @@ export const updateStatsForWorkout = ({
   setEndurance,
   setDiscipline,
 }: StatUpdateParams): void => {
-  // Major compound movements (chest, back, legs)
+  // Major compound movements (chest, back, upper legs)
   if (muscleGroup === ActivityGroup.CHEST) {
     setStrength((prev) => prev + 2);
     setDiscipline((prev) => prev + 1);
   } else if (muscleGroup === ActivityGroup.BACK) {
     setStrength((prev) => prev + 2);
     setDiscipline((prev) => prev + 1);
-  } else if (muscleGroup === ActivityGroup.LEGS) {
+  } else if (muscleGroup === ActivityGroup.UPPER_LEGS) {
     setStrength((prev) => prev + 2);
+    setEndurance((prev) => prev + 1);
+    setDiscipline((prev) => prev + 1);
+  } else if (muscleGroup === ActivityGroup.LOWER_LEGS) {
+    setStrength((prev) => prev + 1);
     setEndurance((prev) => prev + 1);
     setDiscipline((prev) => prev + 1);
   }
@@ -113,8 +119,8 @@ export const updateStatsForWorkout = ({
     setStrength((prev) => prev + 1);
     setDiscipline((prev) => prev + 1);
   }
-  // Abs
-  else if (muscleGroup === ActivityGroup.ABS) {
+  // Waist / Core
+  else if (muscleGroup === ActivityGroup.WAIST_CORE) {
     setStrength((prev) => prev + 1);
     setEndurance((prev) => prev + 1);
     setDiscipline((prev) => prev + 2);

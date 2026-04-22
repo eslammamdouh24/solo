@@ -10,11 +10,21 @@ export const STRETCHING_EXERCISES: StretchingExercise[] = [
     name: "Hamstring Stretch",
     duration: 30,
     icon: "human-handsdown",
-    muscleGroup: "legs",
+    muscleGroup: "upper_legs",
   },
-  { name: "Quad Stretch", duration: 30, icon: "human", muscleGroup: "legs" },
-  { name: "Calf Stretch", duration: 30, icon: "walk", muscleGroup: "legs" },
-  { name: "Hip Flexor", duration: 30, icon: "yoga", muscleGroup: "legs" },
+  {
+    name: "Quad Stretch",
+    duration: 30,
+    icon: "human",
+    muscleGroup: "upper_legs",
+  },
+  {
+    name: "Calf Stretch",
+    duration: 30,
+    icon: "walk",
+    muscleGroup: "lower_legs",
+  },
+  { name: "Hip Flexor", duration: 30, icon: "yoga", muscleGroup: "upper_legs" },
   {
     name: "Chest Stretch",
     duration: 30,
@@ -39,7 +49,7 @@ export const STRETCHING_EXERCISES: StretchingExercise[] = [
     name: "Oblique Stretch",
     duration: 30,
     icon: "human-handsup",
-    muscleGroup: "abs",
+    muscleGroup: "waist_core",
   },
 ];
 

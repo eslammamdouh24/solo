@@ -1,4 +1,3 @@
-import { ConfirmationBottomSheet } from "@/components/ConfirmationBottomSheet";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { TopBar } from "@/components/TopBar";
@@ -15,6 +14,7 @@ import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfirm } from "@/contexts/ConfirmDialogContext";
 import { useColors } from "@/hooks/useColors";
 import { useGameStateWithDB } from "@/hooks/useGameStateWithDB";
 import { uploadAvatarToStorage } from "@/lib/profileApi";
@@ -31,21 +31,20 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 export default function ProfileScreen() {
-  const { user, signOut, deleteAccount, updateProfile } = useAuth();
+  const { user, signOut, deleteAccount, updateProfile, isAdmin } = useAuth();
   const { language } = useApp();
   const C = useColors();
   const gameState = useGameStateWithDB();
   const router = useRouter();
+  const confirm = useConfirm();
   const [profileImage, setProfileImage] = useState<string | null>(
     user?.user_metadata?.profile_image || null,
   );
   const [imageError, setImageError] = useState(false);
-  const [resetSheetOpen, setResetSheetOpen] = useState(false);
-  const [deleteSheetOpen, setDeleteSheetOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editUsername, setEditUsername] = useState(
     user?.user_metadata?.username || "",
@@ -132,12 +131,30 @@ export default function ProfileScreen() {
     }
   };
 
-  const confirmReset = () => {
-    setResetSheetOpen(true);
+  const confirmReset = async () => {
+    const ok = await confirm({
+      title: t(language, "profile.resetTitle"),
+      message: t(language, "profile.resetMessage"),
+      confirmText: t(language, "profile.resetConfirm"),
+      cancelText: t(language, "common.cancel"),
+      confirmColor: Colors.warning,
+      icon: "refresh",
+      iconColor: Colors.warning,
+    });
+    if (ok) handleResetProgress();
   };
 
-  const confirmDelete = () => {
-    setDeleteSheetOpen(true);
+  const confirmDelete = async () => {
+    const ok = await confirm({
+      title: t(language, "profile.deleteTitle"),
+      message: t(language, "profile.deleteMessage"),
+      confirmText: t(language, "profile.deleteConfirm"),
+      cancelText: t(language, "common.cancel"),
+      confirmColor: Colors.error,
+      icon: "account-remove",
+      iconColor: Colors.error,
+    });
+    if (ok) handleDeleteAccount();
   };
 
   const handlePickImage = async () => {
@@ -1184,7 +1201,13 @@ export default function ProfileScreen() {
             </View>
 
             {/* Leaderboard */}
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
+            <View
+              style={[
+                styles.section,
+                styles.actionsSection,
+                { backgroundColor: C.surface },
+              ]}
+            >
               <TouchableOpacity
                 style={[
                   styles.leaderboardButton,
@@ -1203,6 +1226,28 @@ export default function ProfileScreen() {
                   {t(language, "profile.viewLeaderboard")}
                 </Text>
               </TouchableOpacity>
+
+              {/* Admin Dashboard Button */}
+              {isAdmin && (
+                <TouchableOpacity
+                  style={[
+                    styles.leaderboardButton,
+                    { backgroundColor: `${C.gold}18`, borderColor: C.gold },
+                  ]}
+                  onPress={() => router.push("/admin")}
+                >
+                  <MaterialCommunityIcons
+                    name="shield-crown"
+                    size={20}
+                    color={C.gold}
+                  />
+                  <Text
+                    style={[styles.leaderboardButtonText, { color: C.gold }]}
+                  >
+                    {t(language, "admin.title")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Account Actions */}
@@ -1254,32 +1299,6 @@ export default function ProfileScreen() {
           </View>
         </ScrollView>
       </View>
-
-      <ConfirmationBottomSheet
-        visible={resetSheetOpen}
-        title={t(language, "profile.resetTitle")}
-        message={t(language, "profile.resetMessage")}
-        confirmText={t(language, "profile.resetConfirm")}
-        cancelText={t(language, "common.cancel")}
-        confirmColor={Colors.warning}
-        icon="refresh"
-        iconColor={Colors.warning}
-        onConfirm={handleResetProgress}
-        onClose={() => setResetSheetOpen(false)}
-      />
-
-      <ConfirmationBottomSheet
-        visible={deleteSheetOpen}
-        title={t(language, "profile.deleteTitle")}
-        message={t(language, "profile.deleteMessage")}
-        confirmText={t(language, "profile.deleteConfirm")}
-        cancelText={t(language, "common.cancel")}
-        confirmColor={Colors.error}
-        icon="account-remove"
-        iconColor={Colors.error}
-        onConfirm={handleDeleteAccount}
-        onClose={() => setDeleteSheetOpen(false)}
-      />
     </>
   );
 }
@@ -1441,6 +1460,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.level,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
+  },
+  actionsSection: {
+    gap: Spacing.md,
   },
   leaderboardButtonText: {
     color: Colors.level,
