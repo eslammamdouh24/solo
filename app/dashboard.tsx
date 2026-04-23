@@ -70,7 +70,7 @@ export default function DashboardScreen() {
 
       setStats(statsData);
       setWeeklyActivity(weeklyData);
-      setMuscleDistribution(muscleData.slice(0, 6));
+      setMuscleDistribution(muscleData);
       setXPProgress(xpData);
       setRecentWorkouts(recentData);
     } catch (error) {
