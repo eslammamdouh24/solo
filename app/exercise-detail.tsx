@@ -351,7 +351,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillLabel,
-                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.textMuted,
+                      fontFamily: fontSemibold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -360,7 +364,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillValue,
-                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.text,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -387,7 +395,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillLabel,
-                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.textMuted,
+                      fontFamily: fontSemibold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -396,7 +408,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillValue,
-                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.text,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -419,7 +435,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillLabel,
-                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.textMuted,
+                      fontFamily: fontSemibold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -428,7 +448,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillValue,
-                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.text,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -454,7 +478,11 @@ const ExerciseDetailScreen: React.FC = () => {
                   <Text
                     style={[
                       styles.statPillLabel,
-                      { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                      {
+                        color: C.textMuted,
+                        fontFamily: fontSemibold,
+                        textAlign: isRTL ? "right" : "left",
+                      },
                     ]}
                     numberOfLines={1}
                   >
@@ -463,7 +491,11 @@ const ExerciseDetailScreen: React.FC = () => {
                   <Text
                     style={[
                       styles.statPillValue,
-                      { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                      {
+                        color: C.text,
+                        fontFamily: fontBold,
+                        textAlign: isRTL ? "right" : "left",
+                      },
                     ]}
                     numberOfLines={1}
                   >
@@ -487,7 +519,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillLabel,
-                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.textMuted,
+                      fontFamily: fontSemibold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >
@@ -496,7 +532,11 @@ const ExerciseDetailScreen: React.FC = () => {
                 <Text
                   style={[
                     styles.statPillValue,
-                    { color: C.primary, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                    {
+                      color: C.primary,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
                   ]}
                   numberOfLines={1}
                 >

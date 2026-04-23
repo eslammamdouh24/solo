@@ -17,7 +17,7 @@ fi
   echo '{'
   echo '  "assets": ['
   find assets _expo -type f \( \
-    -name "*.gif" -o -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \
+    -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \
     -o -name "*.svg" -o -name "*.webp" -o -name "*.ico" \
     -o -name "*.woff" -o -name "*.woff2" -o -name "*.ttf" -o -name "*.otf" \
     -o -name "*.mp3" -o -name "*.wav" -o -name "*.ogg" \
