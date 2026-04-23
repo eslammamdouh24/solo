@@ -34,7 +34,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#00E5FF",
     primaryDark: "#00B8D4",
     primaryLight: "#6EFFF5",
-    background: "#0A0F1C",
+    background: "#07141A",
   },
   emerald: {
     id: "emerald",
@@ -66,7 +66,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#3B82F6",
     primaryDark: "#1D4ED8",
     primaryLight: "#93C5FD",
-    background: "#0A0F1C",
+    background: "#0A0F22",
   },
 };
 
