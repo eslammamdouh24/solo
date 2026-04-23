@@ -20,12 +20,13 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View
+  ActivityIndicator,
+  Animated,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import {
     VictoryAxis,
@@ -35,14 +36,13 @@ import {
     VictoryPie,
     VictoryTheme,
 } from "victory";
-  const fontBold = getFont(language, "bold");
-  const fontSemibold = getFont(language, "semibold");
-  const fontRegular = getFont(language, "regular");
 
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState<any>(null);
-  const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
+export default function DashboardScreen() {
+  const { user } = useAuth();
+  const { language } = useApp();
+  const C = useColors();
+  const router = useRouter();
+  const isRTL = language === "ar";
   const [muscleDistribution, setMuscleDistribution] = useState<any[]>([]);
   const [xpProgress, setXPProgress] = useState<any[]>([]);
   const [equipmentUsage, setEquipmentUsage] = useState<any[]>([]);
