@@ -2,6 +2,7 @@ import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { TopBar } from "@/components/TopBar";
+import { AccentThemeList } from "@/constants/accentThemes";
 import { Colors } from "@/constants/colors";
 import {
     DAY_OPTIONS,
@@ -14,7 +15,6 @@ import { MILESTONES } from "@/constants/milestones";
 import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
-import { AccentThemeList } from "@/constants/accentThemes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConfirm } from "@/contexts/ConfirmDialogContext";
 import { useColors } from "@/hooks/useColors";

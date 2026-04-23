@@ -1,7 +1,7 @@
 import {
-  AccentThemeId,
-  AccentThemes,
-  DEFAULT_ACCENT,
+    AccentThemeId,
+    AccentThemes,
+    DEFAULT_ACCENT,
 } from "@/constants/accentThemes";
 import { Language, Theme } from "@/constants/enums";
 import AsyncStorage from "@react-native-async-storage/async-storage";
