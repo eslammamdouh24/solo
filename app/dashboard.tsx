@@ -424,6 +424,7 @@ export default function DashboardScreen() {
             <View style={styles.muscleList}>
               {muscleDistribution.map((item: any, index: number) => {
                 const widthPercent = (item.count / maxMuscleCount) * 100;
+                const isEmpty = item.count === 0;
                 const muscleColors = [
                   C.primary,
                   Colors.purple,
@@ -440,7 +441,10 @@ export default function DashboardScreen() {
                       <Text
                         style={[
                           styles.muscleName,
-                          { color: C.text, fontFamily: fontSemibold },
+                          {
+                            color: isEmpty ? C.textSecondary : C.text,
+                            fontFamily: fontSemibold,
+                          },
                         ]}
                       >
                         {t(language, `muscles.${item.muscle}` as any)}
@@ -451,7 +455,7 @@ export default function DashboardScreen() {
                           { color: C.textSecondary, fontFamily: fontRegular },
                         ]}
                       >
-                        {item.count} · {item.percentage}%
+                        {item.count}
                       </Text>
                     </View>
                     <View
@@ -460,11 +464,13 @@ export default function DashboardScreen() {
                         { backgroundColor: C.border + "30" },
                       ]}
                     >
-                      <AnimatedHorizontalBar
-                        width={widthPercent}
-                        color={barColor}
-                        delay={index * 80}
-                      />
+                      {!isEmpty && (
+                        <AnimatedHorizontalBar
+                          width={widthPercent}
+                          color={barColor}
+                          delay={index * 80}
+                        />
+                      )}
                     </View>
                   </View>
                 );

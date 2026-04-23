@@ -101,7 +101,8 @@ export const getWorkoutStats = async (
     workouts?.reduce((sum, w) => sum + (w.duration_seconds || 0), 0) || 0;
   const totalCalories = Math.round(
     workouts?.reduce(
-      (sum, w) => sum + estimateCalories(w.duration_seconds || 0, w.muscle_group),
+      (sum, w) =>
+        sum + estimateCalories(w.duration_seconds || 0, w.muscle_group),
       0,
     ) || 0,
   );
