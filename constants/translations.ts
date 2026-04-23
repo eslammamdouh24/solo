@@ -535,7 +535,6 @@ export const translations = {
       signOut: "تسجيل خروج",
       milestones: "المراحل والجوائز",
       viewLeaderboard: "شوف المتصدرين",
-      viewDashboard: "شوف الرئيسية",
       resetTitle: "إعادة التقدم؟",
       resetMessage:
         "ده هيمسح كل تقدمك وإحصائياتك وإنجازاتك. مفيش رجوع بعد كده.",
