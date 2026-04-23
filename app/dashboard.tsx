@@ -43,6 +43,14 @@ export default function DashboardScreen() {
   const C = useColors();
   const router = useRouter();
   const isRTL = language === "ar";
+  const fontBold = getFont(language, "bold");
+  const fontSemibold = getFont(language, "semibold");
+  const fontRegular = getFont(language, "regular");
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
   const [muscleDistribution, setMuscleDistribution] = useState<any[]>([]);
   const [xpProgress, setXPProgress] = useState<any[]>([]);
   const [equipmentUsage, setEquipmentUsage] = useState<any[]>([]);
