@@ -1286,17 +1286,23 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     style={[
                       styles.leaderboardButton,
-                      { backgroundColor: `${C.gold}18`, borderColor: C.gold },
+                      {
+                        backgroundColor: `${C.purple}18`,
+                        borderColor: C.purple,
+                      },
                     ]}
                     onPress={() => router.push("/admin")}
                   >
                     <MaterialCommunityIcons
                       name="shield-crown"
                       size={20}
-                      color={C.gold}
+                      color={C.purple}
                     />
                     <Text
-                      style={[styles.leaderboardButtonText, { color: C.gold }]}
+                      style={[
+                        styles.leaderboardButtonText,
+                        { color: C.purple },
+                      ]}
                     >
                       {t(language, "admin.title")}
                     </Text>
