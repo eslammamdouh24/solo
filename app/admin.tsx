@@ -938,6 +938,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     padding: 0,
+    // @ts-expect-error web-only
+    outlineStyle: "none",
+    // @ts-expect-error web-only
+    outlineWidth: 0,
   },
   filterRow: {
     flexDirection: "row",
