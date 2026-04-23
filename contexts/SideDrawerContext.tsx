@@ -220,67 +220,70 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                 },
               ]}
             >
-            <View
-              style={[
-                styles.avatar,
-                { backgroundColor: C.primary + "20", borderColor: C.primary },
-              ]}
-            >
-              {profileImage ? (
-                <Image
-                  source={{ uri: profileImage }}
-                  style={styles.avatarImg}
-                />
-              ) : (
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundColor: C.primary + "20", borderColor: C.primary },
+                ]}
+              >
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.avatarImg}
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.avatarText,
+                      { color: C.primary, fontFamily: fontBold },
+                    ]}
+                  >
+                    {username.charAt(0).toUpperCase()}
+                  </Text>
+                )}
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: isRTL ? "flex-end" : "flex-start",
+                }}
+              >
                 <Text
                   style={[
-                    styles.avatarText,
-                    { color: C.primary, fontFamily: fontBold },
+                    styles.username,
+                    { color: C.text, fontFamily: fontBold },
                   ]}
-                >
-                  {username.charAt(0).toUpperCase()}
-                </Text>
-              )}
-            </View>
-            <View
-              style={{ flex: 1, alignItems: isRTL ? "flex-end" : "flex-start" }}
-            >
-              <Text
-                style={[
-                  styles.username,
-                  { color: C.text, fontFamily: fontBold },
-                ]}
-                numberOfLines={1}
-              >
-                {username}
-              </Text>
-              {email ? (
-                <Text
-                  style={[styles.email, { color: C.textMuted }]}
                   numberOfLines={1}
                 >
-                  {email}
+                  {username}
                 </Text>
-              ) : null}
-              {isAdmin && (
-                <View
-                  style={[
-                    styles.adminBadge,
-                    { backgroundColor: C.gold + "20", borderColor: C.gold },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="shield-crown"
-                    size={11}
-                    color={C.gold}
-                  />
-                  <Text style={[styles.adminBadgeText, { color: C.gold }]}>
-                    ADMIN
+                {email ? (
+                  <Text
+                    style={[styles.email, { color: C.textMuted }]}
+                    numberOfLines={1}
+                  >
+                    {email}
                   </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+                ) : null}
+                {isAdmin && (
+                  <View
+                    style={[
+                      styles.adminBadge,
+                      { backgroundColor: C.gold + "20", borderColor: C.gold },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name="shield-crown"
+                      size={11}
+                      color={C.gold}
+                    />
+                    <Text style={[styles.adminBadgeText, { color: C.gold }]}>
+                      ADMIN
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
           )}
 
           {/* Menu */}

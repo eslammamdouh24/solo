@@ -3,9 +3,11 @@
 ## Active Tables
 
 ### 1. `game_states`
+
 **Purpose:** Stores user progression data (level, XP, stats, streaks)
 
 **Columns:**
+
 - `user_id` (uuid, primary key) - References auth.users
 - `username` (text) - User display name
 - `level` (integer) - Current level
@@ -22,6 +24,7 @@
 - `updated_at` (timestamp)
 
 **RLS Policies:**
+
 - Users can read their own data
 - Users can update their own data
 - Admin can read/update all data
@@ -29,9 +32,11 @@
 ---
 
 ### 2. `user_profiles`
+
 **Purpose:** Stores user profile information
 
 **Columns:**
+
 - `user_id` (uuid, primary key)
 - `username` (text, unique)
 - `full_name` (text)
@@ -44,9 +49,11 @@
 ---
 
 ### 3. `workout_logs`
+
 **Purpose:** Tracks individual workout sessions
 
 **Columns:**
+
 - `id` (uuid, primary key)
 - `user_id` (uuid) - References auth.users
 - `exercise_id` (text) - Exercise identifier
@@ -56,22 +63,26 @@
 - `created_at` (timestamp)
 
 **Indexes:**
+
 - `user_id` for fast user lookups
 - `created_at` for date filtering
 
 ---
 
 ### 4. `achievements`
+
 **Purpose:** Tracks user achievements/milestones
 
 ---
 
 ### 5. `leaderboard`
+
 **Purpose:** Cached leaderboard rankings
 
 ---
 
 ### 6. `user_settings`
+
 **Purpose:** User preferences (theme, language, etc.)
 
 ---
@@ -81,6 +92,7 @@
 ### ❌ Tables to Remove
 
 #### `game_stats` (DUPLICATE)
+
 - **Status:** Unused duplicate of `game_states`
 - **Action:** Run `database/cleanup_schema.sql` in Supabase SQL Editor
 - **Impact:** No impact - table is not referenced in code
@@ -90,21 +102,27 @@
 ## SQL Migration Files
 
 ### `cleanup_schema.sql` (NEW)
+
 Removes unused `game_stats` table
 
 ### `create_workout_logs.sql`
+
 Creates workout_logs table with proper indexes
 
 ### `fix_rls_policies.sql`
+
 Updates Row Level Security policies
 
 ### `soft_delete_user_account.sql`
+
 Marks user account as deleted (30-day grace period)
 
 ### `delete_user_account.sql`
+
 Permanently deletes user account and all data
 
 ### `add_admin_role.sql`
+
 Grants admin role to specific users
 
 ---
@@ -140,20 +158,23 @@ Grants admin role to specific users
 ## Verification Queries
 
 ### Check table exists:
+
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public';
 ```
 
 ### Check RLS policies:
+
 ```sql
-SELECT * FROM pg_policies 
-WHERE schemaname = 'public' 
+SELECT * FROM pg_policies
+WHERE schemaname = 'public'
   AND tablename = 'game_states';
 ```
 
 ### Count records:
+
 ```sql
 SELECT COUNT(*) FROM game_states;
 SELECT COUNT(*) FROM workout_logs;
