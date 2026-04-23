@@ -481,69 +481,6 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               </View>
             </View>
 
-            {/* Accent color picker */}
-            <View
-              style={[
-                styles.toggleRow,
-                { flexDirection: isRTL ? "row-reverse" : "row" },
-              ]}
-            >
-              <View
-                style={[
-                  styles.toggleLeft,
-                  { flexDirection: isRTL ? "row-reverse" : "row" },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="palette"
-                  size={22}
-                  color={C.primary}
-                />
-                <Text
-                  style={[
-                    styles.menuLabel,
-                    { color: C.text, fontFamily: fontSemibold },
-                  ]}
-                >
-                  {t(language, "profile.accentTheme") || "Accent"}
-                </Text>
-              </View>
-            </View>
-            <View
-              style={[
-                styles.accentRow,
-                {
-                  flexDirection: isRTL ? "row-reverse" : "row",
-                },
-              ]}
-            >
-              {AccentThemeList.map((a) => {
-                const selected = a.id === accent;
-                return (
-                  <TouchableOpacity
-                    key={a.id}
-                    onPress={() => setAccent(a.id)}
-                    style={[
-                      styles.accentSwatch,
-                      {
-                        backgroundColor: a.primary,
-                        borderColor: selected ? C.text : "transparent",
-                      },
-                    ]}
-                    activeOpacity={0.8}
-                  >
-                    {selected && (
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={14}
-                        color="#fff"
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
             {/* Sound toggle */}
             <View
               style={[
@@ -609,6 +546,69 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                   />
                 </TouchableOpacity>
               </View>
+            </View>
+
+            {/* Accent color picker */}
+            <View
+              style={[
+                styles.toggleRow,
+                { flexDirection: isRTL ? "row-reverse" : "row" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.toggleLeft,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="palette"
+                  size={22}
+                  color={C.primary}
+                />
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    { color: C.text, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {t(language, "profile.accentTheme") || "Accent"}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.accentRow,
+                {
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              {AccentThemeList.map((a) => {
+                const selected = a.id === accent;
+                return (
+                  <TouchableOpacity
+                    key={a.id}
+                    onPress={() => setAccent(a.id)}
+                    style={[
+                      styles.accentSwatch,
+                      {
+                        backgroundColor: a.primary,
+                        borderColor: selected ? C.text : "transparent",
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    {selected && (
+                      <MaterialCommunityIcons
+                        name="check"
+                        size={14}
+                        color="#fff"
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <View style={[styles.divider, { backgroundColor: C.border }]} />

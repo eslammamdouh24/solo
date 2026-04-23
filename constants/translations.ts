@@ -94,6 +94,7 @@ export const translations = {
     },
     settings: {
       theme: "Theme",
+      sound: "Sound",
       language: "Language",
     },
     // Admin Screen
@@ -589,6 +590,7 @@ export const translations = {
     },
     settings: {
       theme: "المظهر",
+      sound: "الصوت",
       language: "اللغة",
     }, // Admin Screen
     admin: {
