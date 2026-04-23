@@ -117,7 +117,11 @@ export function TopBar({
               activeOpacity={0.6}
               accessibilityLabel="View dashboard"
             >
-              <MaterialCommunityIcons name="chart-line" size={24} color={C.primary} />
+              <MaterialCommunityIcons
+                name="chart-line"
+                size={24}
+                color={C.primary}
+              />
             </TouchableOpacity>
           )}
           <TouchableOpacity

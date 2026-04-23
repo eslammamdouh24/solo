@@ -8,24 +8,24 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import {
-  getMuscleDistribution,
-  getRecentWorkouts,
-  getWeeklyActivity,
-  getWorkoutStats,
-  getXPProgress,
-  RecentWorkout,
+    getMuscleDistribution,
+    getRecentWorkouts,
+    getWeeklyActivity,
+    getWorkoutStats,
+    getXPProgress,
+    RecentWorkout,
 } from "@/lib/dashboardApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Animated,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
@@ -159,10 +159,7 @@ export default function DashboardScreen() {
             />
           </View>
           <Text
-            style={[
-              styles.emptyTitle,
-              { color: C.text, fontFamily: fontBold },
-            ]}
+            style={[styles.emptyTitle, { color: C.text, fontFamily: fontBold }]}
           >
             Start Your Journey
           </Text>
@@ -224,9 +221,7 @@ export default function DashboardScreen() {
           style={styles.heroCard}
         >
           <View style={styles.heroContent}>
-            <Text
-              style={[styles.heroLabel, { fontFamily: fontSemibold }]}
-            >
+            <Text style={[styles.heroLabel, { fontFamily: fontSemibold }]}>
               TOTAL XP EARNED
             </Text>
             <Text style={[styles.heroValue, { fontFamily: fontBlack }]}>

@@ -24,4 +24,9 @@ export const Colors = {
   streak: "#FF6B6B",
   bossHP: "#EF4444",
   boss: "#9333EA",
+  // Chart/dashboard accent colors
+  green: "#10B981",
+  orange: "#F59E0B",
+  purple: "#9333EA",
+  blue: "#3B82F6",
 };

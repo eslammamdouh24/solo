@@ -1,4 +1,3 @@
-import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
 import { BorderRadius, Spacing } from "@/constants/spacing";
@@ -43,18 +42,18 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({
           { flexDirection: isRTL ? "row-reverse" : "row" },
         ]}
       >
-        <View style={[styles.headerLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+        <View
+          style={[
+            styles.headerLeft,
+            { flexDirection: isRTL ? "row-reverse" : "row" },
+          ]}
+        >
           <MaterialCommunityIcons
             name={STATS_HEADER_ICON}
             size={18}
             color={C.primary}
           />
-          <Text
-            style={[
-              styles.title,
-              { color: C.text, fontFamily: fontBold },
-            ]}
-          >
+          <Text style={[styles.title, { color: C.text, fontFamily: fontBold }]}>
             {t(language, "stats.title")}
           </Text>
         </View>

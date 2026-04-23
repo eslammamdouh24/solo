@@ -33,7 +33,7 @@ import {
     calculateStatBonus,
     getRequiredXP,
     getToday,
-    safeNumber
+    safeNumber,
 } from "@/utils/xpCalculations";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";

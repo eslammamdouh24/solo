@@ -156,24 +156,24 @@ export const getWeeklyActivity = async (
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const result: WeeklyActivity[] = [];
-  
+
   // Build last 7 days in chronological order
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     date.setHours(0, 0, 0, 0);
-    
+
     const dayName = dayNames[date.getDay()];
     const dateStr = date.toDateString();
-    
+
     // Count workouts for this specific date
-    const count = data?.filter((w) => 
-      new Date(w.created_at).toDateString() === dateStr
-    ).length || 0;
-    
+    const count =
+      data?.filter((w) => new Date(w.created_at).toDateString() === dateStr)
+        .length || 0;
+
     result.push({ day: dayName, count });
   }
-  
+
   return result;
 };
 
