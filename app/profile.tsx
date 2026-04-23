@@ -1200,7 +1200,7 @@ export default function ProfileScreen() {
               </ScrollView>
             </View>
 
-            {/* Leaderboard */}
+            {/* Dashboard & Leaderboard */}
             <View
               style={[
                 styles.section,
@@ -1208,6 +1208,25 @@ export default function ProfileScreen() {
                 { backgroundColor: C.surface },
               ]}
             >
+              <TouchableOpacity
+                style={[
+                  styles.leaderboardButton,
+                  { backgroundColor: `${C.primary}18`, borderColor: C.primary },
+                ]}
+                onPress={() => router.push("/dashboard")}
+              >
+                <MaterialCommunityIcons
+                  name="view-dashboard"
+                  size={20}
+                  color={C.primary}
+                />
+                <Text
+                  style={[styles.leaderboardButtonText, { color: C.primary }]}
+                >
+                  {t(language, "profile.viewDashboard")}
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={[
                   styles.leaderboardButton,

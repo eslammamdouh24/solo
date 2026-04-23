@@ -18,6 +18,7 @@ export const translations = {
     // Profile Screen
     profile: {
       title: "PROFILE",
+      viewDashboard: "View Dashboard",
       memberFor: "Member for {{days}} days",
       statsOverview: "OVERVIEW",
       attributes: "SKILL POINTS",
@@ -38,6 +39,7 @@ export const translations = {
       signOut: "Sign Out",
       milestones: "MILESTONES & REWARDS",
       viewLeaderboard: "View Leaderboard",
+      viewDashboard: "View Dashboard",
       resetTitle: "Reset Progress?",
       resetMessage:
         "This will delete all your progress, stats, and achievements. This action cannot be undone.",
@@ -64,6 +66,24 @@ export const translations = {
       editProfile: "Edit Profile",
       saveProfile: "Save",
       yearsOld: "years old",
+    },
+    // Dashboard
+    dashboard: {
+      title: "DASHBOARD",
+      totalWorkouts: "Total Workouts",
+      currentStreak: "Current Streak",
+      totalXP: "Total XP",
+      totalTime: "Total Time",
+      days: "days",
+      weeklyActivity: "Weekly Activity",
+      xpProgress: "XP Progress (30 Days)",
+      muscleDistribution: "Muscle Distribution",
+      equipmentUsage: "Equipment Usage",
+      recentWorkouts: "Recent Workouts",
+      workouts: "workouts",
+      avgWorkoutsPerWeek: "Avg/Week",
+      bestStreak: "Best Streak",
+      mostTrained: "Most Trained",
     },
     // Sidebar navigation
     nav: {
@@ -493,6 +513,7 @@ export const translations = {
     // Profile Screen
     profile: {
       title: "البروفايل",
+      viewDashboard: "شوف الرئيسية",
       memberFor: "عضو من {{days}} يوم",
       statsOverview: "نظرة عامة",
       attributes: "نقاط المهارة",
@@ -513,6 +534,7 @@ export const translations = {
       signOut: "تسجيل خروج",
       milestones: "المراحل والجوائز",
       viewLeaderboard: "شوف المتصدرين",
+      viewDashboard: "شوف الرئيسية",
       resetTitle: "إعادة التقدم؟",
       resetMessage:
         "ده هيمسح كل تقدمك وإحصائياتك وإنجازاتك. مفيش رجوع بعد كده.",
@@ -538,6 +560,24 @@ export const translations = {
       editProfile: "تعديل البروفايل",
       saveProfile: "حفظ",
       yearsOld: "سنة",
+    },
+    // Dashboard
+    dashboard: {
+      title: "الرئيسية",
+      totalWorkouts: "إجمالي التمارين",
+      currentStreak: "السلسلة الحالية",
+      totalXP: "إجمالي النقط",
+      totalTime: "الوقت الكلي",
+      days: "أيام",
+      weeklyActivity: "النشاط الأسبوعي",
+      xpProgress: "تقدم النقط (٣٠ يوم)",
+      muscleDistribution: "توزيع العضلات",
+      equipmentUsage: "استخدام المعدات",
+      recentWorkouts: "التمارين الأخيرة",
+      workouts: "تمارين",
+      avgWorkoutsPerWeek: "متوسط/أسبوع",
+      bestStreak: "أفضل سلسلة",
+      mostTrained: "الأكثر تمريناً",
     },
     // Sidebar navigation
     nav: {

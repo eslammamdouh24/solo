@@ -4,7 +4,7 @@ import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
     Animated,
     Platform,
@@ -41,24 +41,45 @@ const MuscleCard: React.FC<{
   onPress: () => void;
   isFullWidth?: boolean;
   label?: string;
-}> = ({ group, onPress, isFullWidth = false, label }) => {
+  index: number;
+}> = ({ group, onPress, isFullWidth = false, label, index }) => {
   const C = useColors();
   const { language } = useApp();
   const fontSemibold = getFont(language, "semibold");
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    // Staggered fade-in and slide-up animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const handlePressIn = () => {
-    Animated.timing(scaleAnim, {
+    Animated.spring(scaleAnim, {
       toValue: 0.95,
-      duration: 100,
       useNativeDriver: Platform.OS !== "web",
     }).start();
   };
 
   const handlePressOut = () => {
-    Animated.timing(scaleAnim, {
+    Animated.spring(scaleAnim, {
       toValue: 1,
-      duration: 150,
+      friction: 3,
+      tension: 40,
       useNativeDriver: Platform.OS !== "web",
     }).start();
   };
@@ -76,7 +97,11 @@ const MuscleCard: React.FC<{
           styles.card,
           {
             backgroundColor: C.surfaceHighlight,
-            transform: [{ scale: scaleAnim }],
+            opacity: fadeAnim,
+            transform: [
+              { scale: scaleAnim },
+              { translateY: slideAnim },
+            ],
           },
         ]}
       >
@@ -114,6 +139,7 @@ export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
           <MuscleCard
             key={group}
             group={group}
+            index={index}
             onPress={() => onPress(group)}
             isFullWidth={
               index === muscleGroups.length - 1 && muscleGroups.length % 2 !== 0
