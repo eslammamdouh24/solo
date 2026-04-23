@@ -325,12 +325,12 @@ export default function DashboardScreen() {
                   styles.additionalStatCard,
                   {
                     backgroundColor: C.surface,
+                    borderLeftWidth: 3,
+                    borderLeftColor: stat.color,
                   },
                 ]}
               >
-                <View style={[styles.additionalStatIcon, { backgroundColor: stat.color + "15" }]}>
-                  <MaterialCommunityIcons name={stat.icon} size={22} color={stat.color} />
-                </View>
+                <MaterialCommunityIcons name={stat.icon} size={24} color={stat.color} style={styles.additionalStatIcon} />
                 <View style={styles.additionalStatContent}>
                   <Text style={[styles.additionalStatValue, { color: C.text, fontFamily: fontBold }]}>
                     {stat.value}
@@ -535,6 +535,7 @@ export default function DashboardScreen() {
                   },
                 ]}
               >
+                <View style={[styles.workoutDot, { backgroundColor: C.primary }]} />
                 <View style={styles.workoutInfo}>
                   <Text
                     style={[
@@ -564,15 +565,14 @@ export default function DashboardScreen() {
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.workoutXp, { backgroundColor: Colors.gold + "20" }]}>
-                  <MaterialCommunityIcons name="star" size={16} color={Colors.gold} />
+                <View style={styles.workoutXp}>
                   <Text
                     style={[
                       styles.workoutXpText,
                       { color: Colors.gold, fontFamily: fontBold },
                     ]}
                   >
-                    {workout.xp}
+                    +{workout.xp} XP
                   </Text>
                 </View>
               </View>
@@ -616,6 +616,8 @@ const StatCard = ({
         styles.statCard,
         {
           backgroundColor: C.surface,
+          borderTopWidth: 3,
+          borderTopColor: color,
           opacity: anim,
           transform: [
             {
@@ -634,9 +636,7 @@ const StatCard = ({
         },
       ]}
     >
-      <View style={[styles.statIconContainer, { backgroundColor: color + "18" }]}>
-        <MaterialCommunityIcons name={icon} size={28} color={color} />
-      </View>
+      <MaterialCommunityIcons name={icon} size={32} color={color} style={styles.statIcon} />
       <Text style={[styles.statValue, { color: C.text, fontFamily: fontBold }]}>
         {value}
         {subtitle && (
@@ -717,13 +717,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  statIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: BorderRadius.round,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.md,
+  statIcon: {
+    marginBottom: Spacing.sm,
   },
   statValue: {
     fontSize: FontSize.xxl,
@@ -765,11 +760,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   additionalStatIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.lg,
-    justifyContent: "center",
-    alignItems: "center",
+    marginBottom: 2,
   },
   additionalStatContent: {
     alignItems: "center",
@@ -830,9 +821,14 @@ const styles = StyleSheet.create({
   },
   workoutItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: Spacing.md,
+    gap: Spacing.md,
+  },
+  workoutDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   workoutInfo: {
     flex: 1,
@@ -852,15 +848,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
   },
   workoutXp: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.lg,
+    alignItems: "flex-end",
   },
   workoutXpText: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontWeight: "700",
+    letterSpacing: 0.3,
   },
 });

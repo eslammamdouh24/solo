@@ -112,22 +112,22 @@ export function TopBar({
           {showDashboard && (
             <TouchableOpacity
               onPress={() => router.push("/dashboard")}
-              style={[styles.button, { backgroundColor: C.primary + "18", borderWidth: 1, borderColor: C.primary + "30" }]}
+              style={[styles.iconOnlyButton]}
               hitSlop={8}
-              activeOpacity={0.7}
+              activeOpacity={0.6}
               accessibilityLabel="View dashboard"
             >
-              <MaterialCommunityIcons name="chart-box-outline" size={20} color={C.primary} />
+              <MaterialCommunityIcons name="chart-line" size={24} color={C.primary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
             onPress={openDrawer}
-            style={[styles.button, { backgroundColor: C.surfaceHighlight }]}
+            style={[styles.iconOnlyButton]}
             hitSlop={8}
-            activeOpacity={0.7}
+            activeOpacity={0.6}
             accessibilityLabel="Open menu"
           >
-            <MaterialCommunityIcons name="menu" size={22} color={C.text} />
+            <MaterialCommunityIcons name="menu" size={24} color={C.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -186,6 +186,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: BorderRadius.sm,
+  },
+  iconOnlyButton: {
+    padding: 8,
+    borderRadius: BorderRadius.round,
+    justifyContent: "center",
+    alignItems: "center",
   },
   langText: {
     fontSize: FontSize.sm,
