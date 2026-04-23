@@ -4,11 +4,33 @@ export interface WorkoutStats {
   totalWorkouts: number;
   totalXP: number;
   totalDuration: number;
+  totalCalories: number;
   avgWorkoutsPerWeek: number;
   currentStreak: number;
   bestStreak: number;
   mostTrainedMuscle: string;
 }
+
+// MET values for calorie estimation (assumes ~70kg body weight)
+// kcal = MET * weight(kg) * hours
+const MUSCLE_MET: Record<string, number> = {
+  cardio: 8,
+  upper_legs: 6,
+  lower_legs: 6,
+  back: 5.5,
+  chest: 5,
+  shoulders: 5,
+  biceps: 4.5,
+  triceps: 4.5,
+  lower_arms: 4,
+  waist_core: 5,
+};
+const ASSUMED_WEIGHT_KG = 70;
+const estimateCalories = (durationSeconds: number, muscleGroup: string) => {
+  const met = MUSCLE_MET[muscleGroup] ?? 5;
+  const hours = durationSeconds / 3600;
+  return met * ASSUMED_WEIGHT_KG * hours;
+};
 
 export interface WeeklyActivity {
   day: string;
@@ -77,6 +99,12 @@ export const getWorkoutStats = async (
   const totalXP = workouts?.reduce((sum, w) => sum + (w.xp || 0), 0) || 0;
   const totalDuration =
     workouts?.reduce((sum, w) => sum + (w.duration_seconds || 0), 0) || 0;
+  const totalCalories = Math.round(
+    workouts?.reduce(
+      (sum, w) => sum + estimateCalories(w.duration_seconds || 0, w.muscle_group),
+      0,
+    ) || 0,
+  );
 
   // Calculate workouts per week
   const firstWorkout = workouts?.[0]?.created_at;
@@ -129,6 +157,7 @@ export const getWorkoutStats = async (
     totalWorkouts,
     totalXP,
     totalDuration,
+    totalCalories,
     avgWorkoutsPerWeek: Math.round(avgWorkoutsPerWeek * 10) / 10,
     currentStreak: gameState?.current_streak || 0,
     bestStreak,
@@ -178,8 +207,22 @@ export const getWeeklyActivity = async (
 };
 
 /**
- * Get muscle group distribution
+ * Get muscle group distribution for ALL home-screen muscle groups
+ * (zero-filled in home-screen order for consistency)
  */
+const HOME_MUSCLE_ORDER = [
+  "chest",
+  "waist_core",
+  "back",
+  "shoulders",
+  "upper_legs",
+  "lower_legs",
+  "biceps",
+  "triceps",
+  "lower_arms",
+  "cardio",
+];
+
 export const getMuscleDistribution = async (
   userId: string,
 ): Promise<MuscleDistribution[]> => {
@@ -196,13 +239,14 @@ export const getMuscleDistribution = async (
   });
 
   const total = data?.length || 1;
-  return Object.entries(counts)
-    .map(([muscle, count]) => ({
+  return HOME_MUSCLE_ORDER.map((muscle) => {
+    const count = counts[muscle] || 0;
+    return {
       muscle,
       count,
-      percentage: Math.round((count / total) * 100),
-    }))
-    .sort((a, b) => b.count - a.count);
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+    };
+  });
 };
 
 /**

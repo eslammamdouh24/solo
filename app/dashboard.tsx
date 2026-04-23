@@ -178,14 +178,6 @@ export default function DashboardScreen() {
   }
 
   // Derived metrics
-  const avgXPPerWorkout =
-    stats.totalWorkouts > 0
-      ? Math.round(stats.totalXP / stats.totalWorkouts)
-      : 0;
-  const avgDurationMins =
-    stats.totalWorkouts > 0
-      ? Math.round(stats.totalDuration / stats.totalWorkouts / 60)
-      : 0;
   const weekDays = weeklyActivity.reduce(
     (sum, day) => sum + (day.count > 0 ? 1 : 0),
     0,
@@ -268,19 +260,19 @@ export default function DashboardScreen() {
             fontRegular={fontRegular}
           />
           <MetricCard
-            icon="flash"
-            value={avgXPPerWorkout}
-            label="Avg XP"
-            color={Colors.gold}
+            icon="fire"
+            value={stats.totalCalories.toLocaleString()}
+            label="Calories"
+            color={Colors.orange}
             C={C}
             fontBold={fontBold}
             fontRegular={fontRegular}
           />
           <MetricCard
-            icon="timer-sand"
-            value={`${avgDurationMins}m`}
-            label="Avg Time"
-            color={Colors.purple}
+            icon="trophy-outline"
+            value={`${stats.bestStreak}d`}
+            label="Best Streak"
+            color={Colors.gold}
             C={C}
             fontBold={fontBold}
             fontRegular={fontRegular}
@@ -302,15 +294,6 @@ export default function DashboardScreen() {
 
           <View style={styles.performanceGrid}>
             <PerformanceRow
-              icon="trophy-outline"
-              label="Best Streak"
-              value={`${stats.bestStreak} days`}
-              color={Colors.gold}
-              C={C}
-              fontSemibold={fontSemibold}
-              fontRegular={fontRegular}
-            />
-            <PerformanceRow
               icon="chart-line-variant"
               label="Avg Workouts / Week"
               value={stats.avgWorkoutsPerWeek.toFixed(1)}
@@ -331,7 +314,11 @@ export default function DashboardScreen() {
             <PerformanceRow
               icon="arm-flex"
               label="Most Trained"
-              value={stats.mostTrainedMuscle || "—"}
+              value={
+                stats.mostTrainedMuscle && stats.mostTrainedMuscle !== "None"
+                  ? t(language, `muscles.${stats.mostTrainedMuscle}` as any)
+                  : "—"
+              }
               color={Colors.orange}
               C={C}
               fontSemibold={fontSemibold}
@@ -456,7 +443,7 @@ export default function DashboardScreen() {
                           { color: C.text, fontFamily: fontSemibold },
                         ]}
                       >
-                        {item.muscle}
+                        {t(language, `muscles.${item.muscle}` as any)}
                       </Text>
                       <Text
                         style={[
