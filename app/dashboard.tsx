@@ -555,7 +555,7 @@ export default function DashboardScreen() {
                       { color: Colors.gold, fontFamily: fontBold },
                     ]}
                   >
-                    +{workout.xp}
+                    +{workout.xp} XP
                   </Text>
                 </View>
               ))}
