@@ -1286,8 +1286,8 @@ export default function ProfileScreen() {
                   style={[
                     styles.leaderboardButton,
                     {
-                      backgroundColor: `${C.primary}18`,
-                      borderColor: C.primary,
+                      backgroundColor: `${C.green}18`,
+                      borderColor: C.green,
                     },
                   ]}
                   onPress={() => router.push("/dashboard")}
@@ -1295,10 +1295,10 @@ export default function ProfileScreen() {
                   <MaterialCommunityIcons
                     name="view-dashboard"
                     size={20}
-                    color={C.primary}
+                    color={C.green}
                   />
                   <Text
-                    style={[styles.leaderboardButtonText, { color: C.primary }]}
+                    style={[styles.leaderboardButtonText, { color: C.green }]}
                   >
                     {t(language, "profile.viewDashboard")}
                   </Text>
