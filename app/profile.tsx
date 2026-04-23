@@ -1329,8 +1329,8 @@ export default function ProfileScreen() {
                     style={[
                       styles.leaderboardButton,
                       {
-                        backgroundColor: `${C.error}18`,
-                        borderColor: C.error,
+                        backgroundColor: `${C.blue}18`,
+                        borderColor: C.blue,
                       },
                     ]}
                     onPress={() => router.push("/admin")}
@@ -1338,12 +1338,12 @@ export default function ProfileScreen() {
                     <MaterialCommunityIcons
                       name="shield-crown"
                       size={20}
-                      color={C.error}
+                      color={C.blue}
                     />
                     <Text
                       style={[
                         styles.leaderboardButtonText,
-                        { color: C.error },
+                        { color: C.blue },
                       ]}
                     >
                       {t(language, "admin.title")}
