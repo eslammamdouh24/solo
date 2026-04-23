@@ -69,8 +69,16 @@ interface SideDrawerProps {
 }
 
 function SideDrawer({ visible, onClose }: SideDrawerProps) {
-  const { theme, language, toggleTheme, setLanguage, accent, setAccent } =
-    useApp();
+  const {
+    theme,
+    language,
+    toggleTheme,
+    setLanguage,
+    accent,
+    setAccent,
+    soundEnabled,
+    setSoundEnabled,
+  } = useApp();
   const { user, isAdmin, signOut } = useAuth();
   const C = useColors();
   const router = useRouter();
@@ -200,17 +208,18 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
           ]}
         >
           {/* Header: user info */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => go("/profile")}
-            style={[
-              styles.header,
-              {
-                borderBottomColor: C.border,
-                flexDirection: isRTL ? "row-reverse" : "row",
-              },
-            ]}
-          >
+          {user && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => go("/profile")}
+              style={[
+                styles.header,
+                {
+                  borderBottomColor: C.border,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
             <View
               style={[
                 styles.avatar,
@@ -272,41 +281,45 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               )}
             </View>
           </TouchableOpacity>
+          )}
 
           {/* Menu */}
           <ScrollView
             style={styles.menu}
             contentContainerStyle={{ paddingVertical: Spacing.sm }}
           >
-            {menuItems
-              .filter((item) => !item.adminOnly || isAdmin)
-              .map((item) => (
-                <TouchableOpacity
-                  key={item.label}
-                  style={[
-                    styles.menuItem,
-                    { flexDirection: isRTL ? "row-reverse" : "row" },
-                  ]}
-                  onPress={item.onPress}
-                  activeOpacity={0.7}
-                >
-                  <MaterialCommunityIcons
-                    name={item.icon}
-                    size={22}
-                    color={C.primary}
-                  />
-                  <Text
+            {user &&
+              menuItems
+                .filter((item) => !item.adminOnly || isAdmin)
+                .map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
                     style={[
-                      styles.menuLabel,
-                      { color: C.text, fontFamily: fontSemibold },
+                      styles.menuItem,
+                      { flexDirection: isRTL ? "row-reverse" : "row" },
                     ]}
+                    onPress={item.onPress}
+                    activeOpacity={0.7}
                   >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <MaterialCommunityIcons
+                      name={item.icon}
+                      size={22}
+                      color={C.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.menuLabel,
+                        { color: C.text, fontFamily: fontSemibold },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
 
-            <View style={[styles.divider, { backgroundColor: C.border }]} />
+            {user && (
+              <View style={[styles.divider, { backgroundColor: C.border }]} />
+            )}
 
             {/* Language toggle (switch) */}
             <View
@@ -531,32 +544,101 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               })}
             </View>
 
+            {/* Sound toggle */}
+            <View
+              style={[
+                styles.toggleRow,
+                { flexDirection: isRTL ? "row-reverse" : "row" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.toggleLeft,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name={soundEnabled ? "volume-high" : "volume-off"}
+                  size={22}
+                  color={C.primary}
+                />
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    { color: C.text, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {t(language, "settings.sound") || "Sound"}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.segment,
+                  {
+                    borderColor: C.border,
+                    backgroundColor: C.surfaceHighlight,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.segmentBtn,
+                    !soundEnabled && { backgroundColor: C.primary },
+                  ]}
+                  onPress={() => setSoundEnabled(false)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons
+                    name="volume-off"
+                    size={16}
+                    color={!soundEnabled ? "#000" : C.textSecondary}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.segmentBtn,
+                    soundEnabled && { backgroundColor: C.primary },
+                  ]}
+                  onPress={() => setSoundEnabled(true)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons
+                    name="volume-high"
+                    size={16}
+                    color={soundEnabled ? "#000" : C.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={[styles.divider, { backgroundColor: C.border }]} />
 
             {/* Sign out */}
-            <TouchableOpacity
-              style={[
-                styles.menuItem,
-                styles.signOutItem,
-                { flexDirection: isRTL ? "row-reverse" : "row" },
-              ]}
-              onPress={handleSignOut}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons
-                name="logout"
-                size={22}
-                color={Colors.error}
-              />
-              <Text
+            {user && (
+              <TouchableOpacity
                 style={[
-                  styles.menuLabel,
-                  { color: Colors.error, fontFamily: fontSemibold },
+                  styles.menuItem,
+                  styles.signOutItem,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
                 ]}
+                onPress={handleSignOut}
+                activeOpacity={0.7}
               >
-                {t(language, "profile.signOut") || "Sign Out"}
-              </Text>
-            </TouchableOpacity>
+                <MaterialCommunityIcons
+                  name="logout"
+                  size={22}
+                  color={Colors.error}
+                />
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    { color: Colors.error, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {t(language, "profile.signOut") || "Sign Out"}
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </Animated.View>
       </View>

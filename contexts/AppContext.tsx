@@ -11,18 +11,22 @@ interface AppContextType {
   theme: Theme;
   language: Language;
   accent: AccentThemeId;
+  soundEnabled: boolean;
   toggleTheme: () => void;
   setLanguage: (lang: Language) => void;
   setAccent: (accent: AccentThemeId) => void;
+  setSoundEnabled: (enabled: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType>({
   theme: Theme.DARK,
   language: Language.EN,
   accent: DEFAULT_ACCENT,
+  soundEnabled: true,
   toggleTheme: () => {},
   setLanguage: () => {},
   setAccent: () => {},
+  setSoundEnabled: () => {},
 });
 
 export const useApp = () => {
@@ -39,6 +43,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
   const [language, setLanguageState] = useState<Language>(Language.EN);
   const [accent, setAccentState] = useState<AccentThemeId>(DEFAULT_ACCENT);
+  const [soundEnabled, setSoundEnabledState] = useState(true);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -48,11 +53,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const savedTheme = await AsyncStorage.getItem("theme");
         const savedLanguage = await AsyncStorage.getItem("language");
         const savedAccent = await AsyncStorage.getItem("accent");
+        const savedSound = await AsyncStorage.getItem("soundEnabled");
 
         if (savedTheme) setTheme(savedTheme as Theme);
         if (savedLanguage) setLanguageState(savedLanguage as Language);
         if (savedAccent && savedAccent in AccentThemes) {
           setAccentState(savedAccent as AccentThemeId);
+        }
+        if (savedSound !== null) {
+          setSoundEnabledState(savedSound === "true");
         }
       } catch (error) {
         console.error("Failed to load preferences:", error);
@@ -92,6 +101,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const setSoundEnabled = async (enabled: boolean) => {
+    setSoundEnabledState(enabled);
+    try {
+      await AsyncStorage.setItem("soundEnabled", String(enabled));
+    } catch (error) {
+      console.error("Failed to save sound setting:", error);
+    }
+  };
+
   if (!isReady) {
     return null; // or a loading screen
   }
@@ -102,9 +120,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         theme,
         language,
         accent,
+        soundEnabled,
         toggleTheme,
         setLanguage,
         setAccent,
+        setSoundEnabled,
       }}
     >
       {children}
