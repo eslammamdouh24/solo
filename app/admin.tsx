@@ -49,6 +49,13 @@ interface AppStats {
   totalWorkouts: number;
   totalXP: number;
   avgLevel: number;
+  newThisWeek: number;
+  avgWorkoutsPerUser: number;
+}
+
+interface DailyCount {
+  day: string;
+  count: number;
 }
 
 export default function AdminScreen() {
@@ -60,11 +67,15 @@ export default function AdminScreen() {
   const isRTL = checkRTL(language);
   const fontBold = getFont(language, "bold");
   const fontSemibold = getFont(language, "semibold");
+  const fontRegular = getFont(language, "regular");
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [stats, setStats] = useState<AppStats | null>(null);
+  const [signupsDaily, setSignupsDaily] = useState<DailyCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all");
 
   // Redirect only once admin status has been verified
   useEffect(() => {
@@ -85,7 +96,37 @@ export default function AdminScreen() {
           (list.reduce((s, u) => s + (u.level || 0), 0) / totalUsers) * 10,
         ) / 10
       : 0;
-    return { totalUsers, totalWorkouts, totalXP, avgLevel };
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const newThisWeek = list.filter(
+      (u) => new Date(u.created_at).getTime() >= sevenDaysAgo,
+    ).length;
+    const avgWorkoutsPerUser = totalUsers
+      ? Math.round((totalWorkouts / totalUsers) * 10) / 10
+      : 0;
+    return {
+      totalUsers,
+      totalWorkouts,
+      totalXP,
+      avgLevel,
+      newThisWeek,
+      avgWorkoutsPerUser,
+    };
+  };
+
+  const computeSignups = (list: UserData[]): DailyCount[] => {
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const buckets: DailyCount[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      const dateStr = d.toDateString();
+      const count = list.filter(
+        (u) => new Date(u.created_at).toDateString() === dateStr,
+      ).length;
+      buckets.push({ day: dayNames[d.getDay()], count });
+    }
+    return buckets;
   };
 
   const loadData = async () => {
@@ -104,6 +145,7 @@ export default function AdminScreen() {
       const list = usersData || [];
       setUsers(list);
       setStats(computeStats(list));
+      setSignupsDaily(computeSignups(list));
     } catch (error: any) {
       console.error("Error loading admin data:", error);
       notifyError(
@@ -126,6 +168,18 @@ export default function AdminScreen() {
     setRefreshing(true);
     loadData();
   };
+
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      if (roleFilter !== "all" && u.role !== roleFilter) return false;
+      if (!q) return true;
+      return (
+        (u.username || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q)
+      );
+    });
+  }, [users, search, roleFilter]);
 
   const handleToggleRole = async (userId: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
@@ -367,8 +421,191 @@ export default function AdminScreen() {
                 {t(language, "admin.avgLevel")}
               </Text>
             </View>
+
+            <View
+              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
+            >
+              <MaterialCommunityIcons
+                name="account-plus"
+                size={32}
+                color={Colors.green}
+              />
+              <Text
+                style={[
+                  styles.statValue,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
+              >
+                {stats.newThisWeek}
+              </Text>
+              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                New this week
+              </Text>
+            </View>
+
+            <View
+              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
+            >
+              <MaterialCommunityIcons
+                name="chart-bar"
+                size={32}
+                color={Colors.purple}
+              />
+              <Text
+                style={[
+                  styles.statValue,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
+              >
+                {stats.avgWorkoutsPerUser}
+              </Text>
+              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                Avg workouts / user
+              </Text>
+            </View>
           </View>
         )}
+
+        {/* Signups last 7 days */}
+        {signupsDaily.length > 0 && (
+          <View
+            style={[
+              styles.chartCard,
+              { backgroundColor: C.surfaceHighlight },
+            ]}
+          >
+            <Text
+              style={[
+                styles.chartTitle,
+                { color: C.text, fontFamily: fontBold },
+              ]}
+            >
+              Signups · Last 7 days
+            </Text>
+            <View style={styles.chartRow}>
+              {signupsDaily.map((d, i) => {
+                const max = Math.max(
+                  ...signupsDaily.map((x) => x.count),
+                  1,
+                );
+                const heightPct = (d.count / max) * 100;
+                const isToday = i === signupsDaily.length - 1;
+                return (
+                  <View key={i} style={styles.chartCol}>
+                    <View style={styles.chartBarWrap}>
+                      {d.count > 0 && (
+                        <Text
+                          style={[
+                            styles.chartCount,
+                            { color: C.text, fontFamily: fontBold },
+                          ]}
+                        >
+                          {d.count}
+                        </Text>
+                      )}
+                      <View
+                        style={[
+                          styles.chartTrack,
+                          { backgroundColor: C.surface },
+                        ]}
+                      >
+                        <View
+                          style={{
+                            height: `${heightPct}%`,
+                            backgroundColor: isToday
+                              ? Colors.orange
+                              : C.primary,
+                            borderRadius: 4,
+                          }}
+                        />
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.chartLabel,
+                        {
+                          color: isToday ? Colors.orange : C.textSecondary,
+                          fontFamily: fontSemibold,
+                        },
+                      ]}
+                    >
+                      {d.day}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Search + Role Filter */}
+        <View
+          style={[
+            styles.searchBar,
+            { backgroundColor: C.surfaceHighlight },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="magnify"
+            size={18}
+            color={C.textSecondary}
+          />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search username or email"
+            placeholderTextColor={C.textMuted}
+            style={[
+              styles.searchInput,
+              { color: C.text, fontFamily: fontRegular },
+            ]}
+          />
+          {search.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearch("")}
+              hitSlop={8}
+            >
+              <MaterialCommunityIcons
+                name="close-circle"
+                size={18}
+                color={C.textMuted}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.filterRow}>
+          {(["all", "admin", "user"] as const).map((r) => {
+            const active = roleFilter === r;
+            return (
+              <TouchableOpacity
+                key={r}
+                onPress={() => setRoleFilter(r)}
+                style={[
+                  styles.filterChip,
+                  {
+                    backgroundColor: active
+                      ? C.primary + "22"
+                      : C.surfaceHighlight,
+                    borderColor: active ? C.primary : "transparent",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    {
+                      color: active ? C.primary : C.textSecondary,
+                      fontFamily: fontSemibold,
+                    },
+                  ]}
+                >
+                  {r === "all" ? "All" : r === "admin" ? "Admins" : "Users"}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         {/* Users List */}
         <View style={styles.sectionHeader}>
@@ -379,7 +616,7 @@ export default function AdminScreen() {
               { color: C.text, fontFamily: fontBold },
             ]}
           >
-            {t(language, "admin.allUsers")} ({users.length})
+            {t(language, "admin.allUsers")} ({filteredUsers.length})
           </Text>
           {users.filter((u) => u.user_id !== user?.id).length > 0 && (
             <TouchableOpacity
@@ -401,7 +638,7 @@ export default function AdminScreen() {
           )}
         </View>
 
-        {users.map((userData) => (
+        {filteredUsers.map((userData) => (
           <View
             key={userData.user_id}
             style={[
@@ -655,6 +892,77 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 13,
+    fontWeight: "600",
+  },
+  chartCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
+  },
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  chartRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: Spacing.xs,
+    height: 110,
+  },
+  chartCol: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
+  },
+  chartBarWrap: {
+    width: "100%",
+    height: 90,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  chartCount: {
+    fontSize: 10,
+    marginBottom: 2,
+  },
+  chartTrack: {
+    width: "70%",
+    height: "100%",
+    borderRadius: 4,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+  },
+  chartLabel: {
+    fontSize: 11,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
+  },
+  filterRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full || 999,
+    borderWidth: 1,
+  },
+  filterChipText: {
+    fontSize: 12,
     fontWeight: "600",
   },
 });
