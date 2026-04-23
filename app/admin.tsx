@@ -1,3 +1,4 @@
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { isRTL as checkRTL } from "@/constants/enums";
@@ -342,6 +343,7 @@ export default function AdminScreen() {
       >
         {/* Stats Cards */}
         {stats && (
+          <AnimatedEntry index={0}>
           <View style={styles.statsContainer}>
             <View
               style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
@@ -465,10 +467,12 @@ export default function AdminScreen() {
               </Text>
             </View>
           </View>
+          </AnimatedEntry>
         )}
 
         {/* Signups last 7 days */}
         {signupsDaily.length > 0 && (
+          <AnimatedEntry index={1}>
           <View
             style={[styles.chartCard, { backgroundColor: C.surfaceHighlight }]}
           >
@@ -531,9 +535,11 @@ export default function AdminScreen() {
               })}
             </View>
           </View>
+          </AnimatedEntry>
         )}
 
         {/* Search + Role Filter */}
+        <AnimatedEntry index={2}>
         <View
           style={[styles.searchBar, { backgroundColor: C.surfaceHighlight }]}
         >
@@ -595,8 +601,10 @@ export default function AdminScreen() {
             );
           })}
         </View>
+        </AnimatedEntry>
 
         {/* Users List */}
+        <AnimatedEntry index={3}>
         <View style={styles.sectionHeader}>
           <Text
             style={[
@@ -626,10 +634,16 @@ export default function AdminScreen() {
             </TouchableOpacity>
           )}
         </View>
+        </AnimatedEntry>
 
-        {filteredUsers.map((userData) => (
-          <View
+        {filteredUsers.map((userData, i) => (
+          <AnimatedEntry
             key={userData.user_id}
+            index={Math.min(i, 10)}
+            delay={240}
+            stagger={30}
+          >
+          <View
             style={[
               styles.userCard,
               { backgroundColor: C.surfaceHighlight },
@@ -743,6 +757,7 @@ export default function AdminScreen() {
               </View>
             )}
           </View>
+          </AnimatedEntry>
         ))}
       </ScrollView>
     </View>
