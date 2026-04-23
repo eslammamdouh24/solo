@@ -1,21 +1,21 @@
 import {
-  Cairo_400Regular,
-  Cairo_600SemiBold,
-  Cairo_700Bold,
-  Cairo_900Black,
+    Cairo_400Regular,
+    Cairo_600SemiBold,
+    Cairo_700Bold,
+    Cairo_900Black,
 } from "@expo-google-fonts/cairo";
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_900Black,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_900Black,
 } from "@expo-google-fonts/inter";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";

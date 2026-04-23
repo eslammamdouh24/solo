@@ -1,5 +1,5 @@
-import { TopBar } from "@/components/TopBar";
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { TopBar } from "@/components/TopBar";
 import { isRTL as checkRTL } from "@/constants/enums";
 import { exerciseImages } from "@/constants/exerciseImages";
 import { fonts, getFont } from "@/constants/fonts";
@@ -100,121 +100,124 @@ const ExerciseListScreen: React.FC = () => {
 
   const renderItem = ({ item, index }: { item: Exercise; index: number }) => (
     <AnimatedEntry index={Math.min(index, 8)} stagger={40} from="down">
-    <TouchableOpacity
-      style={[
-        styles.card,
-        {
-          backgroundColor: C.surface,
-          flexDirection: isRTL ? "row-reverse" : "row",
-        },
-      ]}
-      activeOpacity={0.7}
-      onPress={() =>
-        router.push({
-          pathname: "/exercise-detail",
-          params: { muscle, exerciseId: item.id },
-        })
-      }
-    >
-      <View
-        style={[styles.imageContainer, { backgroundColor: C.surfaceHighlight }]}
-      >
-        <Image
-          source={getImageSource(item)}
-          style={styles.image}
-          resizeMode="contain"
-        />
-      </View>
-      <View
+      <TouchableOpacity
         style={[
-          styles.info,
+          styles.card,
           {
-            marginRight: isRTL ? 14 : 0,
-            marginLeft: isRTL ? 0 : 14,
+            backgroundColor: C.surface,
+            flexDirection: isRTL ? "row-reverse" : "row",
           },
         ]}
+        activeOpacity={0.7}
+        onPress={() =>
+          router.push({
+            pathname: "/exercise-detail",
+            params: { muscle, exerciseId: item.id },
+          })
+        }
       >
-        <Text
-          style={[
-            styles.name,
-            {
-              color: C.text,
-              fontFamily: fonts.en.bold,
-              textAlign: isRTL ? "right" : "left",
-            },
-          ]}
-          numberOfLines={2}
-        >
-          {item.name}
-        </Text>
         <View
           style={[
-            styles.setsRow,
+            styles.imageContainer,
+            { backgroundColor: C.surfaceHighlight },
+          ]}
+        >
+          <Image
+            source={getImageSource(item)}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        </View>
+        <View
+          style={[
+            styles.info,
             {
-              flexDirection: isRTL ? "row-reverse" : "row",
-              alignSelf: isRTL ? "flex-end" : "flex-start",
+              marginRight: isRTL ? 14 : 0,
+              marginLeft: isRTL ? 0 : 14,
             },
           ]}
         >
-          <View
-            style={[styles.primaryTag, { backgroundColor: `${C.primary}18` }]}
+          <Text
+            style={[
+              styles.name,
+              {
+                color: C.text,
+                fontFamily: fonts.en.bold,
+                textAlign: isRTL ? "right" : "left",
+              },
+            ]}
+            numberOfLines={2}
           >
-            <Text
-              style={[
-                styles.tagText,
-                {
-                  color: C.primary,
-                  fontFamily: fontBold,
-                  textAlign: isRTL ? "right" : "left",
-                },
-              ]}
+            {item.name}
+          </Text>
+          <View
+            style={[
+              styles.setsRow,
+              {
+                flexDirection: isRTL ? "row-reverse" : "row",
+                alignSelf: isRTL ? "flex-end" : "flex-start",
+              },
+            ]}
+          >
+            <View
+              style={[styles.primaryTag, { backgroundColor: `${C.primary}18` }]}
             >
-              {item.duration
-                ? `${item.sets} × ${item.duration}s`
-                : `${item.sets} × ${item.reps}`}
-            </Text>
+              <Text
+                style={[
+                  styles.tagText,
+                  {
+                    color: C.primary,
+                    fontFamily: fontBold,
+                    textAlign: isRTL ? "right" : "left",
+                  },
+                ]}
+              >
+                {item.duration
+                  ? `${item.sets} × ${item.duration}s`
+                  : `${item.sets} × ${item.reps}`}
+              </Text>
+            </View>
+          </View>
+          <View
+            style={[
+              styles.tagsRow,
+              {
+                flexDirection: isRTL ? "row-reverse" : "row",
+                alignSelf: isRTL ? "flex-end" : "flex-start",
+              },
+            ]}
+          >
+            <View style={[styles.tag, { backgroundColor: C.surfaceHighlight }]}>
+              <Text
+                style={[
+                  styles.tagText,
+                  {
+                    color: C.textSecondary,
+                    fontFamily: fontSemibold,
+                    textAlign: isRTL ? "right" : "left",
+                  },
+                ]}
+              >
+                {t(language, `equipmentNames.${item.equipment}`)}
+              </Text>
+            </View>
+            <View style={[styles.tag, { backgroundColor: C.surfaceHighlight }]}>
+              <Text
+                style={[
+                  styles.tagText,
+                  {
+                    color: C.textSecondary,
+                    fontFamily: fontSemibold,
+                    textAlign: isRTL ? "right" : "left",
+                  },
+                ]}
+              >
+                {t(language, `difficultyNames.${item.difficulty}`)}
+              </Text>
+            </View>
           </View>
         </View>
-        <View
-          style={[
-            styles.tagsRow,
-            {
-              flexDirection: isRTL ? "row-reverse" : "row",
-              alignSelf: isRTL ? "flex-end" : "flex-start",
-            },
-          ]}
-        >
-          <View style={[styles.tag, { backgroundColor: C.surfaceHighlight }]}>
-            <Text
-              style={[
-                styles.tagText,
-                {
-                  color: C.textSecondary,
-                  fontFamily: fontSemibold,
-                  textAlign: isRTL ? "right" : "left",
-                },
-              ]}
-            >
-              {t(language, `equipmentNames.${item.equipment}`)}
-            </Text>
-          </View>
-          <View style={[styles.tag, { backgroundColor: C.surfaceHighlight }]}>
-            <Text
-              style={[
-                styles.tagText,
-                {
-                  color: C.textSecondary,
-                  fontFamily: fontSemibold,
-                  textAlign: isRTL ? "right" : "left",
-                },
-              ]}
-            >
-              {t(language, `difficultyNames.${item.difficulty}`)}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </AnimatedEntry>
   );
 

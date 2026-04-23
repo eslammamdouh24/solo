@@ -1,7 +1,7 @@
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { TopBar } from "@/components/TopBar";
-import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { Colors } from "@/constants/colors";
 import {
     DAY_OPTIONS,
@@ -237,1100 +237,1123 @@ export default function ProfileScreen() {
           <View style={styles.main}>
             {/* Profile Card */}
             <AnimatedEntry index={0}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <View style={styles.profileHeader}>
-                <TouchableOpacity
-                  style={styles.avatarContainer}
-                  onPress={handlePickImage}
-                >
-                  {profileImage && !imageError ? (
-                    <Image
-                      source={{ uri: profileImage }}
-                      style={[styles.avatar, { borderColor: C.primary }]}
-                      onError={() => setImageError(true)}
-                    />
-                  ) : (
-                    <DefaultAvatar size={80} gender={meta.gender} />
-                  )}
-                  <View
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <View style={styles.profileHeader}>
+                  <TouchableOpacity
+                    style={styles.avatarContainer}
+                    onPress={handlePickImage}
+                  >
+                    {profileImage && !imageError ? (
+                      <Image
+                        source={{ uri: profileImage }}
+                        style={[styles.avatar, { borderColor: C.primary }]}
+                        onError={() => setImageError(true)}
+                      />
+                    ) : (
+                      <DefaultAvatar size={80} gender={meta.gender} />
+                    )}
+                    <View
+                      style={[
+                        styles.editIconContainer,
+                        {
+                          backgroundColor: C.primary,
+                          borderColor: C.background,
+                        },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="camera"
+                        size={20}
+                        color={C.text}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <Text
                     style={[
-                      styles.editIconContainer,
-                      {
-                        backgroundColor: C.primary,
-                        borderColor: C.background,
-                      },
+                      styles.userName,
+                      { color: C.text, fontFamily: fontBlack },
                     ]}
                   >
-                    <MaterialCommunityIcons
-                      name="camera"
-                      size={20}
-                      color={C.text}
-                    />
-                  </View>
-                </TouchableOpacity>
-                <Text
-                  style={[
-                    styles.userName,
-                    { color: C.text, fontFamily: fontBlack },
-                  ]}
-                >
-                  {meta.username || user?.email?.split("@")[0]}
-                </Text>
-                <Text
-                  style={[
-                    styles.email,
-                    { color: C.textSecondary, fontFamily: fontRegular },
-                  ]}
-                >
-                  {user?.email}
-                </Text>
-                <Text
-                  style={[
-                    styles.accountAge,
-                    { color: C.textSecondary, fontFamily: fontRegular },
-                  ]}
-                >
-                  {t(language, "profile.memberFor", { days: accountAge })}
-                </Text>
+                    {meta.username || user?.email?.split("@")[0]}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.email,
+                      { color: C.textSecondary, fontFamily: fontRegular },
+                    ]}
+                  >
+                    {user?.email}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.accountAge,
+                      { color: C.textSecondary, fontFamily: fontRegular },
+                    ]}
+                  >
+                    {t(language, "profile.memberFor", { days: accountAge })}
+                  </Text>
+                </View>
               </View>
-            </View>
             </AnimatedEntry>
 
             {/* Personal Info */}
             <AnimatedEntry index={1}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <View
-                style={[
-                  styles.sectionHeader,
-                  { flexDirection: isRTL ? "row-reverse" : "row" },
-                ]}
-              >
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <View
+                  style={[
+                    styles.sectionHeader,
+                    { flexDirection: isRTL ? "row-reverse" : "row" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      {
+                        color: C.textSecondary,
+                        fontFamily: fontBold,
+                        marginBottom: 0,
+                        textAlign: isRTL ? "right" : "left",
+                      },
+                    ]}
+                  >
+                    {t(language, "profile.personalInfo")}
+                  </Text>
+                  {!editing && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditUsername(meta.username || "");
+                        setEditFullName(meta.full_name || "");
+                        setEditBirthDay(meta.birth_day?.toString() || "");
+                        setEditBirthMonth(meta.birth_month?.toString() || "");
+                        setEditBirthYear(meta.birth_year?.toString() || "");
+                        setEditGender(meta.gender || "");
+                        setEditing(true);
+                      }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <MaterialCommunityIcons
+                        name="pencil-outline"
+                        size={20}
+                        color={C.primary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {editing ? (
+                  <View style={styles.editForm}>
+                    <View>
+                      <Text
+                        style={[
+                          styles.editLabel,
+                          {
+                            color: C.textSecondary,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontSemibold,
+                          },
+                        ]}
+                      >
+                        {t(language, "auth.username")}
+                      </Text>
+                      <TextInput
+                        style={[
+                          styles.editInput,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontRegular,
+                          },
+                        ]}
+                        value={editUsername}
+                        onChangeText={setEditUsername}
+                        placeholder={t(language, "auth.username")}
+                        placeholderTextColor={C.textSecondary}
+                        autoCapitalize="none"
+                      />
+                    </View>
+                    <View>
+                      <Text
+                        style={[
+                          styles.editLabel,
+                          {
+                            color: C.textSecondary,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontSemibold,
+                          },
+                        ]}
+                      >
+                        {t(language, "auth.fullName")}
+                      </Text>
+                      <TextInput
+                        style={[
+                          styles.editInput,
+                          {
+                            backgroundColor: C.surfaceHighlight,
+                            color: C.text,
+                            borderColor: C.surface,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontRegular,
+                          },
+                        ]}
+                        value={editFullName}
+                        onChangeText={setEditFullName}
+                        placeholder={t(language, "auth.fullName")}
+                        placeholderTextColor={C.textSecondary}
+                      />
+                    </View>
+                    <View>
+                      <Text
+                        style={[
+                          styles.editLabel,
+                          {
+                            color: C.textSecondary,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontSemibold,
+                          },
+                        ]}
+                      >
+                        {t(language, "profile.birthDate")}
+                      </Text>
+                      <View
+                        style={[
+                          styles.dobRow,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <DropdownPicker
+                            options={DAY_OPTIONS}
+                            value={editBirthDay}
+                            onSelect={setEditBirthDay}
+                            placeholder={t(language, "auth.birthDay")}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <DropdownPicker
+                            options={MONTH_OPTIONS}
+                            value={editBirthMonth}
+                            onSelect={setEditBirthMonth}
+                            placeholder={t(language, "auth.birthMonth")}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                        <View style={{ flex: 1.5 }}>
+                          <DropdownPicker
+                            options={YEAR_OPTIONS}
+                            value={editBirthYear}
+                            onSelect={setEditBirthYear}
+                            placeholder={t(language, "auth.birthYear")}
+                            isRTL={isRTL}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                    <View>
+                      <Text
+                        style={[
+                          styles.editLabel,
+                          {
+                            color: C.textSecondary,
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: fontSemibold,
+                          },
+                        ]}
+                      >
+                        {t(language, "auth.gender")}
+                      </Text>
+                      <View
+                        style={[
+                          styles.genderRow,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <TouchableOpacity
+                          style={[
+                            styles.genderOption,
+                            {
+                              borderColor: C.surface,
+                              backgroundColor: C.surfaceHighlight,
+                            },
+                            editGender === "male" && {
+                              borderColor: C.primary,
+                              backgroundColor: `${C.primary}22`,
+                            },
+                          ]}
+                          onPress={() => setEditGender("male")}
+                        >
+                          <MaterialCommunityIcons
+                            name="gender-male"
+                            size={18}
+                            color={
+                              editGender === "male"
+                                ? C.primary
+                                : C.textSecondary
+                            }
+                          />
+                          <Text
+                            style={{
+                              color:
+                                editGender === "male"
+                                  ? C.primary
+                                  : C.textSecondary,
+                              fontWeight: "600",
+                              fontSize: FontSize.sm,
+                              fontFamily: fontSemibold,
+                            }}
+                          >
+                            {t(language, "profile.male")}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.genderOption,
+                            {
+                              borderColor: C.surface,
+                              backgroundColor: C.surfaceHighlight,
+                            },
+                            editGender === "female" && {
+                              borderColor: C.primary,
+                              backgroundColor: `${C.primary}22`,
+                            },
+                          ]}
+                          onPress={() => setEditGender("female")}
+                        >
+                          <MaterialCommunityIcons
+                            name="gender-female"
+                            size={18}
+                            color={
+                              editGender === "female"
+                                ? C.primary
+                                : C.textSecondary
+                            }
+                          />
+                          <Text
+                            style={{
+                              color:
+                                editGender === "female"
+                                  ? C.primary
+                                  : C.textSecondary,
+                              fontWeight: "600",
+                              fontSize: FontSize.sm,
+                              fontFamily: fontSemibold,
+                            }}
+                          >
+                            {t(language, "profile.female")}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {editing && (
+                      <View
+                        style={[
+                          styles.editActionsRow,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <TouchableOpacity
+                          onPress={handleSaveProfile}
+                          disabled={saving}
+                          style={[
+                            styles.editActionButton,
+                            {
+                              backgroundColor: C.primary,
+                              flex: 1,
+                            },
+                          ]}
+                        >
+                          {saving ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <Text
+                              style={[
+                                styles.saveButtonText,
+                                { fontFamily: fontBold },
+                              ]}
+                            >
+                              {t(language, "profile.saveProfile")}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => setEditing(false)}
+                          style={[
+                            styles.editActionButton,
+                            {
+                              backgroundColor: "transparent",
+                              borderColor: C.textMuted,
+                              borderWidth: 1,
+                              flex: 1,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={{
+                              color: C.textSecondary,
+                              fontWeight: "600",
+                              fontSize: FontSize.sm,
+                              fontFamily: fontSemibold,
+                            }}
+                          >
+                            {t(language, "common.cancel")}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.infoList}>
+                    <View
+                      style={[
+                        styles.infoRow,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          flexDirection: isRTL ? "row-reverse" : "row",
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.infoLeft,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name="account"
+                          size={18}
+                          color={C.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoLabel,
+                            {
+                              color: C.textSecondary,
+                              fontFamily: fontSemibold,
+                            },
+                          ]}
+                        >
+                          {t(language, "auth.fullName")}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          { color: C.text, fontFamily: fontBold },
+                        ]}
+                      >
+                        {meta.full_name || t(language, "profile.notSet")}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.infoRow,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          flexDirection: isRTL ? "row-reverse" : "row",
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.infoLeft,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name="at"
+                          size={18}
+                          color={C.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoLabel,
+                            {
+                              color: C.textSecondary,
+                              fontFamily: fontSemibold,
+                            },
+                          ]}
+                        >
+                          {t(language, "auth.username")}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          { color: C.text, fontFamily: fontBold },
+                        ]}
+                      >
+                        {meta.username || t(language, "profile.notSet")}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.infoRow,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          flexDirection: isRTL ? "row-reverse" : "row",
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.infoLeft,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name="calendar"
+                          size={18}
+                          color={C.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoLabel,
+                            {
+                              color: C.textSecondary,
+                              fontFamily: fontSemibold,
+                            },
+                          ]}
+                        >
+                          {t(language, "profile.birthDate")}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          { color: C.text, fontFamily: fontBold },
+                        ]}
+                      >
+                        {meta.birth_day && meta.birth_month && meta.birth_year
+                          ? `${meta.birth_day}/${meta.birth_month}/${meta.birth_year}`
+                          : t(language, "profile.notSet")}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.infoRow,
+                        {
+                          backgroundColor: C.surfaceHighlight,
+                          flexDirection: isRTL ? "row-reverse" : "row",
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.infoLeft,
+                          { flexDirection: isRTL ? "row-reverse" : "row" },
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name={
+                            meta.gender === "male"
+                              ? "gender-male"
+                              : meta.gender === "female"
+                                ? "gender-female"
+                                : "gender-male-female"
+                          }
+                          size={18}
+                          color={C.primary}
+                        />
+                        <Text
+                          style={[
+                            styles.infoLabel,
+                            {
+                              color: C.textSecondary,
+                              fontFamily: fontSemibold,
+                            },
+                          ]}
+                        >
+                          {t(language, "profile.gender")}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          { color: C.text, fontFamily: fontBold },
+                        ]}
+                      >
+                        {meta.gender === "male"
+                          ? t(language, "profile.male")
+                          : meta.gender === "female"
+                            ? t(language, "profile.female")
+                            : t(language, "profile.notSet")}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </AnimatedEntry>
+
+            {/* Stats Summary */}
+            <AnimatedEntry index={2}>
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
                 <Text
                   style={[
                     styles.sectionTitle,
                     {
                       color: C.textSecondary,
                       fontFamily: fontBold,
-                      marginBottom: 0,
                       textAlign: isRTL ? "right" : "left",
                     },
                   ]}
                 >
-                  {t(language, "profile.personalInfo")}
+                  {t(language, "profile.statsOverview")}
                 </Text>
-                {!editing && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setEditUsername(meta.username || "");
-                      setEditFullName(meta.full_name || "");
-                      setEditBirthDay(meta.birth_day?.toString() || "");
-                      setEditBirthMonth(meta.birth_month?.toString() || "");
-                      setEditBirthYear(meta.birth_year?.toString() || "");
-                      setEditGender(meta.gender || "");
-                      setEditing(true);
-                    }}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <MaterialCommunityIcons
-                      name="pencil-outline"
-                      size={20}
-                      color={C.primary}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {editing ? (
-                <View style={styles.editForm}>
-                  <View>
-                    <Text
-                      style={[
-                        styles.editLabel,
-                        {
-                          color: C.textSecondary,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {t(language, "auth.username")}
-                    </Text>
-                    <TextInput
-                      style={[
-                        styles.editInput,
-                        {
-                          backgroundColor: C.surfaceHighlight,
-                          color: C.text,
-                          borderColor: C.surface,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontRegular,
-                        },
-                      ]}
-                      value={editUsername}
-                      onChangeText={setEditUsername}
-                      placeholder={t(language, "auth.username")}
-                      placeholderTextColor={C.textSecondary}
-                      autoCapitalize="none"
-                    />
-                  </View>
-                  <View>
-                    <Text
-                      style={[
-                        styles.editLabel,
-                        {
-                          color: C.textSecondary,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {t(language, "auth.fullName")}
-                    </Text>
-                    <TextInput
-                      style={[
-                        styles.editInput,
-                        {
-                          backgroundColor: C.surfaceHighlight,
-                          color: C.text,
-                          borderColor: C.surface,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontRegular,
-                        },
-                      ]}
-                      value={editFullName}
-                      onChangeText={setEditFullName}
-                      placeholder={t(language, "auth.fullName")}
-                      placeholderTextColor={C.textSecondary}
-                    />
-                  </View>
-                  <View>
-                    <Text
-                      style={[
-                        styles.editLabel,
-                        {
-                          color: C.textSecondary,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {t(language, "profile.birthDate")}
-                    </Text>
-                    <View
-                      style={[
-                        styles.dobRow,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <DropdownPicker
-                          options={DAY_OPTIONS}
-                          value={editBirthDay}
-                          onSelect={setEditBirthDay}
-                          placeholder={t(language, "auth.birthDay")}
-                          isRTL={isRTL}
-                        />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <DropdownPicker
-                          options={MONTH_OPTIONS}
-                          value={editBirthMonth}
-                          onSelect={setEditBirthMonth}
-                          placeholder={t(language, "auth.birthMonth")}
-                          isRTL={isRTL}
-                        />
-                      </View>
-                      <View style={{ flex: 1.5 }}>
-                        <DropdownPicker
-                          options={YEAR_OPTIONS}
-                          value={editBirthYear}
-                          onSelect={setEditBirthYear}
-                          placeholder={t(language, "auth.birthYear")}
-                          isRTL={isRTL}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                  <View>
-                    <Text
-                      style={[
-                        styles.editLabel,
-                        {
-                          color: C.textSecondary,
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {t(language, "auth.gender")}
-                    </Text>
-                    <View
-                      style={[
-                        styles.genderRow,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <TouchableOpacity
-                        style={[
-                          styles.genderOption,
-                          {
-                            borderColor: C.surface,
-                            backgroundColor: C.surfaceHighlight,
-                          },
-                          editGender === "male" && {
-                            borderColor: C.primary,
-                            backgroundColor: `${C.primary}22`,
-                          },
-                        ]}
-                        onPress={() => setEditGender("male")}
-                      >
-                        <MaterialCommunityIcons
-                          name="gender-male"
-                          size={18}
-                          color={
-                            editGender === "male" ? C.primary : C.textSecondary
-                          }
-                        />
-                        <Text
-                          style={{
-                            color:
-                              editGender === "male"
-                                ? C.primary
-                                : C.textSecondary,
-                            fontWeight: "600",
-                            fontSize: FontSize.sm,
-                            fontFamily: fontSemibold,
-                          }}
-                        >
-                          {t(language, "profile.male")}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.genderOption,
-                          {
-                            borderColor: C.surface,
-                            backgroundColor: C.surfaceHighlight,
-                          },
-                          editGender === "female" && {
-                            borderColor: C.primary,
-                            backgroundColor: `${C.primary}22`,
-                          },
-                        ]}
-                        onPress={() => setEditGender("female")}
-                      >
-                        <MaterialCommunityIcons
-                          name="gender-female"
-                          size={18}
-                          color={
-                            editGender === "female"
-                              ? C.primary
-                              : C.textSecondary
-                          }
-                        />
-                        <Text
-                          style={{
-                            color:
-                              editGender === "female"
-                                ? C.primary
-                                : C.textSecondary,
-                            fontWeight: "600",
-                            fontSize: FontSize.sm,
-                            fontFamily: fontSemibold,
-                          }}
-                        >
-                          {t(language, "profile.female")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {editing && (
-                    <View
-                      style={[
-                        styles.editActionsRow,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <TouchableOpacity
-                        onPress={handleSaveProfile}
-                        disabled={saving}
-                        style={[
-                          styles.editActionButton,
-                          {
-                            backgroundColor: C.primary,
-                            flex: 1,
-                          },
-                        ]}
-                      >
-                        {saving ? (
-                          <ActivityIndicator size="small" color="#fff" />
-                        ) : (
-                          <Text
-                            style={[
-                              styles.saveButtonText,
-                              { fontFamily: fontBold },
-                            ]}
-                          >
-                            {t(language, "profile.saveProfile")}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setEditing(false)}
-                        style={[
-                          styles.editActionButton,
-                          {
-                            backgroundColor: "transparent",
-                            borderColor: C.textMuted,
-                            borderWidth: 1,
-                            flex: 1,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            color: C.textSecondary,
-                            fontWeight: "600",
-                            fontSize: FontSize.sm,
-                            fontFamily: fontSemibold,
-                          }}
-                        >
-                          {t(language, "common.cancel")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <View style={styles.infoList}>
-                  <View
-                    style={[
-                      styles.infoRow,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        flexDirection: isRTL ? "row-reverse" : "row",
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.infoLeft,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name="account"
-                        size={18}
-                        color={C.primary}
-                      />
-                      <Text
-                        style={[
-                          styles.infoLabel,
-                          { color: C.textSecondary, fontFamily: fontSemibold },
-                        ]}
-                      >
-                        {t(language, "auth.fullName")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.infoValue,
-                        { color: C.text, fontFamily: fontBold },
-                      ]}
-                    >
-                      {meta.full_name || t(language, "profile.notSet")}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.infoRow,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        flexDirection: isRTL ? "row-reverse" : "row",
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.infoLeft,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name="at"
-                        size={18}
-                        color={C.primary}
-                      />
-                      <Text
-                        style={[
-                          styles.infoLabel,
-                          { color: C.textSecondary, fontFamily: fontSemibold },
-                        ]}
-                      >
-                        {t(language, "auth.username")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.infoValue,
-                        { color: C.text, fontFamily: fontBold },
-                      ]}
-                    >
-                      {meta.username || t(language, "profile.notSet")}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.infoRow,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        flexDirection: isRTL ? "row-reverse" : "row",
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.infoLeft,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name="calendar"
-                        size={18}
-                        color={C.primary}
-                      />
-                      <Text
-                        style={[
-                          styles.infoLabel,
-                          { color: C.textSecondary, fontFamily: fontSemibold },
-                        ]}
-                      >
-                        {t(language, "profile.birthDate")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.infoValue,
-                        { color: C.text, fontFamily: fontBold },
-                      ]}
-                    >
-                      {meta.birth_day && meta.birth_month && meta.birth_year
-                        ? `${meta.birth_day}/${meta.birth_month}/${meta.birth_year}`
-                        : t(language, "profile.notSet")}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.infoRow,
-                      {
-                        backgroundColor: C.surfaceHighlight,
-                        flexDirection: isRTL ? "row-reverse" : "row",
-                      },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.infoLeft,
-                        { flexDirection: isRTL ? "row-reverse" : "row" },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name={
-                          meta.gender === "male"
-                            ? "gender-male"
-                            : meta.gender === "female"
-                              ? "gender-female"
-                              : "gender-male-female"
-                        }
-                        size={18}
-                        color={C.primary}
-                      />
-                      <Text
-                        style={[
-                          styles.infoLabel,
-                          { color: C.textSecondary, fontFamily: fontSemibold },
-                        ]}
-                      >
-                        {t(language, "profile.gender")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.infoValue,
-                        { color: C.text, fontFamily: fontBold },
-                      ]}
-                    >
-                      {meta.gender === "male"
-                        ? t(language, "profile.male")
-                        : meta.gender === "female"
-                          ? t(language, "profile.female")
-                          : t(language, "profile.notSet")}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-            </AnimatedEntry>
-
-            {/* Stats Summary */}
-            <AnimatedEntry index={2}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    color: C.textSecondary,
-                    fontFamily: fontBold,
-                    textAlign: isRTL ? "right" : "left",
-                  },
-                ]}
-              >
-                {t(language, "profile.statsOverview")}
-              </Text>
-              <View
-                style={[
-                  styles.statsGrid,
-                  { flexDirection: isRTL ? "row-reverse" : "row" },
-                ]}
-              >
                 <View
                   style={[
-                    styles.statCard,
-                    { backgroundColor: C.surfaceHighlight },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="trophy"
-                    size={32}
-                    color={C.level}
-                  />
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: C.text, fontFamily: fontBlack },
-                    ]}
-                  >
-                    {gameState.level}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {t(language, "profile.level")}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statCard,
-                    { backgroundColor: C.surfaceHighlight },
-                  ]}
-                >
-                  <MaterialCommunityIcons name="star" size={32} color={C.xp} />
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: C.text, fontFamily: fontBlack },
-                    ]}
-                  >
-                    {gameState.xp}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {t(language, "profile.totalXP")}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statCard,
-                    { backgroundColor: C.surfaceHighlight },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="fire"
-                    size={32}
-                    color={C.streak}
-                  />
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: C.text, fontFamily: fontBlack },
-                    ]}
-                  >
-                    {gameState.currentStreak}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {t(language, "profile.dayStreak")}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statCard,
-                    { backgroundColor: C.surfaceHighlight },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="chart-line"
-                    size={32}
-                    color={C.success}
-                  />
-                  <Text
-                    style={[
-                      styles.statValue,
-                      { color: C.text, fontFamily: fontBlack },
-                    ]}
-                  >
-                    {totalStats}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {t(language, "profile.totalStats")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            </AnimatedEntry>
-
-            {/* Detailed Stats */}
-            <AnimatedEntry index={3}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    color: C.textSecondary,
-                    fontFamily: fontBold,
-                    textAlign: isRTL ? "right" : "left",
-                  },
-                ]}
-              >
-                {t(language, "profile.attributes")}
-              </Text>
-              <View style={styles.attributesList}>
-                <View
-                  style={[
-                    styles.attributeRow,
-                    {
-                      backgroundColor: C.surfaceHighlight,
-                      flexDirection: isRTL ? "row-reverse" : "row",
-                    },
+                    styles.statsGrid,
+                    { flexDirection: isRTL ? "row-reverse" : "row" },
                   ]}
                 >
                   <View
                     style={[
-                      styles.attributeLeft,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
+                      styles.statCard,
+                      { backgroundColor: C.surfaceHighlight },
                     ]}
                   >
                     <MaterialCommunityIcons
-                      name="arm-flex"
-                      size={20}
-                      color={C.strength}
-                    />
-                    <Text
-                      style={[
-                        styles.attributeName,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {t(language, "stats.strength")}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.attributeValue,
-                      { color: C.strength, fontFamily: fontBold },
-                    ]}
-                  >
-                    {gameState.strength}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.attributeRow,
-                    {
-                      backgroundColor: C.surfaceHighlight,
-                      flexDirection: isRTL ? "row-reverse" : "row",
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.attributeLeft,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="heart-pulse"
-                      size={20}
-                      color={C.endurance}
-                    />
-                    <Text
-                      style={[
-                        styles.attributeName,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {t(language, "stats.endurance")}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.attributeValue,
-                      { color: C.endurance, fontFamily: fontBold },
-                    ]}
-                  >
-                    {gameState.endurance}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.attributeRow,
-                    {
-                      backgroundColor: C.surfaceHighlight,
-                      flexDirection: isRTL ? "row-reverse" : "row",
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.attributeLeft,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="meditation"
-                      size={20}
-                      color={C.discipline}
-                    />
-                    <Text
-                      style={[
-                        styles.attributeName,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {t(language, "stats.discipline")}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.attributeValue,
-                      { color: C.discipline, fontFamily: fontBold },
-                    ]}
-                  >
-                    {gameState.discipline}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.attributeRow,
-                    {
-                      backgroundColor: C.surfaceHighlight,
-                      flexDirection: isRTL ? "row-reverse" : "row",
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.attributeLeft,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="star-circle"
-                      size={20}
+                      name="trophy"
+                      size={32}
                       color={C.level}
                     />
                     <Text
                       style={[
-                        styles.attributeName,
-                        { color: C.text, fontFamily: fontSemibold },
+                        styles.statValue,
+                        { color: C.text, fontFamily: fontBlack },
                       ]}
                     >
-                      {t(language, "profile.skillPoints")}
+                      {gameState.level}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statLabel,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {t(language, "profile.level")}
                     </Text>
                   </View>
-                  <Text
+                  <View
                     style={[
-                      styles.attributeValue,
-                      { color: C.level, fontFamily: fontBold },
+                      styles.statCard,
+                      { backgroundColor: C.surfaceHighlight },
                     ]}
                   >
-                    {gameState.skillPoints}
-                  </Text>
+                    <MaterialCommunityIcons
+                      name="star"
+                      size={32}
+                      color={C.xp}
+                    />
+                    <Text
+                      style={[
+                        styles.statValue,
+                        { color: C.text, fontFamily: fontBlack },
+                      ]}
+                    >
+                      {gameState.xp}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statLabel,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {t(language, "profile.totalXP")}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statCard,
+                      { backgroundColor: C.surfaceHighlight },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name="fire"
+                      size={32}
+                      color={C.streak}
+                    />
+                    <Text
+                      style={[
+                        styles.statValue,
+                        { color: C.text, fontFamily: fontBlack },
+                      ]}
+                    >
+                      {gameState.currentStreak}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statLabel,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {t(language, "profile.dayStreak")}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statCard,
+                      { backgroundColor: C.surfaceHighlight },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name="chart-line"
+                      size={32}
+                      color={C.success}
+                    />
+                    <Text
+                      style={[
+                        styles.statValue,
+                        { color: C.text, fontFamily: fontBlack },
+                      ]}
+                    >
+                      {totalStats}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statLabel,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {t(language, "profile.totalStats")}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            </AnimatedEntry>
+
+            {/* Detailed Stats */}
+            <AnimatedEntry index={3}>
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color: C.textSecondary,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
+                  ]}
+                >
+                  {t(language, "profile.attributes")}
+                </Text>
+                <View style={styles.attributesList}>
+                  <View
+                    style={[
+                      styles.attributeRow,
+                      {
+                        backgroundColor: C.surfaceHighlight,
+                        flexDirection: isRTL ? "row-reverse" : "row",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.attributeLeft,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="arm-flex"
+                        size={20}
+                        color={C.strength}
+                      />
+                      <Text
+                        style={[
+                          styles.attributeName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {t(language, "stats.strength")}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.attributeValue,
+                        { color: C.strength, fontFamily: fontBold },
+                      ]}
+                    >
+                      {gameState.strength}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.attributeRow,
+                      {
+                        backgroundColor: C.surfaceHighlight,
+                        flexDirection: isRTL ? "row-reverse" : "row",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.attributeLeft,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="heart-pulse"
+                        size={20}
+                        color={C.endurance}
+                      />
+                      <Text
+                        style={[
+                          styles.attributeName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {t(language, "stats.endurance")}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.attributeValue,
+                        { color: C.endurance, fontFamily: fontBold },
+                      ]}
+                    >
+                      {gameState.endurance}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.attributeRow,
+                      {
+                        backgroundColor: C.surfaceHighlight,
+                        flexDirection: isRTL ? "row-reverse" : "row",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.attributeLeft,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="meditation"
+                        size={20}
+                        color={C.discipline}
+                      />
+                      <Text
+                        style={[
+                          styles.attributeName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {t(language, "stats.discipline")}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.attributeValue,
+                        { color: C.discipline, fontFamily: fontBold },
+                      ]}
+                    >
+                      {gameState.discipline}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.attributeRow,
+                      {
+                        backgroundColor: C.surfaceHighlight,
+                        flexDirection: isRTL ? "row-reverse" : "row",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.attributeLeft,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="star-circle"
+                        size={20}
+                        color={C.level}
+                      />
+                      <Text
+                        style={[
+                          styles.attributeName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {t(language, "profile.skillPoints")}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.attributeValue,
+                        { color: C.level, fontFamily: fontBold },
+                      ]}
+                    >
+                      {gameState.skillPoints}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </AnimatedEntry>
 
             {/* Milestones & Rewards */}
             <AnimatedEntry index={4}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    color: C.textSecondary,
-                    fontFamily: fontBold,
-                    textAlign: isRTL ? "right" : "left",
-                  },
-                ]}
-              >
-                {t(language, "profile.milestones")}
-              </Text>
-              <ScrollView style={styles.milestonesScroll} nestedScrollEnabled>
-                <View style={styles.milestonesList}>
-                  {MILESTONES.map((m) => {
-                    const unlocked = gameState.level >= m.level;
-                    return (
-                      <View
-                        key={m.level}
-                        style={[
-                          styles.milestoneRow,
-                          {
-                            backgroundColor: C.surfaceHighlight,
-                            flexDirection: isRTL ? "row-reverse" : "row",
-                          },
-                          unlocked && {
-                            borderColor: C.gold,
-                            borderWidth: 1,
-                            backgroundColor: `${C.gold}08`,
-                          },
-                        ]}
-                      >
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color: C.textSecondary,
+                      fontFamily: fontBold,
+                      textAlign: isRTL ? "right" : "left",
+                    },
+                  ]}
+                >
+                  {t(language, "profile.milestones")}
+                </Text>
+                <ScrollView style={styles.milestonesScroll} nestedScrollEnabled>
+                  <View style={styles.milestonesList}>
+                    {MILESTONES.map((m) => {
+                      const unlocked = gameState.level >= m.level;
+                      return (
                         <View
+                          key={m.level}
                           style={[
-                            styles.milestoneRank,
+                            styles.milestoneRow,
                             {
-                              backgroundColor: unlocked ? C.gold : C.textMuted,
+                              backgroundColor: C.surfaceHighlight,
+                              flexDirection: isRTL ? "row-reverse" : "row",
+                            },
+                            unlocked && {
+                              borderColor: C.gold,
+                              borderWidth: 1,
+                              backgroundColor: `${C.gold}08`,
                             },
                           ]}
                         >
-                          <Text
+                          <View
                             style={[
-                              styles.milestoneRankText,
-                              { fontFamily: fontBold },
-                            ]}
-                          >
-                            {m.level}
-                          </Text>
-                        </View>
-                        <View
-                          style={[
-                            styles.milestoneIconCircle,
-                            {
-                              backgroundColor: unlocked
-                                ? `${C.gold}22`
-                                : `${C.textSecondary}15`,
-                            },
-                          ]}
-                        >
-                          <MaterialCommunityIcons
-                            name={m.icon as any}
-                            size={22}
-                            color={unlocked ? C.gold : C.textSecondary}
-                          />
-                        </View>
-                        <View
-                          style={[
-                            styles.milestoneInfo,
-                            { alignItems: isRTL ? "flex-end" : "flex-start" },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.milestoneName,
+                              styles.milestoneRank,
                               {
-                                color: unlocked ? C.text : C.textSecondary,
-                                fontFamily: fontSemibold,
-                                textAlign: isRTL ? "right" : "left",
+                                backgroundColor: unlocked
+                                  ? C.gold
+                                  : C.textMuted,
                               },
                             ]}
                           >
-                            {t(language, m.titleKey)}
-                          </Text>
-                          <Text
+                            <Text
+                              style={[
+                                styles.milestoneRankText,
+                                { fontFamily: fontBold },
+                              ]}
+                            >
+                              {m.level}
+                            </Text>
+                          </View>
+                          <View
                             style={[
-                              styles.milestoneXP,
+                              styles.milestoneIconCircle,
                               {
-                                color: unlocked ? C.gold : C.textMuted,
-                                fontFamily: fontRegular,
-                                textAlign: isRTL ? "right" : "left",
+                                backgroundColor: unlocked
+                                  ? `${C.gold}22`
+                                  : `${C.textSecondary}15`,
                               },
                             ]}
                           >
-                            +{m.amount} XP
-                          </Text>
+                            <MaterialCommunityIcons
+                              name={m.icon as any}
+                              size={22}
+                              color={unlocked ? C.gold : C.textSecondary}
+                            />
+                          </View>
+                          <View
+                            style={[
+                              styles.milestoneInfo,
+                              { alignItems: isRTL ? "flex-end" : "flex-start" },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.milestoneName,
+                                {
+                                  color: unlocked ? C.text : C.textSecondary,
+                                  fontFamily: fontSemibold,
+                                  textAlign: isRTL ? "right" : "left",
+                                },
+                              ]}
+                            >
+                              {t(language, m.titleKey)}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.milestoneXP,
+                                {
+                                  color: unlocked ? C.gold : C.textMuted,
+                                  fontFamily: fontRegular,
+                                  textAlign: isRTL ? "right" : "left",
+                                },
+                              ]}
+                            >
+                              +{m.amount} XP
+                            </Text>
+                          </View>
+                          {unlocked ? (
+                            <View
+                              style={[
+                                styles.milestoneBadge,
+                                { backgroundColor: `${C.success}22` },
+                              ]}
+                            >
+                              <MaterialCommunityIcons
+                                name="check"
+                                size={16}
+                                color={C.success}
+                              />
+                            </View>
+                          ) : (
+                            <View
+                              style={[
+                                styles.milestoneBadge,
+                                { backgroundColor: `${C.textMuted}15` },
+                              ]}
+                            >
+                              <MaterialCommunityIcons
+                                name="lock"
+                                size={16}
+                                color={C.textMuted}
+                              />
+                            </View>
+                          )}
                         </View>
-                        {unlocked ? (
-                          <View
-                            style={[
-                              styles.milestoneBadge,
-                              { backgroundColor: `${C.success}22` },
-                            ]}
-                          >
-                            <MaterialCommunityIcons
-                              name="check"
-                              size={16}
-                              color={C.success}
-                            />
-                          </View>
-                        ) : (
-                          <View
-                            style={[
-                              styles.milestoneBadge,
-                              { backgroundColor: `${C.textMuted}15` },
-                            ]}
-                          >
-                            <MaterialCommunityIcons
-                              name="lock"
-                              size={16}
-                              color={C.textMuted}
-                            />
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              </ScrollView>
-            </View>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
             </AnimatedEntry>
 
             {/* Dashboard & Leaderboard */}
             <AnimatedEntry index={5}>
-            <View
-              style={[
-                styles.section,
-                styles.actionsSection,
-                { backgroundColor: C.surface },
-              ]}
-            >
-              <TouchableOpacity
+              <View
                 style={[
-                  styles.leaderboardButton,
-                  { backgroundColor: `${C.primary}18`, borderColor: C.primary },
+                  styles.section,
+                  styles.actionsSection,
+                  { backgroundColor: C.surface },
                 ]}
-                onPress={() => router.push("/dashboard")}
               >
-                <MaterialCommunityIcons
-                  name="view-dashboard"
-                  size={20}
-                  color={C.primary}
-                />
-                <Text
-                  style={[styles.leaderboardButtonText, { color: C.primary }]}
-                >
-                  {t(language, "profile.viewDashboard")}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.leaderboardButton,
-                  { backgroundColor: `${C.level}18`, borderColor: C.level },
-                ]}
-                onPress={() => router.push("/leaderboard")}
-              >
-                <MaterialCommunityIcons
-                  name="trophy"
-                  size={20}
-                  color={C.level}
-                />
-                <Text
-                  style={[styles.leaderboardButtonText, { color: C.level }]}
-                >
-                  {t(language, "profile.viewLeaderboard")}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Admin Dashboard Button */}
-              {isAdmin && (
                 <TouchableOpacity
                   style={[
                     styles.leaderboardButton,
-                    { backgroundColor: `${C.gold}18`, borderColor: C.gold },
+                    {
+                      backgroundColor: `${C.primary}18`,
+                      borderColor: C.primary,
+                    },
                   ]}
-                  onPress={() => router.push("/admin")}
+                  onPress={() => router.push("/dashboard")}
                 >
                   <MaterialCommunityIcons
-                    name="shield-crown"
+                    name="view-dashboard"
                     size={20}
-                    color={C.gold}
+                    color={C.primary}
                   />
                   <Text
-                    style={[styles.leaderboardButtonText, { color: C.gold }]}
+                    style={[styles.leaderboardButtonText, { color: C.primary }]}
                   >
-                    {t(language, "admin.title")}
+                    {t(language, "profile.viewDashboard")}
                   </Text>
                 </TouchableOpacity>
-              )}
-            </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.leaderboardButton,
+                    { backgroundColor: `${C.level}18`, borderColor: C.level },
+                  ]}
+                  onPress={() => router.push("/leaderboard")}
+                >
+                  <MaterialCommunityIcons
+                    name="trophy"
+                    size={20}
+                    color={C.level}
+                  />
+                  <Text
+                    style={[styles.leaderboardButtonText, { color: C.level }]}
+                  >
+                    {t(language, "profile.viewLeaderboard")}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Admin Dashboard Button */}
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[
+                      styles.leaderboardButton,
+                      { backgroundColor: `${C.gold}18`, borderColor: C.gold },
+                    ]}
+                    onPress={() => router.push("/admin")}
+                  >
+                    <MaterialCommunityIcons
+                      name="shield-crown"
+                      size={20}
+                      color={C.gold}
+                    />
+                    <Text
+                      style={[styles.leaderboardButtonText, { color: C.gold }]}
+                    >
+                      {t(language, "admin.title")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </AnimatedEntry>
 
             {/* Account Actions */}
             <AnimatedEntry index={6}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={confirmReset}
-              >
-                <MaterialCommunityIcons
-                  name="refresh"
-                  size={20}
-                  color={C.warning}
-                />
-                <Text style={styles.resetButtonText}>
-                  {t(language, "profile.resetProgress")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleSignOut}
-              >
-                <MaterialCommunityIcons
-                  name="logout"
-                  size={20}
-                  color={C.error}
-                />
-                <Text style={styles.actionButtonText}>
-                  {t(language, "profile.signOut")}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <TouchableOpacity
+                  style={styles.resetButton}
+                  onPress={confirmReset}
+                >
+                  <MaterialCommunityIcons
+                    name="refresh"
+                    size={20}
+                    color={C.warning}
+                  />
+                  <Text style={styles.resetButtonText}>
+                    {t(language, "profile.resetProgress")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleSignOut}
+                >
+                  <MaterialCommunityIcons
+                    name="logout"
+                    size={20}
+                    color={C.error}
+                  />
+                  <Text style={styles.actionButtonText}>
+                    {t(language, "profile.signOut")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </AnimatedEntry>
 
             {/* Danger Zone */}
             <AnimatedEntry index={7}>
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={confirmDelete}
-              >
-                <MaterialCommunityIcons
-                  name="account-remove"
-                  size={20}
-                  color="#991B1B"
-                />
-                <Text style={styles.deleteButtonText}>
-                  {t(language, "profile.deleteAccount")}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={confirmDelete}
+                >
+                  <MaterialCommunityIcons
+                    name="account-remove"
+                    size={20}
+                    color="#991B1B"
+                  />
+                  <Text style={styles.deleteButtonText}>
+                    {t(language, "profile.deleteAccount")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </AnimatedEntry>
           </View>
         </ScrollView>

@@ -1,5 +1,5 @@
-import { TopBar } from "@/components/TopBar";
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
@@ -18,7 +18,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 interface LeaderboardEntry {
@@ -172,126 +172,126 @@ export default function LeaderboardScreen() {
           style={styles.listContainer}
           renderItem={({ item: entry, index }) => (
             <AnimatedEntry index={Math.min(index, 10)} stagger={35} from="down">
-            <View
-              key={entry.user_id}
-              style={[
-                styles.entryCard,
-                {
-                  backgroundColor: C.surface,
-                  flexDirection: isRTL ? "row-reverse" : "row",
-                },
-                entry.user_id === user?.id && [
-                  styles.entryCardHighlight,
-                  { borderColor: C.primary },
-                ],
-              ]}
-            >
-              <View style={styles.rankContainer}>
-                <MaterialCommunityIcons
-                  name={getRankIcon(entry.rank) as any}
-                  size={24}
-                  color={getRankColor(entry.rank)}
-                />
-                <Text
-                  style={[
-                    styles.rankText,
-                    { color: getRankColor(entry.rank), fontFamily: fontBold },
-                  ]}
-                >
-                  #{entry.rank}
-                </Text>
-              </View>
-
               <View
+                key={entry.user_id}
                 style={[
-                  styles.entryInfo,
-                  { alignItems: isRTL ? "flex-end" : "flex-start" },
+                  styles.entryCard,
+                  {
+                    backgroundColor: C.surface,
+                    flexDirection: isRTL ? "row-reverse" : "row",
+                  },
+                  entry.user_id === user?.id && [
+                    styles.entryCardHighlight,
+                    { borderColor: C.primary },
+                  ],
                 ]}
               >
-                <Text
-                  style={[
-                    styles.entryEmail,
-                    {
-                      color: C.text,
-                      fontFamily: fontSemibold,
-                      textAlign: isRTL ? "right" : "left",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {entry.username}
-                  {entry.user_id === user?.id &&
-                    ` (${t(language, "common.you")})`}
-                </Text>
+                <View style={styles.rankContainer}>
+                  <MaterialCommunityIcons
+                    name={getRankIcon(entry.rank) as any}
+                    size={24}
+                    color={getRankColor(entry.rank)}
+                  />
+                  <Text
+                    style={[
+                      styles.rankText,
+                      { color: getRankColor(entry.rank), fontFamily: fontBold },
+                    ]}
+                  >
+                    #{entry.rank}
+                  </Text>
+                </View>
+
                 <View
                   style={[
-                    styles.statsRow,
-                    { flexDirection: isRTL ? "row-reverse" : "row" },
+                    styles.entryInfo,
+                    { alignItems: isRTL ? "flex-end" : "flex-start" },
                   ]}
                 >
+                  <Text
+                    style={[
+                      styles.entryEmail,
+                      {
+                        color: C.text,
+                        fontFamily: fontSemibold,
+                        textAlign: isRTL ? "right" : "left",
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {entry.username}
+                    {entry.user_id === user?.id &&
+                      ` (${t(language, "common.you")})`}
+                  </Text>
                   <View
                     style={[
-                      styles.statItem,
+                      styles.statsRow,
                       { flexDirection: isRTL ? "row-reverse" : "row" },
                     ]}
                   >
-                    <MaterialCommunityIcons
-                      name="trophy"
-                      size={14}
-                      color={Colors.level}
-                    />
-                    <Text
+                    <View
                       style={[
-                        styles.statText,
-                        { color: C.textSecondary, fontFamily: fontRegular },
+                        styles.statItem,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
                       ]}
                     >
-                      {t(language, "leaderboard.level")} {entry.level}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.statItem,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="star"
-                      size={14}
-                      color={Colors.xp}
-                    />
-                    <Text
+                      <MaterialCommunityIcons
+                        name="trophy"
+                        size={14}
+                        color={Colors.level}
+                      />
+                      <Text
+                        style={[
+                          styles.statText,
+                          { color: C.textSecondary, fontFamily: fontRegular },
+                        ]}
+                      >
+                        {t(language, "leaderboard.level")} {entry.level}
+                      </Text>
+                    </View>
+                    <View
                       style={[
-                        styles.statText,
-                        { color: C.textSecondary, fontFamily: fontRegular },
+                        styles.statItem,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
                       ]}
                     >
-                      {entry.xp} XP
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.statItem,
-                      { flexDirection: isRTL ? "row-reverse" : "row" },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name="fire"
-                      size={14}
-                      color={Colors.streak}
-                    />
-                    <Text
+                      <MaterialCommunityIcons
+                        name="star"
+                        size={14}
+                        color={Colors.xp}
+                      />
+                      <Text
+                        style={[
+                          styles.statText,
+                          { color: C.textSecondary, fontFamily: fontRegular },
+                        ]}
+                      >
+                        {entry.xp} XP
+                      </Text>
+                    </View>
+                    <View
                       style={[
-                        styles.statText,
-                        { color: C.textSecondary, fontFamily: fontRegular },
+                        styles.statItem,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
                       ]}
                     >
-                      {entry.current_streak} {language === "ar" ? "ي" : "d"}
-                    </Text>
+                      <MaterialCommunityIcons
+                        name="fire"
+                        size={14}
+                        color={Colors.streak}
+                      />
+                      <Text
+                        style={[
+                          styles.statText,
+                          { color: C.textSecondary, fontFamily: fontRegular },
+                        ]}
+                      >
+                        {entry.current_streak} {language === "ar" ? "ي" : "d"}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
             </AnimatedEntry>
           )}
         />
