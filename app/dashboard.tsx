@@ -67,7 +67,11 @@ export default function DashboardScreen() {
   );
 
   const loadData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
 
     try {
       const [
@@ -153,6 +157,30 @@ export default function DashboardScreen() {
         style={[styles.loadingContainer, { backgroundColor: C.background }]}
       >
         <ActivityIndicator size="large" color={C.primary} />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View
+        style={[styles.loadingContainer, { backgroundColor: C.background }]}
+      >
+        <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+          {t(language, "auth.pleaseLogin")}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <View
+        style={[styles.loadingContainer, { backgroundColor: C.background }]}
+      >
+        <Text style={[styles.emptyText, { color: C.textSecondary }]}>
+          No workout data yet. Start working out to see your dashboard!
+        </Text>
       </View>
     );
   }
@@ -625,6 +653,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: Spacing.lg,
+  },
+  emptyText: {
+    fontSize: FontSize.md,
+    textAlign: "center",
+    paddingHorizontal: Spacing.xl,
   },
   statsGrid: {
     flexDirection: "row",
