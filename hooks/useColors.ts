@@ -61,6 +61,6 @@ export function useColors() {
         ...accentOverrides,
       };
     }
-    return { ...Colors, ...accentOverrides };
+    return { ...Colors, background: palette.background, ...accentOverrides };
   }, [theme, accent]);
 }

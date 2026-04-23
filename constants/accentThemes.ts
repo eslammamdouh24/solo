@@ -15,6 +15,8 @@ export interface AccentTheme {
   primary: string;
   primaryDark: string;
   primaryLight: string;
+  /** Subtle dark background tinted toward the accent. */
+  background: string;
 }
 
 export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
@@ -24,6 +26,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#A855F7",
     primaryDark: "#7E22CE",
     primaryLight: "#D8B4FE",
+    background: "#0F0A1C",
   },
   cyan: {
     id: "cyan",
@@ -31,6 +34,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#00E5FF",
     primaryDark: "#00B8D4",
     primaryLight: "#6EFFF5",
+    background: "#0A0F1C",
   },
   emerald: {
     id: "emerald",
@@ -38,6 +42,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#10B981",
     primaryDark: "#047857",
     primaryLight: "#6EE7B7",
+    background: "#081511",
   },
   rose: {
     id: "rose",
@@ -45,6 +50,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#F43F5E",
     primaryDark: "#BE123C",
     primaryLight: "#FDA4AF",
+    background: "#180A10",
   },
   amber: {
     id: "amber",
@@ -52,6 +58,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#F59E0B",
     primaryDark: "#B45309",
     primaryLight: "#FCD34D",
+    background: "#14100A",
   },
   blue: {
     id: "blue",
@@ -59,6 +66,7 @@ export const AccentThemes: Record<AccentThemeId, AccentTheme> = {
     primary: "#3B82F6",
     primaryDark: "#1D4ED8",
     primaryLight: "#93C5FD",
+    background: "#0A0F1C",
   },
 };
 
