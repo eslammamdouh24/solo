@@ -1,3 +1,4 @@
+import { AccentThemes } from "@/constants/accentThemes";
 import { Colors } from "@/constants/colors";
 import { Theme } from "@/constants/enums";
 import { useApp } from "@/contexts/AppContext";
@@ -5,12 +6,22 @@ import { useMemo } from "react";
 
 /**
  * Returns theme-aware colors. Same shape as Colors from theme-colors.ts
- * but values change based on the active theme (light/dark).
+ * but values change based on the active theme (light/dark) and accent.
  */
 export function useColors() {
-  const { theme } = useApp();
+  const { theme, accent } = useApp();
 
   return useMemo(() => {
+    const palette = AccentThemes[accent];
+    // Accent affects primary + XP + discipline across both themes.
+    const accentOverrides = {
+      primary: palette.primary,
+      primaryDark: palette.primaryDark,
+      primaryLight: palette.primaryLight,
+      xp: palette.primary,
+      discipline: palette.primary,
+      purple: palette.primary,
+    };
     if (theme === Theme.LIGHT) {
       return {
         ...Colors,
@@ -47,8 +58,9 @@ export function useColors() {
 
         // Special
         gold: "#D97706",
+        ...accentOverrides,
       };
     }
-    return Colors;
-  }, [theme]);
+    return { ...Colors, ...accentOverrides };
+  }, [theme, accent]);
 }

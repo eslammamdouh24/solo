@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   entryCardHighlight: {
-    backgroundColor: "rgba(0, 229, 255, 0.1)",
+    backgroundColor: "rgba(168, 85, 247, 0.1)",
     borderWidth: 1,
     borderColor: Colors.primary,
   },

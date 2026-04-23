@@ -14,6 +14,7 @@ import { MILESTONES } from "@/constants/milestones";
 import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
+import { AccentThemeList } from "@/constants/accentThemes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConfirm } from "@/contexts/ConfirmDialogContext";
 import { useColors } from "@/hooks/useColors";
@@ -37,7 +38,7 @@ import {
 
 export default function ProfileScreen() {
   const { user, signOut, deleteAccount, updateProfile, isAdmin } = useAuth();
-  const { language } = useApp();
+  const { language, accent, setAccent } = useApp();
   const C = useColors();
   const gameState = useGameStateWithDB();
   const router = useRouter();
@@ -1231,8 +1232,49 @@ export default function ProfileScreen() {
               </View>
             </AnimatedEntry>
 
-            {/* Dashboard & Leaderboard */}
+            {/* Theme / Accent Picker */}
             <AnimatedEntry index={5}>
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: C.text, fontFamily: getFont(language, "bold") },
+                  ]}
+                >
+                  {t(language, "profile.accentTheme") || "Accent Color"}
+                </Text>
+                <View style={styles.accentRow}>
+                  {AccentThemeList.map((a) => {
+                    const selected = a.id === accent;
+                    return (
+                      <TouchableOpacity
+                        key={a.id}
+                        onPress={() => setAccent(a.id)}
+                        style={[
+                          styles.accentSwatch,
+                          {
+                            backgroundColor: a.primary,
+                            borderColor: selected ? C.text : "transparent",
+                          },
+                        ]}
+                        accessibilityLabel={a.label}
+                      >
+                        {selected && (
+                          <MaterialCommunityIcons
+                            name="check"
+                            size={18}
+                            color="#fff"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </AnimatedEntry>
+
+            {/* Dashboard & Leaderboard */}
+            <AnimatedEntry index={6}>
               <View
                 style={[
                   styles.section,
@@ -1312,7 +1354,7 @@ export default function ProfileScreen() {
             </AnimatedEntry>
 
             {/* Account Actions */}
-            <AnimatedEntry index={6}>
+            <AnimatedEntry index={7}>
               <View style={[styles.section, { backgroundColor: C.surface }]}>
                 <TouchableOpacity
                   style={styles.resetButton}
@@ -1344,7 +1386,7 @@ export default function ProfileScreen() {
             </AnimatedEntry>
 
             {/* Danger Zone */}
-            <AnimatedEntry index={7}>
+            <AnimatedEntry index={8}>
               <View style={[styles.section, { backgroundColor: C.surface }]}>
                 <TouchableOpacity
                   style={styles.deleteButton}
@@ -1514,6 +1556,20 @@ const styles = StyleSheet.create({
   attributeValue: {
     fontSize: FontSize.xl,
     fontWeight: "900",
+  },
+  accentRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  accentSwatch: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
   },
   leaderboardButton: {
     flexDirection: "row",

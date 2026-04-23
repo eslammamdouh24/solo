@@ -41,7 +41,7 @@ export const useFloatingXP = () => {
           alignSelf: "center",
           fontSize: 16,
           fontWeight: "800",
-          color: "#00E5FF",
+          color: "#A855F7",
           letterSpacing: 1,
           opacity: floatOpacity,
           transform: [{ translateY: floatAnim }],

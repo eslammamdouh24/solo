@@ -50,16 +50,16 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
       background: rgba(255, 255, 255, 0.03);
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(0, 229, 255, 0.3);
+      background: rgba(168, 85, 247, 0.3);
       border-radius: 3px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 229, 255, 0.5);
+      background: rgba(168, 85, 247, 0.5);
     }
     /* Firefox */
     * {
       scrollbar-width: thin;
-      scrollbar-color: rgba(0, 229, 255, 0.3) rgba(255, 255, 255, 0.03);
+      scrollbar-color: rgba(168, 85, 247, 0.3) rgba(255, 255, 255, 0.03);
     }
     /* Remove autofill background color */
     input:-webkit-autofill,
@@ -213,7 +213,7 @@ export default function RootLayout() {
           backgroundColor: "#0A0E27",
         }}
       >
-        <ActivityIndicator size="large" color="#00E5FF" />
+        <ActivityIndicator size="large" color="#A855F7" />
       </View>
     );
   }

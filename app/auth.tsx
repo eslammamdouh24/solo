@@ -1226,7 +1226,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: Spacing.sm,
-    boxShadow: "0px 4px 8px rgba(0, 229, 255, 0.3)",
+    boxShadow: "0px 4px 8px rgba(168, 85, 247, 0.3)",
   },
   buttonDisabled: {
     opacity: 0.5,

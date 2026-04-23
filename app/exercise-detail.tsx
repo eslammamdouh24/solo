@@ -975,7 +975,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: "rgba(0, 229, 255, 0.1)",
+    backgroundColor: "rgba(168, 85, 247, 0.1)",
   },
   finishText: {
     fontSize: 14,

@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#00E5FF",
+    color: "#A855F7",
   },
   valueSection: {
     flexDirection: "row",

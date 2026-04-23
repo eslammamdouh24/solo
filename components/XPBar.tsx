@@ -226,10 +226,10 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: Colors.xp,
     borderRadius: BorderRadius.md,
-    boxShadow: "0px 0px 6px rgba(0, 229, 255, 0.4)",
+    boxShadow: "0px 0px 6px rgba(168, 85, 247, 0.4)",
   },
   barFillNear: {
-    boxShadow: "0px 0px 10px rgba(0, 229, 255, 0.8)",
+    boxShadow: "0px 0px 10px rgba(168, 85, 247, 0.8)",
   },
   xpText: {
     marginTop: Spacing.md - 2,
