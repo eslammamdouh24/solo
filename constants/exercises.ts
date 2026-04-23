@@ -1147,7 +1147,7 @@ export const EXERCISES: Record<MuscleGroup, Exercise[]> = {
     },
     // === INTERMEDIATE ===
     {
-      id: "squat",
+      id: "lever-lying-leg-curl",
       name: "Lever Lying Leg Curl",
       equipment: "Machine",
       difficulty: "Intermediate",
@@ -3676,7 +3676,7 @@ export const EXERCISES: Record<MuscleGroup, Exercise[]> = {
     },
     // === ADVANCED ===
     {
-      id: "barbell-reverse-curl",
+      id: "barbell-reverse-curl-forearms",
       name: "Barbell Reverse Curl",
       equipment: "Barbell",
       difficulty: "Advanced",
