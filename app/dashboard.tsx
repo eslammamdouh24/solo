@@ -435,15 +435,7 @@ export default function DashboardScreen() {
                 {muscleDistribution.map((item: any, index: number) => {
                   const widthPercent = (item.count / maxMuscleCount) * 100;
                   const isEmpty = item.count === 0;
-                  const muscleColors = [
-                    C.primary,
-                    Colors.purple,
-                    Colors.orange,
-                    Colors.green,
-                    Colors.blue,
-                    Colors.gold,
-                  ];
-                  const barColor = muscleColors[index % muscleColors.length];
+                  const barColor = C.primary;
 
                   return (
                     <View key={item.muscle} style={styles.muscleRow}>
