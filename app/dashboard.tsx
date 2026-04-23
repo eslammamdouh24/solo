@@ -204,74 +204,57 @@ export default function DashboardScreen() {
     Colors.blue,
   ];
 
-  // Generate insights based on data
-  const getInsights = () => {
-    const insights = [];
-    
-    // Streak insights
-    if (stats.currentStreak >= 7) {
-      insights.push({
-        icon: "fire",
-        color: Colors.orange,
-        title: "🔥 On Fire!",
-        message: `Amazing ${stats.currentStreak}-day streak! Keep it going!`,
-      });
-    } else if (stats.currentStreak >= 3) {
-      insights.push({
-        icon: "trending-up",
-        color: Colors.green,
-        title: "Great Progress",
-        message: `${stats.currentStreak} days in a row. You're building momentum!`,
-      });
-    }
-
-    // Muscle balance insight
-    if (muscleDistribution.length > 0) {
-      const topMuscle = muscleDistribution[0];
-      const topPercentage = topMuscle.percentage;
-      
-      if (topPercentage > 40) {
-        insights.push({
-          icon: "alert-circle",
-          color: Colors.orange,
-          title: "Balance Your Workouts",
-          message: `${topMuscle.muscle} dominates ${topPercentage}% of your training. Try other muscle groups for balance!`,
-        });
-      }
-    }
-
-    // Consistency insight
+  // Calculate additional stats
+  const getAdditionalStats = () => {
     const totalDays = weeklyActivity.reduce((sum, day) => sum + (day.count > 0 ? 1 : 0), 0);
-    if (totalDays >= 5) {
-      insights.push({
-        icon: "calendar-check",
-        color: Colors.green,
-        title: "Consistent Warrior",
-        message: `You trained ${totalDays} days this week! Excellent consistency.`,
-      });
-    } else if (totalDays <= 2 && stats.totalWorkouts > 5) {
-      insights.push({
-        icon: "calendar-alert",
-        color: Colors.gold,
-        title: "Stay Active",
-        message: "Only 2 workouts this week. Let's get back on track!",
-      });
-    }
-
-    // XP efficiency insight
-    if (stats.avgWorkoutsPerWeek >= 4) {
-      insights.push({
+    const avgXPPerWorkout = stats.totalWorkouts > 0 ? Math.round(stats.totalXP / stats.totalWorkouts) : 0;
+    const avgDurationMins = stats.totalWorkouts > 0 ? Math.round((stats.totalDuration / stats.totalWorkouts) / 60) : 0;
+    
+    return [
+      {
         icon: "chart-line",
+        label: "Avg Workouts/Week",
+        value: stats.avgWorkoutsPerWeek.toFixed(1),
+        color: Colors.green,
+      },
+      {
+        icon: "trophy",
+        label: "Best Streak",
+        value: stats.bestStreak,
+        subtitle: "days",
+        color: Colors.gold,
+      },
+      {
+        icon: "lightning-bolt",
+        label: "Avg XP/Workout",
+        value: avgXPPerWorkout,
+        color: Colors.purple,
+      },
+      {
+        icon: "timer-outline",
+        label: "Avg Duration",
+        value: avgDurationMins,
+        subtitle: "min",
         color: Colors.blue,
-        title: "Strong Routine",
-        message: `Averaging ${stats.avgWorkoutsPerWeek.toFixed(1)} workouts/week. You're crushing it!`,
-      });
-    }
-
-    return insights;
+      },
+      {
+        icon: "calendar-week",
+        label: "This Week",
+        value: totalDays,
+        subtitle: "days",
+        color: C.primary,
+      },
+      {
+        icon: "bullseye-arrow",
+        label: "Most Trained",
+        value: stats.mostTrainedMuscle || "None",
+        isText: true,
+        color: Colors.orange,
+      },
+    ];
   };
 
-  const insights = getInsights();
+  const additionalStats = getAdditionalStats();
 
   return (
     <View style={[styles.container, { backgroundColor: C.background }]}>
@@ -329,90 +312,95 @@ export default function DashboardScreen() {
           />
         </View>
 
-        {/* Insights Section */}
-        {insights.length > 0 && (
-          <View style={styles.insightsSection}>
-            <Text style={[styles.sectionTitle, { color: C.text, fontFamily: fontBold }]}>
-              💡 Insights & Recommendations
-            </Text>
-            {insights.map((insight, index) => (
-              <Animated.View
+        {/* Additional Stats Grid */}
+        <View style={styles.additionalStatsSection}>
+          <Text style={[styles.sectionTitle, { color: C.text, fontFamily: fontBold }]}>
+            📊 Detailed Statistics
+          </Text>
+          <View style={styles.additionalStatsGrid}>
+            {additionalStats.map((stat, index) => (
+              <View
                 key={index}
                 style={[
-                  styles.insightCard,
+                  styles.additionalStatCard,
                   {
                     backgroundColor: C.surface,
-                    borderLeftColor: insight.color,
                   },
                 ]}
               >
-                <View style={[styles.insightIconContainer, { backgroundColor: insight.color + "20" }]}>
-                  <MaterialCommunityIcons name={insight.icon} size={24} color={insight.color} />
+                <View style={[styles.additionalStatIcon, { backgroundColor: stat.color + "15" }]}>
+                  <MaterialCommunityIcons name={stat.icon} size={22} color={stat.color} />
                 </View>
-                <View style={styles.insightContent}>
-                  <Text style={[styles.insightTitle, { color: C.text, fontFamily: fontBold }]}>
-                    {insight.title}
+                <View style={styles.additionalStatContent}>
+                  <Text style={[styles.additionalStatValue, { color: C.text, fontFamily: fontBold }]}>
+                    {stat.value}
+                    {stat.subtitle && (
+                      <Text style={[styles.additionalStatSubtitle, { color: C.textSecondary, fontFamily: fontRegular }]}>
+                        {" "}{stat.subtitle}
+                      </Text>
+                    )}
                   </Text>
-                  <Text style={[styles.insightMessage, { color: C.textSecondary, fontFamily: fontRegular }]}>
-                    {insight.message}
+                  <Text style={[styles.additionalStatLabel, { color: C.textSecondary, fontFamily: fontRegular }]}>
+                    {stat.label}
                   </Text>
                 </View>
-              </Animated.View>
+              </View>
             ))}
           </View>
-        )}
+        </View>
 
         {/* Weekly Activity Bar Chart */}
         {weeklyActivity.length > 0 && weeklyActivity.some(d => d.count > 0) && (
           <ChartCard title={t(language, "dashboard.weeklyActivity")} C={C} fontSemibold={fontSemibold}>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              height={220}
-              padding={{ left: 45, right: 20, top: 20, bottom: 50 }}
-              domainPadding={{ x: 25 }}
-            >
-              <VictoryAxis
-                style={{
-                  axis: { stroke: C.border },
-                  tickLabels: {
-                    fill: C.textSecondary,
-                    fontSize: 11,
-                    fontFamily: fontRegular,
-                  },
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                style={{
-                  axis: { stroke: C.border },
-                  tickLabels: {
-                    fill: C.textSecondary,
-                    fontSize: 11,
-                    fontFamily: fontRegular,
-                  },
-                  grid: { stroke: C.border, strokeDasharray: "4,4", opacity: 0.3 },
-                }}
-                tickFormat={(t) => Math.floor(t)}
-              />
-              <VictoryBar
-                data={weeklyActivity}
-                x="day"
-                y="count"
-                style={{
-                  data: { 
-                    fill: C.primary,
-                    stroke: C.primary,
-                    strokeWidth: 1,
-                  },
-                }}
-                cornerRadius={{ top: 6 }}
-                barWidth={28}
-                animate={{
-                  duration: 1000,
-                  onLoad: { duration: 1000 },
-                }}
-              />
-            </VictoryChart>
+            <View style={{ paddingHorizontal: 0 }}>
+              <VictoryChart
+                theme={VictoryTheme.material}
+                height={200}
+                padding={{ left: 40, right: 15, top: 10, bottom: 35 }}
+                domainPadding={{ x: 20 }}
+              >
+                <VictoryAxis
+                  style={{
+                    axis: { stroke: C.border, strokeWidth: 1 },
+                    tickLabels: {
+                      fill: C.textSecondary,
+                      fontSize: 11,
+                      fontFamily: fontRegular,
+                      padding: 5,
+                    },
+                  }}
+                />
+                <VictoryAxis
+                  dependentAxis
+                  style={{
+                    axis: { stroke: "transparent" },
+                    tickLabels: {
+                      fill: C.textSecondary,
+                      fontSize: 11,
+                      fontFamily: fontRegular,
+                    },
+                    grid: { stroke: C.border, strokeWidth: 1, strokeDasharray: "3,3", opacity: 0.2 },
+                  }}
+                  tickFormat={(t) => Math.floor(t)}
+                />
+                <VictoryBar
+                  data={weeklyActivity}
+                  x="day"
+                  y="count"
+                  style={{
+                    data: { 
+                      fill: C.primary,
+                    },
+                  }}
+                  cornerRadius={{ top: 8, bottom: 0 }}
+                  barWidth={32}
+                  animate={{
+                    duration: 800,
+                    onLoad: { duration: 800 },
+                  }}
+                />
+              </VictoryChart>
+            </View>
           </ChartCard>
         )}
 
@@ -577,7 +565,7 @@ export default function DashboardScreen() {
                   </View>
                 </View>
                 <View style={[styles.workoutXp, { backgroundColor: Colors.gold + "20" }]}>
-                  <MaterialCommunityIcons name="star" size={14} color={Colors.gold} />
+                  <MaterialCommunityIcons name="star" size={16} color={Colors.gold} />
                   <Text
                     style={[
                       styles.workoutXpText,
@@ -750,45 +738,54 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
   },
-  insightsSection: {
+  additionalStatsSection: {
     padding: Spacing.md,
     paddingTop: 0,
-    gap: Spacing.sm,
   },
   sectionTitle: {
     fontSize: FontSize.lg,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.md,
     letterSpacing: 0.5,
   },
-  insightCard: {
+  additionalStatsGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  additionalStatCard: {
+    width: "31.5%",
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    borderLeftWidth: 4,
-    gap: Spacing.md,
+    alignItems: "center",
+    gap: Spacing.xs,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
-  insightIconContainer: {
-    width: 48,
-    height: 48,
+  additionalStatIcon: {
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.lg,
     justifyContent: "center",
     alignItems: "center",
   },
-  insightContent: {
-    flex: 1,
-    gap: Spacing.xs,
+  additionalStatContent: {
+    alignItems: "center",
+    gap: 2,
   },
-  insightTitle: {
-    fontSize: FontSize.md,
+  additionalStatValue: {
+    fontSize: FontSize.xl,
+    textAlign: "center",
   },
-  insightMessage: {
+  additionalStatSubtitle: {
     fontSize: FontSize.sm,
-    lineHeight: 20,
+  },
+  additionalStatLabel: {
+    fontSize: FontSize.xs,
+    textAlign: "center",
+    lineHeight: 16,
   },
   chartCard: {
     margin: Spacing.md,

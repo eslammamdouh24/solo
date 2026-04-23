@@ -112,12 +112,12 @@ export function TopBar({
           {showDashboard && (
             <TouchableOpacity
               onPress={() => router.push("/dashboard")}
-              style={[styles.button, { backgroundColor: C.primary + "18" }]}
+              style={[styles.button, { backgroundColor: C.primary + "18", borderWidth: 1, borderColor: C.primary + "30" }]}
               hitSlop={8}
               activeOpacity={0.7}
               accessibilityLabel="View dashboard"
             >
-              <MaterialCommunityIcons name="chart-box" size={20} color={C.primary} />
+              <MaterialCommunityIcons name="chart-box-outline" size={20} color={C.primary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
