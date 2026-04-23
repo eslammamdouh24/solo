@@ -206,6 +206,7 @@ export const translations = {
       triceps: "Triceps",
       waist_core: "Waist / Core",
       lower_arms: "Lower Arms",
+      cardio: "Cardio",
     },
     // Cardio
     cardio: {
@@ -674,6 +675,7 @@ export const translations = {
       triceps: "التراي",
       waist_core: "الوسط / البطن",
       lower_arms: "الساعد",
+      cardio: "كارديو",
     },
     // Cardio
     cardio: {

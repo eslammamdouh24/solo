@@ -33,6 +33,7 @@ const MUSCLE_ICONS: Record<
   upper_legs: "shoe-sneaker",
   lower_legs: "walk",
   lower_arms: "hand-back-left",
+  cardio: "run-fast",
 };
 
 const MuscleCard: React.FC<{

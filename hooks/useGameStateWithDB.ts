@@ -3,14 +3,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSyncQueue } from "@/contexts/SyncQueueContext";
 import {
     getGameState,
+    invalidateGameState,
     saveGameState as saveGameStateToDb,
 } from "@/lib/stateApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 
-// Global cache to prevent multiple API calls for the same user
-const globalData = new Map<string, GameStateData>();
+// Local promise map deduplicates repeated loadGameState() calls that happen
+// before the underlying request (stateApi) has populated its cache.
 const loadingPromises = new Map<string, Promise<GameStateData>>();
+// In-memory cache of the normalized (camelCase) shape used by this hook.
+// Complements stateApi's raw-row cache which powers other callers (admin).
+const globalData = new Map<string, GameStateData>();
 
 const cacheKey = (userId: string) => `game_state_cache_${userId}`;
 
@@ -82,30 +86,32 @@ export const useGameStateWithDB = () => {
       return;
     }
 
-    // Check if already loading
+    // Check if already loading (prevents duplicate fetches from StrictMode
+    // double-invoke and from focus re-triggers)
     if (loadingPromises.has(user.id)) {
       const data = await loadingPromises.get(user.id)!;
       applyData(data);
       return;
     }
 
-    // Check global cache first
+    // Check global cache first (in-memory, same session)
     if (globalData.has(user.id)) {
       const cached = globalData.get(user.id)!;
       applyData(cached);
       return;
     }
 
-    // Try persistent cache (localStorage on web, AsyncStorage on native)
-    const persisted = await loadCache(user.id);
-    if (persisted) {
-      globalData.set(user.id, persisted);
-      applyData(persisted);
-      // Continue to refresh from server in background (non-blocking)
-    }
-
-    // Start loading
+    // Start loading IMMEDIATELY — register the promise before any awaits
+    // so concurrent callers (StrictMode, focus) hit the dedupe above.
     const loadPromise = (async (): Promise<GameStateData> => {
+      // Try persistent cache first (survives reload). If hit, show cached
+      // data immediately but still fetch server for freshness.
+      const persisted = await loadCache(user.id);
+      if (persisted) {
+        globalData.set(user.id, persisted);
+        applyData(persisted);
+      }
+
       const { data, error } = await getGameState(user.id);
 
       // If no game state exists, create one
@@ -407,8 +413,9 @@ export const useGameStateWithDB = () => {
     setDailyBonusClaimed(null);
     setSessionCount(0);
 
-    // Clear global cache
+    // Clear caches so any subsequent read sees the reset state
     globalData.delete(user.id);
+    invalidateGameState(user.id);
 
     // Update database
     await saveGameState(initialState);
@@ -443,7 +450,10 @@ export const useGameStateWithDB = () => {
     batchUpdate,
     resetProgress,
     refetch: useCallback(async () => {
-      if (user) globalData.delete(user.id);
+      if (user) {
+        globalData.delete(user.id);
+        invalidateGameState(user.id);
+      }
       await loadGameState();
     }, [user, loadGameState]),
   };

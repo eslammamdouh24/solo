@@ -1,11 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { useNetwork } from "./NetworkContext";
 
@@ -47,9 +47,10 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
 
   // Get user directly from supabase (avoids circular dependency with AuthContext)
+  // Use getSession() — it's cached locally, no network call (unlike getUser()).
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user?.id ?? null);
     });
 
     const {

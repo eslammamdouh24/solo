@@ -1,5 +1,6 @@
 import { useSyncQueue } from "@/contexts/SyncQueueContext";
 import { useColors } from "@/hooks/useColors";
+import { getGameState, invalidateGameState } from "@/lib/stateApi";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -106,6 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // User clicked password reset link — let them set a new password
         setIsPasswordRecovery(true);
         setUser(session?.user ?? null);
+      } else if (event === "INITIAL_SESSION") {
+        // Already handled by initializeAuth — avoid duplicate getUser() call
+        return;
       } else if (event === "SIGNED_IN" && session?.user) {
         // Fetch fresh user data from server to get latest metadata
         const { data, error } = await supabase.auth.getUser();
@@ -374,6 +378,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = async () => {
     try {
+      // Clear cached game state so next user/session fetches fresh data
+      if (user) invalidateGameState(user.id);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: any) {
@@ -494,11 +500,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      const { data, error } = await supabase
-        .from("game_states")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
+      // Reuses shared cache / in-flight promise from useGameStateWithDB,
+      // so this does NOT duplicate the game_states fetch.
+      const { data, error } = await getGameState(user.id);
 
       if (!error && data) {
         setIsAdmin(data.role === "admin");

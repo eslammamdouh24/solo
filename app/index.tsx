@@ -1,4 +1,3 @@
-import { CardioGrid } from "@/components/CardioGrid";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 import { MilestoneModal } from "@/components/MilestoneModal";
@@ -8,13 +7,7 @@ import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import { XPBar } from "@/components/XPBar";
 import { Colors } from "@/constants/colors";
-import {
-    calculateCardioXP,
-    calculateXP,
-    CardioType,
-    EXERCISES,
-    MuscleGroup,
-} from "@/constants/exercises";
+import { calculateXP, EXERCISES, MuscleGroup } from "@/constants/exercises";
 import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
 import { getMilestoneBonusXP } from "@/constants/milestones";
@@ -38,13 +31,12 @@ import {
 import { calculateBonuses, processWorkout } from "@/utils/workoutProcessor";
 import {
     calculateStatBonus,
-    getDayDiff,
     getRequiredXP,
     getToday,
-    safeNumber,
+    safeNumber
 } from "@/utils/xpCalculations";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
     Image,
@@ -83,13 +75,10 @@ export default function HomeScreen() {
   const [newLevel, setNewLevel] = React.useState(0);
   const penaltyApplied = React.useRef(false);
 
-  // Re-fetch game state when screen regains focus (e.g. after profile reset)
-  useFocusEffect(
-    React.useCallback(() => {
-      gameState.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameState.refetch]),
-  );
+  // No useFocusEffect refetch: the shared cache in lib/stateApi + the hook's
+  // in-memory cache already serve cached data instantly. Mutations that change
+  // game state (workout log, profile reset, admin actions) explicitly call
+  // invalidateGameState / refetch, so focus-based refetching is redundant.
 
   // Show toast when there's a database error
   React.useEffect(() => {
@@ -221,91 +210,6 @@ export default function HomeScreen() {
     showFloatingXP(sessionXP, [...messages, ...result.messages]);
   };
 
-  const handleCardioWorkout = (cardioType: CardioType) => {
-    const {
-      level,
-      xp,
-      endurance,
-      discipline,
-      currentStreak,
-      dailyBonusClaimed,
-      sessionCount,
-      setDailyBonusClaimed,
-      setSessionCount,
-    } = gameState;
-
-    // Reset diminishing returns for cardio
-    diminishingReturns.reset();
-
-    // Calculate cardio XP
-    const baseXP = calculateCardioXP(30);
-    const statBonus = calculateStatBonus(endurance);
-    const {
-      xp: sessionXP,
-      messages,
-      newDailyBonusClaimed,
-      newSessionCount,
-    } = calculateBonuses({
-      baseXP,
-      currentStreak,
-      statBonus,
-      discipline,
-      dailyBonusClaimed,
-      sessionCount,
-      language,
-    });
-
-    // Process workout
-    const result = processWorkout({
-      sessionXP,
-      currentState: {
-        xp,
-        level,
-        skillPoints: gameState.skillPoints,
-        discipline,
-        currentStreak,
-        dailyBonusClaimed,
-      },
-      setDailyBonusClaimed,
-    });
-
-    // Check for milestone bonus XP
-    let finalXp = result.newXp;
-    if (result.milestoneReached && result.milestoneLevel) {
-      const bonusXP = getMilestoneBonusXP(result.milestoneLevel);
-      finalXp += bonusXP;
-    }
-
-    // Update streak and stats
-    const today = getToday();
-    let newStreak = currentStreak;
-    if (!gameState.lastWorkoutDate) {
-      newStreak = 1;
-    } else {
-      const diff = getDayDiff(today, gameState.lastWorkoutDate);
-      if (diff === 1) {
-        newStreak = currentStreak + 1;
-      } else if (diff > 1) {
-        newStreak = 1;
-      }
-    }
-
-    // Batch update: single DB write with all values
-    gameState.batchUpdate({
-      level: result.newLevel,
-      xp: finalXp,
-      skillPoints: result.newSkillPoints,
-      currentStreak: newStreak,
-      lastWorkoutDate: today,
-      endurance: endurance + 2,
-      discipline: discipline + 1,
-      dailyBonusClaimed: newDailyBonusClaimed || dailyBonusClaimed,
-      sessionCount: newSessionCount || sessionCount,
-    });
-
-    showFloatingXP(sessionXP, [...messages, ...result.messages]);
-  };
-
   const safeXP = safeNumber(gameState.xp, 0, 0);
   const safeLevel = safeNumber(gameState.level, 1, 1);
   const safeRequiredXP = getRequiredXP(safeLevel);
@@ -314,12 +218,13 @@ export default function HomeScreen() {
     "chest",
     "waist_core",
     "back",
+    "shoulders",
     "upper_legs",
     "lower_legs",
-    "shoulders",
     "biceps",
     "triceps",
     "lower_arms",
+    "cardio",
   ];
 
   const muscleLabels: Record<MuscleGroup, string> = {
@@ -332,6 +237,7 @@ export default function HomeScreen() {
     triceps: t(language, "muscles.triceps"),
     waist_core: t(language, "muscles.waist_core"),
     lower_arms: t(language, "muscles.lower_arms"),
+    cardio: t(language, "muscles.cardio"),
   };
 
   return (
@@ -407,7 +313,7 @@ export default function HomeScreen() {
               />
             </View>
 
-            {/* Muscle Groups Section */}
+            {/* Muscle Groups Section (includes cardio) */}
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <MuscleGroupGrid
                 muscleGroups={muscleGroups}
@@ -419,11 +325,6 @@ export default function HomeScreen() {
                 }
                 labels={muscleLabels}
               />
-            </View>
-
-            {/* Cardio Section */}
-            <View style={[styles.section, { backgroundColor: C.surface }]}>
-              <CardioGrid onPress={handleCardioWorkout} />
             </View>
 
             {/* Stretching Checkbox */}

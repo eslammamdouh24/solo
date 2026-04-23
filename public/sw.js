@@ -187,6 +187,5 @@ self.addEventListener("fetch", (event) => {
         return Response.error();
       }
     })(),
-
   );
 });

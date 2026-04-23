@@ -333,160 +333,265 @@ const ExerciseDetailScreen: React.FC = () => {
           >
             {isRTL ? exercise.descriptionAr : exercise.description}
           </Text>
-          <View
-            style={[
-              styles.detailRow,
-              { flexDirection: isRTL ? "row-reverse" : "row" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.label,
-                { color: C.textSecondary, fontFamily: fontSemibold },
-              ]}
-            >
-              {t(language, "exerciseDetail.equipment")}
-            </Text>
-            <Text
-              style={[styles.value, { color: C.text, fontFamily: fontBold }]}
-            >
-              {t(language, `equipmentNames.${exercise.equipment}`)}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.detailRow,
-              { flexDirection: isRTL ? "row-reverse" : "row" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.label,
-                { color: C.textSecondary, fontFamily: fontSemibold },
-              ]}
-            >
-              {t(language, "exerciseDetail.difficulty")}
-            </Text>
-            <Text
-              style={[styles.value, { color: C.text, fontFamily: fontBold }]}
-            >
-              {t(language, `difficultyNames.${exercise.difficulty}`)}
-            </Text>
-          </View>
-          {exercise.target ? (
+
+          {/* Stat pills grid */}
+          <View style={styles.statsGrid}>
             <View
               style={[
-                styles.detailRow,
-                { flexDirection: isRTL ? "row-reverse" : "row" },
+                styles.statPill,
+                {
+                  backgroundColor: C.background,
+                  borderColor: C.surfaceHighlight,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
               ]}
             >
+              <Ionicons name="barbell-outline" size={16} color={C.primary} />
+              <View style={styles.statPillText}>
+                <Text
+                  style={[
+                    styles.statPillLabel,
+                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, "exerciseDetail.equipment")}
+                </Text>
+                <Text
+                  style={[
+                    styles.statPillValue,
+                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, `equipmentNames.${exercise.equipment}`)}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: C.background,
+                  borderColor: C.surfaceHighlight,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              <Ionicons
+                name="speedometer-outline"
+                size={16}
+                color={C.primary}
+              />
+              <View style={styles.statPillText}>
+                <Text
+                  style={[
+                    styles.statPillLabel,
+                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, "exerciseDetail.difficulty")}
+                </Text>
+                <Text
+                  style={[
+                    styles.statPillValue,
+                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, `difficultyNames.${exercise.difficulty}`)}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: C.background,
+                  borderColor: C.surfaceHighlight,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              <Ionicons name="repeat-outline" size={16} color={C.primary} />
+              <View style={styles.statPillText}>
+                <Text
+                  style={[
+                    styles.statPillLabel,
+                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, "exerciseDetail.setsReps")}
+                </Text>
+                <Text
+                  style={[
+                    styles.statPillValue,
+                    { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {exercise.duration
+                    ? `${exercise.sets} × ${exercise.duration}s`
+                    : `${exercise.sets} × ${exercise.reps}`}
+                </Text>
+              </View>
+            </View>
+            {(exercise.caloriesPerMinute ?? 0) > 0 && (
+              <View
+                style={[
+                  styles.statPill,
+                  {
+                    backgroundColor: C.background,
+                    borderColor: C.surfaceHighlight,
+                    flexDirection: isRTL ? "row-reverse" : "row",
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 15 }}>🔥</Text>
+                <View style={styles.statPillText}>
+                  <Text
+                    style={[
+                      styles.statPillLabel,
+                      { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(language, "exerciseDetail.caloriesMin")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statPillValue,
+                      { color: C.text, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {(exercise.caloriesPerMinute ?? 0).toFixed(1)}
+                  </Text>
+                </View>
+              </View>
+            )}
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: C.primary + "15",
+                  borderColor: C.primary + "40",
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              <Ionicons name="star" size={16} color={C.primary} />
+              <View style={styles.statPillText}>
+                <Text
+                  style={[
+                    styles.statPillLabel,
+                    { color: C.textMuted, fontFamily: fontSemibold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t(language, "exerciseDetail.estimatedXP")}
+                </Text>
+                <Text
+                  style={[
+                    styles.statPillValue,
+                    { color: C.primary, fontFamily: fontBold, textAlign: isRTL ? "right" : "left" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  +{xpEstimate}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Target muscle — hero badge */}
+          {exercise.target ? (
+            <View style={styles.musclesBlock}>
               <Text
                 style={[
-                  styles.label,
-                  { color: C.textSecondary, fontFamily: fontSemibold },
+                  styles.musclesHeader,
+                  {
+                    color: C.textMuted,
+                    fontFamily: fontSemibold,
+                    textAlign: isRTL ? "right" : "left",
+                  },
                 ]}
               >
                 {t(language, "exerciseDetail.target")}
               </Text>
-              <Text
-                style={[styles.value, { color: C.text, fontFamily: fontBold }]}
+              <View
+                style={[
+                  styles.targetBadge,
+                  {
+                    backgroundColor: C.primary + "18",
+                    borderColor: C.primary + "50",
+                    flexDirection: isRTL ? "row-reverse" : "row",
+                    alignSelf: isRTL ? "flex-end" : "flex-start",
+                  },
+                ]}
               >
-                {t(language, `targetNames.${exercise.target}`)}
-              </Text>
+                <View
+                  style={[styles.targetDot, { backgroundColor: C.primary }]}
+                />
+                <Text
+                  style={[
+                    styles.targetText,
+                    { color: C.primary, fontFamily: fontBold },
+                  ]}
+                >
+                  {t(language, `targetNames.${exercise.target}`)}
+                </Text>
+              </View>
             </View>
           ) : null}
+
+          {/* Secondary muscles — chip row */}
           {exercise.secondaryMuscles.length > 0 && (
-            <View
-              style={[
-                styles.detailRow,
-                { flexDirection: isRTL ? "row-reverse" : "row" },
-              ]}
-            >
+            <View style={styles.musclesBlock}>
               <Text
                 style={[
-                  styles.label,
-                  { color: C.textSecondary, fontFamily: fontSemibold },
+                  styles.musclesHeader,
+                  {
+                    color: C.textMuted,
+                    fontFamily: fontSemibold,
+                    textAlign: isRTL ? "right" : "left",
+                  },
                 ]}
               >
                 {t(language, "exerciseDetail.secondary")}
               </Text>
-              <Text
-                style={[styles.value, { color: C.text, fontFamily: fontBold }]}
-                numberOfLines={2}
-              >
-                {exercise.secondaryMuscles
-                  .map((m) => t(language, `secondaryNames.${m}`))
-                  .join(isRTL ? "، " : ", ")}
-              </Text>
-            </View>
-          )}
-          <View
-            style={[
-              styles.detailRow,
-              { flexDirection: isRTL ? "row-reverse" : "row" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.label,
-                { color: C.textSecondary, fontFamily: fontSemibold },
-              ]}
-            >
-              {t(language, "exerciseDetail.setsReps")}
-            </Text>
-            <Text
-              style={[styles.value, { color: C.text, fontFamily: fontBold }]}
-            >
-              {exercise.duration
-                ? `${exercise.sets} x ${exercise.duration}s`
-                : `${exercise.sets} x ${exercise.reps}`}
-            </Text>
-          </View>
-          {(exercise.caloriesPerMinute ?? 0) > 0 && (
-            <View
-              style={[
-                styles.detailRow,
-                { flexDirection: isRTL ? "row-reverse" : "row" },
-              ]}
-            >
-              <Text
+              <View
                 style={[
-                  styles.label,
-                  { color: C.textSecondary, fontFamily: fontSemibold },
+                  styles.chipRow,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
                 ]}
               >
-                {t(language, "exerciseDetail.caloriesMin")}
-              </Text>
-              <Text
-                style={[
-                  styles.value,
-                  { color: C.primary, fontFamily: fontBold },
-                ]}
-              >
-                🔥 {(exercise.caloriesPerMinute ?? 0).toFixed(1)}
-              </Text>
+                {exercise.secondaryMuscles.map((m) => (
+                  <View
+                    key={m}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: C.background,
+                        borderColor: C.surfaceHighlight,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        { color: C.textSecondary, fontFamily: fontSemibold },
+                      ]}
+                    >
+                      {t(language, `secondaryNames.${m}`)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
           )}
-          <View
-            style={[
-              styles.detailRow,
-              { flexDirection: isRTL ? "row-reverse" : "row" },
-            ]}
-          >
-            <Text
-              style={[
-                styles.label,
-                { color: C.textSecondary, fontFamily: fontSemibold },
-              ]}
-            >
-              {t(language, "exerciseDetail.estimatedXP")}
-            </Text>
-            <Text
-              style={[styles.value, { color: C.primary, fontFamily: fontBold }]}
-            >
-              {xpEstimate}
-            </Text>
-          </View>
         </View>
 
         <View style={[styles.card, { backgroundColor: C.surface }]}>
@@ -715,6 +820,75 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
+  statPill: {
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexGrow: 1,
+    flexBasis: "47%",
+    minWidth: 140,
+  },
+  statPillText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  statPillLabel: {
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 2,
+  },
+  statPillValue: {
+    fontSize: 13,
+  },
+  musclesBlock: {
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  musclesHeader: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  targetBadge: {
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  targetDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  targetText: {
+    fontSize: 13,
+  },
+  chipRow: {
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  chip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  chipText: {
+    fontSize: 12,
   },
   detailRow: {
     flexDirection: "row",
