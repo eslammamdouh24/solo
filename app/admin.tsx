@@ -21,7 +21,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 // Error-only notification (success is reflected optimistically in UI)

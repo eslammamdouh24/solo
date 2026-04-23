@@ -378,7 +378,7 @@ export default function DashboardScreen() {
                         <View
                           style={[
                             styles.barTrack,
-                            { backgroundColor: C.border + "40" },
+                            { backgroundColor: C.surfaceHighlight },
                           ]}
                         >
                           <AnimatedBar
@@ -471,7 +471,7 @@ export default function DashboardScreen() {
                       <View
                         style={[
                           styles.muscleTrack,
-                          { backgroundColor: C.border + "30" },
+                          { backgroundColor: C.surfaceHighlight },
                         ]}
                       >
                         {!isEmpty && (
@@ -520,7 +520,7 @@ export default function DashboardScreen() {
                     style={[
                       styles.workoutRow,
                       {
-                        borderBottomColor: C.border,
+                        borderBottomColor: C.surfaceHighlight,
                         borderBottomWidth:
                           index < Math.min(4, recentWorkouts.length - 1)
                             ? 1
@@ -647,7 +647,7 @@ const PerformanceRow = ({
     style={[
       styles.perfRow,
       {
-        borderBottomColor: C.border,
+        borderBottomColor: C.surfaceHighlight,
         borderBottomWidth: isLast ? 0 : 1,
       },
     ]}
