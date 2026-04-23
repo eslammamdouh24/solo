@@ -64,6 +64,9 @@ export default function AdminScreen() {
   const { language } = useApp();
   const { user, isAdmin, adminChecked } = useAuth();
   const C = useColors();
+  // Admin-specific theme (purple) so it feels distinct from leaderboard (cyan)
+  const accent = C.purple;
+  const adminCard = "rgba(147, 51, 234, 0.08)";
   const router = useRouter();
   const confirm = useConfirm();
   const isRTL = checkRTL(language);
@@ -302,7 +305,7 @@ export default function AdminScreen() {
       <View style={[styles.container, { backgroundColor: C.background }]}>
         <TopBar showBack />
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={C.primary} />
+          <ActivityIndicator size="large" color={accent} />
         </View>
       </View>
     );
@@ -336,304 +339,325 @@ export default function AdminScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={C.primary}
-            colors={[C.primary]}
+            tintColor={accent}
+            colors={[accent]}
           />
         }
       >
         {/* Stats Cards */}
         {stats && (
           <AnimatedEntry index={0}>
-          <View style={styles.statsContainer}>
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons
-                name="account-group"
-                size={32}
-                color={C.primary}
-              />
-              <Text
+            <View style={styles.statsContainer}>
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.totalUsers}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                {t(language, "admin.totalUsers")}
-              </Text>
-            </View>
+                <MaterialCommunityIcons
+                  name="account-group"
+                  size={32}
+                  color={accent}
+                />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.totalUsers}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  {t(language, "admin.totalUsers")}
+                </Text>
+              </View>
 
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons
-                name="dumbbell"
-                size={32}
-                color={C.gold}
-              />
-              <Text
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.totalWorkouts}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                {t(language, "admin.totalWorkouts")}
-              </Text>
-            </View>
+                <MaterialCommunityIcons
+                  name="dumbbell"
+                  size={32}
+                  color={C.gold}
+                />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.totalWorkouts}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  {t(language, "admin.totalWorkouts")}
+                </Text>
+              </View>
 
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons name="star" size={32} color={C.gold} />
-              <Text
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.totalXP.toLocaleString()}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                {t(language, "admin.totalXP")}
-              </Text>
-            </View>
+                <MaterialCommunityIcons name="star" size={32} color={C.gold} />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.totalXP.toLocaleString()}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  {t(language, "admin.totalXP")}
+                </Text>
+              </View>
 
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons
-                name="chart-line"
-                size={32}
-                color={C.primary}
-              />
-              <Text
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.avgLevel}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                {t(language, "admin.avgLevel")}
-              </Text>
-            </View>
+                <MaterialCommunityIcons
+                  name="chart-line"
+                  size={32}
+                  color={accent}
+                />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.avgLevel}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  {t(language, "admin.avgLevel")}
+                </Text>
+              </View>
 
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons
-                name="account-plus"
-                size={32}
-                color={Colors.green}
-              />
-              <Text
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.newThisWeek}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                New this week
-              </Text>
-            </View>
+                <MaterialCommunityIcons
+                  name="account-plus"
+                  size={32}
+                  color={Colors.green}
+                />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.newThisWeek}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  New this week
+                </Text>
+              </View>
 
-            <View
-              style={[styles.statCard, { backgroundColor: C.surfaceHighlight }]}
-            >
-              <MaterialCommunityIcons
-                name="chart-bar"
-                size={32}
-                color={Colors.purple}
-              />
-              <Text
+              <View
                 style={[
-                  styles.statValue,
-                  { color: C.text, fontFamily: fontBold },
+                  styles.statCard,
+                  { backgroundColor: adminCard },
                 ]}
               >
-                {stats.avgWorkoutsPerUser}
-              </Text>
-              <Text style={[styles.statLabel, { color: C.textSecondary }]}>
-                Avg workouts / user
-              </Text>
+                <MaterialCommunityIcons
+                  name="chart-bar"
+                  size={32}
+                  color={Colors.purple}
+                />
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  {stats.avgWorkoutsPerUser}
+                </Text>
+                <Text style={[styles.statLabel, { color: C.textSecondary }]}>
+                  Avg workouts / user
+                </Text>
+              </View>
             </View>
-          </View>
           </AnimatedEntry>
         )}
 
         {/* Signups last 7 days */}
         {signupsDaily.length > 0 && (
           <AnimatedEntry index={1}>
-          <View
-            style={[styles.chartCard, { backgroundColor: C.surfaceHighlight }]}
-          >
-            <Text
+            <View
               style={[
-                styles.chartTitle,
-                { color: C.text, fontFamily: fontBold },
+                styles.chartCard,
+                { backgroundColor: adminCard },
               ]}
             >
-              Signups · Last 7 days
-            </Text>
-            <View style={styles.chartRow}>
-              {signupsDaily.map((d, i) => {
-                const max = Math.max(...signupsDaily.map((x) => x.count), 1);
-                const heightPct = (d.count / max) * 100;
-                const isToday = i === signupsDaily.length - 1;
-                return (
-                  <View key={i} style={styles.chartCol}>
-                    <View style={styles.chartBarWrap}>
-                      {d.count > 0 && (
-                        <Text
+              <Text
+                style={[
+                  styles.chartTitle,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
+              >
+                Signups · Last 7 days
+              </Text>
+              <View style={styles.chartRow}>
+                {signupsDaily.map((d, i) => {
+                  const max = Math.max(...signupsDaily.map((x) => x.count), 1);
+                  const heightPct = (d.count / max) * 100;
+                  const isToday = i === signupsDaily.length - 1;
+                  return (
+                    <View key={i} style={styles.chartCol}>
+                      <View style={styles.chartBarWrap}>
+                        {d.count > 0 && (
+                          <Text
+                            style={[
+                              styles.chartCount,
+                              { color: C.text, fontFamily: fontBold },
+                            ]}
+                          >
+                            {d.count}
+                          </Text>
+                        )}
+                        <View
                           style={[
-                            styles.chartCount,
-                            { color: C.text, fontFamily: fontBold },
+                            styles.chartTrack,
+                            { backgroundColor: C.surface },
                           ]}
                         >
-                          {d.count}
-                        </Text>
-                      )}
-                      <View
+                          <View
+                            style={{
+                              height: `${heightPct}%`,
+                              backgroundColor: isToday
+                                ? Colors.orange
+                                : accent,
+                              borderRadius: 4,
+                            }}
+                          />
+                        </View>
+                      </View>
+                      <Text
                         style={[
-                          styles.chartTrack,
-                          { backgroundColor: C.surface },
+                          styles.chartLabel,
+                          {
+                            color: isToday ? Colors.orange : C.textSecondary,
+                            fontFamily: fontSemibold,
+                          },
                         ]}
                       >
-                        <View
-                          style={{
-                            height: `${heightPct}%`,
-                            backgroundColor: isToday
-                              ? Colors.orange
-                              : C.primary,
-                            borderRadius: 4,
-                          }}
-                        />
-                      </View>
+                        {d.day}
+                      </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.chartLabel,
-                        {
-                          color: isToday ? Colors.orange : C.textSecondary,
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {d.day}
-                    </Text>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
           </AnimatedEntry>
         )}
 
         {/* Search + Role Filter */}
         <AnimatedEntry index={2}>
-        <View
-          style={[styles.searchBar, { backgroundColor: C.surfaceHighlight }]}
-        >
-          <MaterialCommunityIcons
-            name="magnify"
-            size={18}
-            color={C.textSecondary}
-          />
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search username or email"
-            placeholderTextColor={C.textMuted}
-            style={[
-              styles.searchInput,
-              { color: C.text, fontFamily: fontRegular },
-            ]}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch("")} hitSlop={8}>
-              <MaterialCommunityIcons
-                name="close-circle"
-                size={18}
-                color={C.textMuted}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+          <View
+            style={[styles.searchBar, { backgroundColor: adminCard }]}
+          >
+            <MaterialCommunityIcons
+              name="magnify"
+              size={18}
+              color={C.textSecondary}
+            />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search username or email"
+              placeholderTextColor={C.textMuted}
+              style={[
+                styles.searchInput,
+                { color: C.text, fontFamily: fontRegular },
+              ]}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")} hitSlop={8}>
+                <MaterialCommunityIcons
+                  name="close-circle"
+                  size={18}
+                  color={C.textMuted}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
 
-        <View style={styles.filterRow}>
-          {(["all", "admin", "user"] as const).map((r) => {
-            const active = roleFilter === r;
-            return (
-              <TouchableOpacity
-                key={r}
-                onPress={() => setRoleFilter(r)}
-                style={[
-                  styles.filterChip,
-                  {
-                    backgroundColor: active
-                      ? C.primary + "22"
-                      : C.surfaceHighlight,
-                    borderColor: active ? C.primary : "transparent",
-                  },
-                ]}
-              >
-                <Text
+          <View style={styles.filterRow}>
+            {(["all", "admin", "user"] as const).map((r) => {
+              const active = roleFilter === r;
+              return (
+                <TouchableOpacity
+                  key={r}
+                  onPress={() => setRoleFilter(r)}
                   style={[
-                    styles.filterChipText,
+                    styles.filterChip,
                     {
-                      color: active ? C.primary : C.textSecondary,
-                      fontFamily: fontSemibold,
+                      backgroundColor: active
+                        ? accent + "22"
+                        : adminCard,
+                      borderColor: active ? accent : "transparent",
                     },
                   ]}
                 >
-                  {r === "all" ? "All" : r === "admin" ? "Admins" : "Users"}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      {
+                        color: active ? accent : C.textSecondary,
+                        fontFamily: fontSemibold,
+                      },
+                    ]}
+                  >
+                    {r === "all" ? "All" : r === "admin" ? "Admins" : "Users"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </AnimatedEntry>
 
         {/* Users List */}
         <AnimatedEntry index={3}>
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              styles.sectionTitleInline,
-              { color: C.text, fontFamily: fontBold },
-            ]}
-          >
-            {t(language, "admin.allUsers")} ({filteredUsers.length})
-          </Text>
-          {users.filter((u) => u.user_id !== user?.id).length > 0 && (
-            <TouchableOpacity
+          <View style={styles.sectionHeader}>
+            <Text
               style={[
-                styles.deleteAllButton,
-                { backgroundColor: C.error + "20" },
+                styles.sectionTitle,
+                styles.sectionTitleInline,
+                { color: C.text, fontFamily: fontBold },
               ]}
-              onPress={handleDeleteAllUsers}
             >
-              <MaterialCommunityIcons
-                name="delete-sweep"
-                size={18}
-                color={C.error}
-              />
-              <Text style={[styles.deleteAllText, { color: C.error }]}>
-                {t(language, "admin.deleteAll")}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+              {t(language, "admin.allUsers")} ({filteredUsers.length})
+            </Text>
+            {users.filter((u) => u.user_id !== user?.id).length > 0 && (
+              <TouchableOpacity
+                style={[
+                  styles.deleteAllButton,
+                  { backgroundColor: C.error + "20" },
+                ]}
+                onPress={handleDeleteAllUsers}
+              >
+                <MaterialCommunityIcons
+                  name="delete-sweep"
+                  size={18}
+                  color={C.error}
+                />
+                <Text style={[styles.deleteAllText, { color: C.error }]}>
+                  {t(language, "admin.deleteAll")}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </AnimatedEntry>
 
         {filteredUsers.map((userData, i) => (
@@ -643,120 +667,126 @@ export default function AdminScreen() {
             delay={240}
             stagger={30}
           >
-          <View
-            style={[
-              styles.userCard,
-              { backgroundColor: C.surfaceHighlight },
-              userData.user_id === user?.id && {
-                borderColor: C.primary,
-                borderWidth: 2,
-              },
-            ]}
-          >
-            <View style={styles.userHeader}>
-              <View style={styles.userInfo}>
-                <View style={styles.userTitleRow}>
-                  <Text
-                    style={[
-                      styles.username,
-                      { color: C.text, fontFamily: fontSemibold },
-                    ]}
-                  >
-                    {userData.username}
-                  </Text>
-                  {userData.role === "admin" && (
-                    <View
+            <View
+              style={[
+                styles.userCard,
+                { backgroundColor: adminCard },
+                userData.user_id === user?.id && {
+                  borderColor: accent,
+                  borderWidth: 2,
+                },
+              ]}
+            >
+              <View style={styles.userHeader}>
+                <View style={styles.userInfo}>
+                  <View style={styles.userTitleRow}>
+                    <Text
                       style={[
-                        styles.adminBadge,
-                        { backgroundColor: C.gold + "20" },
+                        styles.username,
+                        { color: C.text, fontFamily: fontSemibold },
                       ]}
                     >
-                      <MaterialCommunityIcons
-                        name="shield-crown"
-                        size={14}
-                        color={C.gold}
-                      />
-                      <Text style={[styles.adminBadgeText, { color: C.gold }]}>
-                        {t(language, "admin.adminBadge")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.userEmail, { color: C.textSecondary }]}>
-                  {userData.email}
-                </Text>
-                <View style={styles.userStats}>
-                  <Text style={[styles.userStat, { color: C.textSecondary }]}>
-                    {t(language, "admin.level")}: {userData.level}
+                      {userData.username}
+                    </Text>
+                    {userData.role === "admin" && (
+                      <View
+                        style={[
+                          styles.adminBadge,
+                          { backgroundColor: C.gold + "20" },
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name="shield-crown"
+                          size={14}
+                          color={C.gold}
+                        />
+                        <Text
+                          style={[styles.adminBadgeText, { color: C.gold }]}
+                        >
+                          {t(language, "admin.adminBadge")}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.userEmail, { color: C.textSecondary }]}>
+                    {userData.email}
                   </Text>
-                  <Text style={[styles.userStat, { color: C.textSecondary }]}>
-                    • XP: {userData.xp.toLocaleString()}
-                  </Text>
-                  <Text style={[styles.userStat, { color: C.textSecondary }]}>
-                    • {t(language, "admin.workouts")}: {userData.session_count}
-                  </Text>
+                  <View style={styles.userStats}>
+                    <Text style={[styles.userStat, { color: C.textSecondary }]}>
+                      {t(language, "admin.level")}: {userData.level}
+                    </Text>
+                    <Text style={[styles.userStat, { color: C.textSecondary }]}>
+                      • XP: {userData.xp.toLocaleString()}
+                    </Text>
+                    <Text style={[styles.userStat, { color: C.textSecondary }]}>
+                      • {t(language, "admin.workouts")}:{" "}
+                      {userData.session_count}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {userData.user_id !== user?.id && (
-              <View style={styles.userActions}>
-                <TouchableOpacity
-                  style={[
-                    styles.actionButton,
-                    {
-                      backgroundColor:
-                        userData.role === "admin"
-                          ? C.error + "20"
-                          : C.primary + "20",
-                    },
-                  ]}
-                  onPress={() =>
-                    handleToggleRole(userData.user_id, userData.role)
-                  }
-                >
-                  <MaterialCommunityIcons
-                    name={
-                      userData.role === "admin" ? "shield-off" : "shield-check"
-                    }
-                    size={18}
-                    color={userData.role === "admin" ? C.error : C.primary}
-                  />
-                  <Text
+              {userData.user_id !== user?.id && (
+                <View style={styles.userActions}>
+                  <TouchableOpacity
                     style={[
-                      styles.actionButtonText,
+                      styles.actionButton,
                       {
-                        color: userData.role === "admin" ? C.error : C.primary,
+                        backgroundColor:
+                          userData.role === "admin"
+                            ? C.error + "20"
+                            : accent + "20",
                       },
                     ]}
+                    onPress={() =>
+                      handleToggleRole(userData.user_id, userData.role)
+                    }
                   >
-                    {userData.role === "admin"
-                      ? t(language, "admin.demote")
-                      : t(language, "admin.promote")}
-                  </Text>
-                </TouchableOpacity>
+                    <MaterialCommunityIcons
+                      name={
+                        userData.role === "admin"
+                          ? "shield-off"
+                          : "shield-check"
+                      }
+                      size={18}
+                      color={userData.role === "admin" ? C.error : accent}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        {
+                          color:
+                            userData.role === "admin" ? C.error : accent,
+                        },
+                      ]}
+                    >
+                      {userData.role === "admin"
+                        ? t(language, "admin.demote")
+                        : t(language, "admin.promote")}
+                    </Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: C.error + "20" },
-                  ]}
-                  onPress={() =>
-                    handleDeleteUser(userData.user_id, userData.username)
-                  }
-                >
-                  <MaterialCommunityIcons
-                    name="delete"
-                    size={18}
-                    color={C.error}
-                  />
-                  <Text style={[styles.actionButtonText, { color: C.error }]}>
-                    {t(language, "admin.delete")}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      { backgroundColor: C.error + "20" },
+                    ]}
+                    onPress={() =>
+                      handleDeleteUser(userData.user_id, userData.username)
+                    }
+                  >
+                    <MaterialCommunityIcons
+                      name="delete"
+                      size={18}
+                      color={C.error}
+                    />
+                    <Text style={[styles.actionButtonText, { color: C.error }]}>
+                      {t(language, "admin.delete")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </AnimatedEntry>
         ))}
       </ScrollView>
