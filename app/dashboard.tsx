@@ -267,6 +267,7 @@ export default function DashboardScreen() {
             icon="clock-outline"
             value={formatDuration(stats.totalDuration)}
             label="Total Time"
+            color={Colors.blue}
             C={C}
             fontBold={fontBold}
             fontRegular={fontRegular}
@@ -275,6 +276,7 @@ export default function DashboardScreen() {
             icon="flash"
             value={avgXPPerWorkout}
             label="Avg XP"
+            color={Colors.gold}
             C={C}
             fontBold={fontBold}
             fontRegular={fontRegular}
@@ -283,6 +285,7 @@ export default function DashboardScreen() {
             icon="timer-sand"
             value={`${avgDurationMins}m`}
             label="Avg Time"
+            color={Colors.purple}
             C={C}
             fontBold={fontBold}
             fontRegular={fontRegular}
@@ -400,7 +403,7 @@ export default function DashboardScreen() {
                         styles.barLabel,
                         {
                           color: isToday ? Colors.orange : C.textSecondary,
-                          fontFamily: isToday ? fontBold : fontRegular,
+                          fontFamily: fontSemibold,
                         },
                       ]}
                     >
@@ -583,6 +586,7 @@ const MetricCard = ({
   icon,
   value,
   label,
+  color,
   C,
   fontBold,
   fontRegular,
@@ -590,6 +594,7 @@ const MetricCard = ({
   icon: IconName;
   value: string | number;
   label: string;
+  color: string;
   C: any;
   fontBold: string;
   fontRegular: string;
@@ -597,9 +602,9 @@ const MetricCard = ({
   <View style={[styles.metricCard, { backgroundColor: C.surface }]}>
     <MaterialCommunityIcons
       name={icon}
-      size={20}
-      color={C.textSecondary}
-      style={{ marginBottom: 6 }}
+      size={22}
+      color={color}
+      style={{ marginBottom: 8 }}
     />
     <Text style={[styles.metricValue, { color: C.text, fontFamily: fontBold }]}>
       {value}
