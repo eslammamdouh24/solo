@@ -11,7 +11,7 @@ import { useColors } from "@/hooks/useColors";
 import { supabase } from "@/lib/supabase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -21,7 +21,7 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 // Error-only notification (success is reflected optimistically in UI)
@@ -469,10 +469,7 @@ export default function AdminScreen() {
         {/* Signups last 7 days */}
         {signupsDaily.length > 0 && (
           <View
-            style={[
-              styles.chartCard,
-              { backgroundColor: C.surfaceHighlight },
-            ]}
+            style={[styles.chartCard, { backgroundColor: C.surfaceHighlight }]}
           >
             <Text
               style={[
@@ -484,10 +481,7 @@ export default function AdminScreen() {
             </Text>
             <View style={styles.chartRow}>
               {signupsDaily.map((d, i) => {
-                const max = Math.max(
-                  ...signupsDaily.map((x) => x.count),
-                  1,
-                );
+                const max = Math.max(...signupsDaily.map((x) => x.count), 1);
                 const heightPct = (d.count / max) * 100;
                 const isToday = i === signupsDaily.length - 1;
                 return (
@@ -540,10 +534,7 @@ export default function AdminScreen() {
 
         {/* Search + Role Filter */}
         <View
-          style={[
-            styles.searchBar,
-            { backgroundColor: C.surfaceHighlight },
-          ]}
+          style={[styles.searchBar, { backgroundColor: C.surfaceHighlight }]}
         >
           <MaterialCommunityIcons
             name="magnify"
@@ -561,10 +552,7 @@ export default function AdminScreen() {
             ]}
           />
           {search.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearch("")}
-              hitSlop={8}
-            >
+            <TouchableOpacity onPress={() => setSearch("")} hitSlop={8}>
               <MaterialCommunityIcons
                 name="close-circle"
                 size={18}
