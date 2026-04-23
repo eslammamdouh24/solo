@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import {
-  Animated,
-  StyleProp,
-  TouchableOpacity,
-  TouchableOpacityProps,
-  View,
-  ViewStyle,
+    Animated,
+    StyleProp,
+    TouchableOpacity,
+    TouchableOpacityProps,
+    View,
+    ViewStyle,
 } from "react-native";
 
 interface AnimatedCardProps {
@@ -27,7 +27,9 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   type = "fadeSlide",
 }) => {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(type === "slide" || type === "fadeSlide" ? 30 : 0)).current;
+  const translateY = useRef(
+    new Animated.Value(type === "slide" || type === "fadeSlide" ? 30 : 0),
+  ).current;
   const scale = useRef(new Animated.Value(type === "scale" ? 0.9 : 1)).current;
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
           duration,
           delay,
           useNativeDriver: true,
-        })
+        }),
       );
     }
 
@@ -51,7 +53,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
           duration,
           delay,
           useNativeDriver: true,
-        })
+        }),
       );
     }
 
@@ -62,7 +64,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
           duration,
           delay,
           useNativeDriver: true,
-        })
+        }),
       );
     }
 
@@ -75,10 +77,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
         style,
         {
           opacity: type === "slide" ? 1 : opacity,
-          transform: [
-            { translateY },
-            { scale },
-          ],
+          transform: [{ translateY }, { scale }],
         },
       ]}
     >
@@ -163,11 +162,7 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
     }).start();
   }, []);
 
-  return (
-    <Animated.View style={[style, { opacity }]}>
-      {children}
-    </Animated.View>
-  );
+  return <Animated.View style={[style, { opacity }]}>{children}</Animated.View>;
 };
 
 interface StaggeredListProps {

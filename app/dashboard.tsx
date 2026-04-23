@@ -8,42 +8,33 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import {
-  getEquipmentUsage,
-  getMuscleDistribution,
-  getRecentWorkouts,
-  getWeeklyActivity,
-  getWorkoutStats,
-  getXPProgress,
-  RecentWorkout,
+    getEquipmentUsage,
+    getMuscleDistribution,
+    getRecentWorkouts,
+    getWeeklyActivity,
+    getWorkoutStats,
+    getXPProgress,
+    RecentWorkout,
 } from "@/lib/dashboardApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 import {
-  VictoryAxis,
-  VictoryBar,
-  VictoryChart,
-  VictoryLine,
-  VictoryPie,
-  VictoryTheme,
-} from "victory-native";
-
-export default function DashboardScreen() {
-  const { user } = useAuth();
-  const { language } = useApp();
-  const C = useColors();
-  const router = useRouter();
-  const isRTL = language === "ar";
+    VictoryAxis,
+    VictoryBar,
+    VictoryChart,
+    VictoryLine,
+    VictoryPie,
+    VictoryTheme,
+} from "victory";
   const fontBold = getFont(language, "bold");
   const fontSemibold = getFont(language, "semibold");
   const fontRegular = getFont(language, "regular");
@@ -61,10 +52,10 @@ export default function DashboardScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
   const [cardAnims] = useState(() =>
-    Array.from({ length: 4 }, () => new Animated.Value(0))
+    Array.from({ length: 4 }, () => new Animated.Value(0)),
   );
   const [chartAnims] = useState(() =>
-    Array.from({ length: 4 }, () => new Animated.Value(0))
+    Array.from({ length: 4 }, () => new Animated.Value(0)),
   );
 
   const loadData = async () => {
@@ -196,14 +187,13 @@ export default function DashboardScreen() {
           },
         ]}
       >
-        <View style={[styles.statIconContainer, { backgroundColor: color + "20" }]}>
+        <View
+          style={[styles.statIconContainer, { backgroundColor: color + "20" }]}
+        >
           <MaterialCommunityIcons name={icon} size={24} color={color} />
         </View>
         <Text
-          style={[
-            styles.statValue,
-            { color: C.text, fontFamily: fontBold },
-          ]}
+          style={[styles.statValue, { color: C.text, fontFamily: fontBold }]}
         >
           {value}
         </Text>
@@ -424,7 +414,10 @@ export default function DashboardScreen() {
 
         {/* Muscle Distribution Pie Chart */}
         {muscleDistribution.length > 0 && (
-          <ChartCard title={t(language, "dashboard.muscleDistribution")} index={2}>
+          <ChartCard
+            title={t(language, "dashboard.muscleDistribution")}
+            index={2}
+          >
             <View style={styles.pieChartContainer}>
               <VictoryPie
                 data={muscleDistribution}
@@ -588,7 +581,8 @@ export default function DashboardScreen() {
                       { color: C.textSecondary, fontFamily: fontRegular },
                     ]}
                   >
-                    {workout.muscle_group} • {formatDuration(workout.duration_seconds)}
+                    {workout.muscle_group} •{" "}
+                    {formatDuration(workout.duration_seconds)}
                   </Text>
                 </View>
                 <View style={styles.workoutXp}>

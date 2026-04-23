@@ -52,7 +52,9 @@ export interface RecentWorkout {
 /**
  * Fetch comprehensive workout statistics
  */
-export const getWorkoutStats = async (userId: string): Promise<WorkoutStats> => {
+export const getWorkoutStats = async (
+  userId: string,
+): Promise<WorkoutStats> => {
   // Get workout logs
   const { data: workouts, error: workoutsError } = await supabase
     .from("workout_logs")
@@ -73,34 +75,49 @@ export const getWorkoutStats = async (userId: string): Promise<WorkoutStats> => 
 
   const totalWorkouts = workouts?.length || 0;
   const totalXP = workouts?.reduce((sum, w) => sum + (w.xp || 0), 0) || 0;
-  const totalDuration = workouts?.reduce((sum, w) => sum + (w.duration_seconds || 0), 0) || 0;
+  const totalDuration =
+    workouts?.reduce((sum, w) => sum + (w.duration_seconds || 0), 0) || 0;
 
   // Calculate workouts per week
   const firstWorkout = workouts?.[0]?.created_at;
   const weeksSinceFirst = firstWorkout
-    ? Math.max(1, Math.ceil((Date.now() - new Date(firstWorkout).getTime()) / (7 * 24 * 60 * 60 * 1000)))
+    ? Math.max(
+        1,
+        Math.ceil(
+          (Date.now() - new Date(firstWorkout).getTime()) /
+            (7 * 24 * 60 * 60 * 1000),
+        ),
+      )
     : 1;
   const avgWorkoutsPerWeek = totalWorkouts / weeksSinceFirst;
 
   // Find most trained muscle
-  const muscleCounts = workouts?.reduce((acc, w) => {
-    acc[w.muscle_group] = (acc[w.muscle_group] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) || {};
-  
-  const mostTrainedMuscle = Object.entries(muscleCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
+  const muscleCounts =
+    workouts?.reduce(
+      (acc, w) => {
+        acc[w.muscle_group] = (acc[w.muscle_group] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    ) || {};
+
+  const mostTrainedMuscle =
+    Object.entries(muscleCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
 
   // Calculate best streak from workout history
   let bestStreak = 0;
   let currentStreakCount = 0;
   const workoutDates = new Set(
-    workouts?.map(w => new Date(w.created_at).toDateString()) || []
+    workouts?.map((w) => new Date(w.created_at).toDateString()) || [],
   );
-  
+
   const dates = Array.from(workoutDates).sort();
   for (let i = 0; i < dates.length; i++) {
-    if (i === 0 || 
-        (new Date(dates[i]).getTime() - new Date(dates[i-1]).getTime()) <= 2 * 24 * 60 * 60 * 1000) {
+    if (
+      i === 0 ||
+      new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime() <=
+        2 * 24 * 60 * 60 * 1000
+    ) {
       currentStreakCount++;
       bestStreak = Math.max(bestStreak, currentStreakCount);
     } else {
@@ -122,7 +139,9 @@ export const getWorkoutStats = async (userId: string): Promise<WorkoutStats> => 
 /**
  * Get weekly activity data (last 7 days)
  */
-export const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity[]> => {
+export const getWeeklyActivity = async (
+  userId: string,
+): Promise<WeeklyActivity[]> => {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -159,7 +178,9 @@ export const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity[
 /**
  * Get muscle group distribution
  */
-export const getMuscleDistribution = async (userId: string): Promise<MuscleDistribution[]> => {
+export const getMuscleDistribution = async (
+  userId: string,
+): Promise<MuscleDistribution[]> => {
   const { data, error } = await supabase
     .from("workout_logs")
     .select("muscle_group")
@@ -209,7 +230,10 @@ export const getXPProgress = async (userId: string): Promise<XPProgress[]> => {
   return Object.entries(dailyXP).map(([date, xp]) => {
     cumulative += xp;
     return {
-      date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      date: new Date(date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
       xp,
       cumulativeXp: cumulative,
     };
@@ -219,7 +243,9 @@ export const getXPProgress = async (userId: string): Promise<XPProgress[]> => {
 /**
  * Get equipment usage distribution
  */
-export const getEquipmentUsage = async (userId: string): Promise<EquipmentUsage[]> => {
+export const getEquipmentUsage = async (
+  userId: string,
+): Promise<EquipmentUsage[]> => {
   const { data, error } = await supabase
     .from("workout_logs")
     .select("equipment")
@@ -245,7 +271,9 @@ export const getEquipmentUsage = async (userId: string): Promise<EquipmentUsage[
 /**
  * Get recent workouts (last 10)
  */
-export const getRecentWorkouts = async (userId: string): Promise<RecentWorkout[]> => {
+export const getRecentWorkouts = async (
+  userId: string,
+): Promise<RecentWorkout[]> => {
   const { data, error } = await supabase
     .from("workout_logs")
     .select("id, exercise_name, muscle_group, xp, duration_seconds, created_at")

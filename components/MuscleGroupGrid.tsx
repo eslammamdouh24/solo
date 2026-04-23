@@ -98,10 +98,7 @@ const MuscleCard: React.FC<{
           {
             backgroundColor: C.surfaceHighlight,
             opacity: fadeAnim,
-            transform: [
-              { scale: scaleAnim },
-              { translateY: slideAnim },
-            ],
+            transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
           },
         ]}
       >
