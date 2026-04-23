@@ -39,7 +39,6 @@ export const translations = {
       signOut: "Sign Out",
       milestones: "MILESTONES & REWARDS",
       viewLeaderboard: "View Leaderboard",
-      viewDashboard: "View Dashboard",
       resetTitle: "Reset Progress?",
       resetMessage:
         "This will delete all your progress, stats, and achievements. This action cannot be undone.",
@@ -56,6 +55,7 @@ export const translations = {
       permissionDenied: "Permission Denied",
       photoPermission: "You need to allow access to your photos",
       personalInfo: "PERSONAL INFORMATION",
+      accentTheme: "Accent",
       fullName: "Full Name",
       age: "Age",
       birthDate: "Date of Birth",
@@ -550,6 +550,7 @@ export const translations = {
       permissionDenied: "الإذن مرفوض",
       photoPermission: "لازم تسمح بالوصول للصور بتاعتك",
       personalInfo: "المعلومات الشخصية",
+      accentTheme: "لون التمييز",
       fullName: "الاسم بالكامل",
       age: "السن",
       birthDate: "تاريخ الميلاد",

@@ -1,3 +1,4 @@
+import { AccentThemeList } from "@/constants/accentThemes";
 import { Colors } from "@/constants/colors";
 import { Language, Theme, isRTL as checkRTL } from "@/constants/enums";
 import { FontSize } from "@/constants/font-size";
@@ -68,7 +69,8 @@ interface SideDrawerProps {
 }
 
 function SideDrawer({ visible, onClose }: SideDrawerProps) {
-  const { theme, language, toggleTheme, setLanguage } = useApp();
+  const { theme, language, toggleTheme, setLanguage, accent, setAccent } =
+    useApp();
   const { user, isAdmin, signOut } = useAuth();
   const C = useColors();
   const router = useRouter();
@@ -466,6 +468,69 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               </View>
             </View>
 
+            {/* Accent color picker */}
+            <View
+              style={[
+                styles.toggleRow,
+                { flexDirection: isRTL ? "row-reverse" : "row" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.toggleLeft,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="palette"
+                  size={22}
+                  color={C.primary}
+                />
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    { color: C.text, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {t(language, "profile.accentTheme") || "Accent"}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                styles.accentRow,
+                {
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              {AccentThemeList.map((a) => {
+                const selected = a.id === accent;
+                return (
+                  <TouchableOpacity
+                    key={a.id}
+                    onPress={() => setAccent(a.id)}
+                    style={[
+                      styles.accentSwatch,
+                      {
+                        backgroundColor: a.primary,
+                        borderColor: selected ? C.text : "transparent",
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    {selected && (
+                      <MaterialCommunityIcons
+                        name="check"
+                        size={14}
+                        color="#fff"
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             <View style={[styles.divider, { backgroundColor: C.border }]} />
 
             {/* Sign out */}
@@ -635,6 +700,21 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.sm,
     gap: Spacing.md,
     borderRadius: BorderRadius.md,
+  },
+  accentRow: {
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.sm,
+    marginHorizontal: Spacing.sm,
+  },
+  accentSwatch: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
   },
   toggleLeft: {
     alignItems: "center",
