@@ -1,3 +1,4 @@
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
@@ -206,361 +207,375 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Card - Total XP with gradient */}
-        <LinearGradient
-          colors={[C.primary, Colors.purple]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
-          <View style={styles.heroContent}>
-            <Text style={[styles.heroLabel, { fontFamily: fontSemibold }]}>
-              TOTAL XP EARNED
-            </Text>
-            <Text style={[styles.heroValue, { fontFamily: fontBlack }]}>
-              {stats.totalXP.toLocaleString()}
-            </Text>
-            <View style={styles.heroMeta}>
-              <View style={styles.heroMetaItem}>
-                <MaterialCommunityIcons
-                  name="dumbbell"
-                  size={16}
-                  color="#FFF"
-                />
-                <Text
-                  style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
-                >
-                  {stats.totalWorkouts} workouts
-                </Text>
-              </View>
-              <View style={styles.heroDivider} />
-              <View style={styles.heroMetaItem}>
-                <MaterialCommunityIcons name="fire" size={16} color="#FFF" />
-                <Text
-                  style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
-                >
-                  {stats.currentStreak} day streak
-                </Text>
+        <AnimatedEntry index={0} from="down">
+          <LinearGradient
+            colors={[C.primary, Colors.purple]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
+          >
+            <View style={styles.heroContent}>
+              <Text style={[styles.heroLabel, { fontFamily: fontSemibold }]}>
+                TOTAL XP EARNED
+              </Text>
+              <Text style={[styles.heroValue, { fontFamily: fontBlack }]}>
+                {stats.totalXP.toLocaleString()}
+              </Text>
+              <View style={styles.heroMeta}>
+                <View style={styles.heroMetaItem}>
+                  <MaterialCommunityIcons
+                    name="dumbbell"
+                    size={16}
+                    color="#FFF"
+                  />
+                  <Text
+                    style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
+                  >
+                    {stats.totalWorkouts} workouts
+                  </Text>
+                </View>
+                <View style={styles.heroDivider} />
+                <View style={styles.heroMetaItem}>
+                  <MaterialCommunityIcons name="fire" size={16} color="#FFF" />
+                  <Text
+                    style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
+                  >
+                    {stats.currentStreak} day streak
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-          <View style={styles.heroBadge}>
-            <MaterialCommunityIcons name="trophy" size={28} color="#FFF" />
-          </View>
-        </LinearGradient>
+            <View style={styles.heroBadge}>
+              <MaterialCommunityIcons name="trophy" size={28} color="#FFF" />
+            </View>
+          </LinearGradient>
+        </AnimatedEntry>
 
         {/* Key Metrics Row */}
-        <View style={styles.metricsRow}>
-          <MetricCard
-            icon="clock-outline"
-            value={formatDuration(stats.totalDuration)}
-            label="Total Time"
-            color={Colors.blue}
-            C={C}
-            fontBold={fontBold}
-            fontRegular={fontRegular}
-          />
-          <MetricCard
-            icon="fire"
-            value={stats.totalCalories.toLocaleString()}
-            label="Calories"
-            color={Colors.orange}
-            C={C}
-            fontBold={fontBold}
-            fontRegular={fontRegular}
-          />
-          <MetricCard
-            icon="trophy-outline"
-            value={`${stats.bestStreak}d`}
-            label="Best Streak"
-            color={Colors.gold}
-            C={C}
-            fontBold={fontBold}
-            fontRegular={fontRegular}
-          />
-        </View>
-
-        {/* Performance Stats */}
-        <View style={[styles.section, { backgroundColor: C.surface }]}>
-          <View style={styles.sectionHeader}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: C.text, fontFamily: fontBold },
-              ]}
-            >
-              Performance
-            </Text>
-          </View>
-
-          <View style={styles.performanceGrid}>
-            <PerformanceRow
-              icon="chart-line-variant"
-              label="Avg Workouts / Week"
-              value={stats.avgWorkoutsPerWeek.toFixed(1)}
-              color={Colors.green}
+        <AnimatedEntry index={1} from="down">
+          <View style={styles.metricsRow}>
+            <MetricCard
+              icon="clock-outline"
+              value={formatDuration(stats.totalDuration)}
+              label="Total Time"
+              color={Colors.blue}
               C={C}
-              fontSemibold={fontSemibold}
+              fontBold={fontBold}
               fontRegular={fontRegular}
             />
-            <PerformanceRow
-              icon="calendar-week"
-              label="Active Days This Week"
-              value={`${weekDays} / 7`}
-              color={C.primary}
-              C={C}
-              fontSemibold={fontSemibold}
-              fontRegular={fontRegular}
-            />
-            <PerformanceRow
-              icon="arm-flex"
-              label="Most Trained"
-              value={
-                stats.mostTrainedMuscle && stats.mostTrainedMuscle !== "None"
-                  ? t(language, `muscles.${stats.mostTrainedMuscle}` as any)
-                  : "—"
-              }
+            <MetricCard
+              icon="fire"
+              value={stats.totalCalories.toLocaleString()}
+              label="Calories"
               color={Colors.orange}
               C={C}
-              fontSemibold={fontSemibold}
+              fontBold={fontBold}
               fontRegular={fontRegular}
-              isLast
+            />
+            <MetricCard
+              icon="trophy-outline"
+              value={`${stats.bestStreak}d`}
+              label="Best Streak"
+              color={Colors.gold}
+              C={C}
+              fontBold={fontBold}
+              fontRegular={fontRegular}
             />
           </View>
-        </View>
+        </AnimatedEntry>
+
+        {/* Performance Stats */}
+        <AnimatedEntry index={2} from="down">
+          <View style={[styles.section, { backgroundColor: C.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
+              >
+                Performance
+              </Text>
+            </View>
+
+            <View style={styles.performanceGrid}>
+              <PerformanceRow
+                icon="chart-line-variant"
+                label="Avg Workouts / Week"
+                value={stats.avgWorkoutsPerWeek.toFixed(1)}
+                color={Colors.green}
+                C={C}
+                fontSemibold={fontSemibold}
+                fontRegular={fontRegular}
+              />
+              <PerformanceRow
+                icon="calendar-week"
+                label="Active Days This Week"
+                value={`${weekDays} / 7`}
+                color={C.primary}
+                C={C}
+                fontSemibold={fontSemibold}
+                fontRegular={fontRegular}
+              />
+              <PerformanceRow
+                icon="arm-flex"
+                label="Most Trained"
+                value={
+                  stats.mostTrainedMuscle && stats.mostTrainedMuscle !== "None"
+                    ? t(language, `muscles.${stats.mostTrainedMuscle}` as any)
+                    : "—"
+                }
+                color={Colors.orange}
+                C={C}
+                fontSemibold={fontSemibold}
+                fontRegular={fontRegular}
+                isLast
+              />
+            </View>
+          </View>
+        </AnimatedEntry>
 
         {/* Weekly Activity - Custom Bar Chart */}
         {weeklyActivity.length > 0 && (
-          <View style={[styles.section, { backgroundColor: C.surface }]}>
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: C.text, fontFamily: fontBold },
-                ]}
-              >
-                Weekly Activity
-              </Text>
-              <Text
-                style={[
-                  styles.sectionSubtitle,
-                  { color: C.textSecondary, fontFamily: fontRegular },
-                ]}
-              >
-                {weekDays} active {weekDays === 1 ? "day" : "days"}
-              </Text>
-            </View>
+          <AnimatedEntry index={3} from="down">
+            <View style={[styles.section, { backgroundColor: C.surface }]}>
+              <View style={styles.sectionHeader}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  Weekly Activity
+                </Text>
+                <Text
+                  style={[
+                    styles.sectionSubtitle,
+                    { color: C.textSecondary, fontFamily: fontRegular },
+                  ]}
+                >
+                  {weekDays} active {weekDays === 1 ? "day" : "days"}
+                </Text>
+              </View>
 
-            <View style={styles.barChartContainer}>
-              {weeklyActivity.map((item, index) => {
-                const heightPercent = (item.count / maxWeeklyCount) * 100;
-                const isToday = index === weeklyActivity.length - 1;
-                return (
-                  <View key={index} style={styles.barColumn}>
-                    <View style={styles.barWrapper}>
-                      {item.count > 0 && (
-                        <Text
+              <View style={styles.barChartContainer}>
+                {weeklyActivity.map((item, index) => {
+                  const heightPercent = (item.count / maxWeeklyCount) * 100;
+                  const isToday = index === weeklyActivity.length - 1;
+                  return (
+                    <View key={index} style={styles.barColumn}>
+                      <View style={styles.barWrapper}>
+                        {item.count > 0 && (
+                          <Text
+                            style={[
+                              styles.barValue,
+                              { color: C.text, fontFamily: fontBold },
+                            ]}
+                          >
+                            {item.count}
+                          </Text>
+                        )}
+                        <View
                           style={[
-                            styles.barValue,
-                            { color: C.text, fontFamily: fontBold },
+                            styles.barTrack,
+                            { backgroundColor: C.border + "40" },
                           ]}
                         >
-                          {item.count}
-                        </Text>
-                      )}
-                      <View
-                        style={[
-                          styles.barTrack,
-                          { backgroundColor: C.border + "40" },
-                        ]}
-                      >
-                        <AnimatedBar
-                          height={item.count > 0 ? heightPercent : 0}
-                          color={isToday ? Colors.orange : C.primary}
-                          delay={index * 100}
-                        />
+                          <AnimatedBar
+                            height={item.count > 0 ? heightPercent : 0}
+                            color={isToday ? Colors.orange : C.primary}
+                            delay={index * 100}
+                          />
+                        </View>
                       </View>
-                    </View>
-                    <Text
-                      style={[
-                        styles.barLabel,
-                        {
-                          color: isToday ? Colors.orange : C.textSecondary,
-                          fontFamily: fontSemibold,
-                        },
-                      ]}
-                    >
-                      {item.day}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {/* Muscle Distribution */}
-        {muscleDistribution.length > 0 && (
-          <View style={[styles.section, { backgroundColor: C.surface }]}>
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: C.text, fontFamily: fontBold },
-                ]}
-              >
-                Muscle Focus
-              </Text>
-              <Text
-                style={[
-                  styles.sectionSubtitle,
-                  { color: C.textSecondary, fontFamily: fontRegular },
-                ]}
-              >
-                {muscleDistribution.length}{" "}
-                {muscleDistribution.length === 1 ? "group" : "groups"}
-              </Text>
-            </View>
-
-            <View style={styles.muscleList}>
-              {muscleDistribution.map((item: any, index: number) => {
-                const widthPercent = (item.count / maxMuscleCount) * 100;
-                const isEmpty = item.count === 0;
-                const muscleColors = [
-                  C.primary,
-                  Colors.purple,
-                  Colors.orange,
-                  Colors.green,
-                  Colors.blue,
-                  Colors.gold,
-                ];
-                const barColor = muscleColors[index % muscleColors.length];
-
-                return (
-                  <View key={item.muscle} style={styles.muscleRow}>
-                    <View style={styles.muscleHeader}>
                       <Text
                         style={[
-                          styles.muscleName,
+                          styles.barLabel,
                           {
-                            color: isEmpty ? C.textSecondary : C.text,
+                            color: isToday ? Colors.orange : C.textSecondary,
                             fontFamily: fontSemibold,
                           },
                         ]}
                       >
-                        {t(language, `muscles.${item.muscle}` as any)}
+                        {item.day}
                       </Text>
-                      <Text
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          </AnimatedEntry>
+        )}
+
+        {/* Muscle Distribution */}
+        {muscleDistribution.length > 0 && (
+          <AnimatedEntry index={4} from="down">
+            <View style={[styles.section, { backgroundColor: C.surface }]}>
+              <View style={styles.sectionHeader}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  Muscle Focus
+                </Text>
+                <Text
+                  style={[
+                    styles.sectionSubtitle,
+                    { color: C.textSecondary, fontFamily: fontRegular },
+                  ]}
+                >
+                  {muscleDistribution.length}{" "}
+                  {muscleDistribution.length === 1 ? "group" : "groups"}
+                </Text>
+              </View>
+
+              <View style={styles.muscleList}>
+                {muscleDistribution.map((item: any, index: number) => {
+                  const widthPercent = (item.count / maxMuscleCount) * 100;
+                  const isEmpty = item.count === 0;
+                  const muscleColors = [
+                    C.primary,
+                    Colors.purple,
+                    Colors.orange,
+                    Colors.green,
+                    Colors.blue,
+                    Colors.gold,
+                  ];
+                  const barColor = muscleColors[index % muscleColors.length];
+
+                  return (
+                    <View key={item.muscle} style={styles.muscleRow}>
+                      <View style={styles.muscleHeader}>
+                        <Text
+                          style={[
+                            styles.muscleName,
+                            {
+                              color: isEmpty ? C.textSecondary : C.text,
+                              fontFamily: fontSemibold,
+                            },
+                          ]}
+                        >
+                          {t(language, `muscles.${item.muscle}` as any)}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.muscleCount,
+                            { color: C.textSecondary, fontFamily: fontRegular },
+                          ]}
+                        >
+                          {item.count}
+                        </Text>
+                      </View>
+                      <View
                         style={[
-                          styles.muscleCount,
-                          { color: C.textSecondary, fontFamily: fontRegular },
+                          styles.muscleTrack,
+                          { backgroundColor: C.border + "30" },
                         ]}
                       >
-                        {item.count}
-                      </Text>
+                        {!isEmpty && (
+                          <AnimatedHorizontalBar
+                            width={widthPercent}
+                            color={barColor}
+                            delay={index * 80}
+                          />
+                        )}
+                      </View>
                     </View>
-                    <View
-                      style={[
-                        styles.muscleTrack,
-                        { backgroundColor: C.border + "30" },
-                      ]}
-                    >
-                      {!isEmpty && (
-                        <AnimatedHorizontalBar
-                          width={widthPercent}
-                          color={barColor}
-                          delay={index * 80}
-                        />
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          </AnimatedEntry>
         )}
 
         {/* Recent Workouts */}
         {recentWorkouts.length > 0 && (
-          <View style={[styles.section, { backgroundColor: C.surface }]}>
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: C.text, fontFamily: fontBold },
-                ]}
-              >
-                Recent Workouts
-              </Text>
-              <Text
-                style={[
-                  styles.sectionSubtitle,
-                  { color: C.textSecondary, fontFamily: fontRegular },
-                ]}
-              >
-                Last {Math.min(5, recentWorkouts.length)}
-              </Text>
-            </View>
-
-            <View style={styles.workoutsList}>
-              {recentWorkouts.slice(0, 5).map((workout, index) => (
-                <View
-                  key={workout.id}
+          <AnimatedEntry index={5} from="down">
+            <View style={[styles.section, { backgroundColor: C.surface }]}>
+              <View style={styles.sectionHeader}>
+                <Text
                   style={[
-                    styles.workoutRow,
-                    {
-                      borderBottomColor: C.border,
-                      borderBottomWidth:
-                        index < Math.min(4, recentWorkouts.length - 1) ? 1 : 0,
-                    },
+                    styles.sectionTitle,
+                    { color: C.text, fontFamily: fontBold },
                   ]}
                 >
+                  Recent Workouts
+                </Text>
+                <Text
+                  style={[
+                    styles.sectionSubtitle,
+                    { color: C.textSecondary, fontFamily: fontRegular },
+                  ]}
+                >
+                  Last {Math.min(5, recentWorkouts.length)}
+                </Text>
+              </View>
+
+              <View style={styles.workoutsList}>
+                {recentWorkouts.slice(0, 5).map((workout, index) => (
                   <View
+                    key={workout.id}
                     style={[
-                      styles.workoutIcon,
-                      { backgroundColor: C.primary + "15" },
+                      styles.workoutRow,
+                      {
+                        borderBottomColor: C.border,
+                        borderBottomWidth:
+                          index < Math.min(4, recentWorkouts.length - 1)
+                            ? 1
+                            : 0,
+                      },
                     ]}
                   >
-                    <MaterialCommunityIcons
-                      name="weight-lifter"
-                      size={18}
-                      color={C.primary}
-                    />
-                  </View>
-                  <View style={styles.workoutInfo}>
-                    <Text
+                    <View
                       style={[
-                        styles.workoutName,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {workout.exercise_name}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.workoutMeta,
-                        {
-                          color: C.textSecondary,
-                          fontFamily: fontRegular,
-                        },
+                        styles.workoutIcon,
+                        { backgroundColor: C.primary + "15" },
                       ]}
                     >
-                      {workout.muscle_group} ·{" "}
-                      {formatDuration(workout.duration_seconds)}
+                      <MaterialCommunityIcons
+                        name="weight-lifter"
+                        size={18}
+                        color={C.primary}
+                      />
+                    </View>
+                    <View style={styles.workoutInfo}>
+                      <Text
+                        style={[
+                          styles.workoutName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {workout.exercise_name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.workoutMeta,
+                          {
+                            color: C.textSecondary,
+                            fontFamily: fontRegular,
+                          },
+                        ]}
+                      >
+                        {workout.muscle_group} ·{" "}
+                        {formatDuration(workout.duration_seconds)}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.workoutXP,
+                        { color: Colors.gold, fontFamily: fontBold },
+                      ]}
+                    >
+                      +{workout.xp} XP
                     </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.workoutXP,
-                      { color: Colors.gold, fontFamily: fontBold },
-                    ]}
-                  >
-                    +{workout.xp} XP
-                  </Text>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
+          </AnimatedEntry>
         )}
 
         <View style={{ height: Spacing.xl }} />

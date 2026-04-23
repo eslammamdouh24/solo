@@ -2,6 +2,7 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { ExerciseCompletionCelebration } from "@/components/ExerciseCompletionCelebration";
 import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 import { TopBar } from "@/components/TopBar";
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { isRTL as checkRTL, Difficulty } from "@/constants/enums";
 import { exerciseImages } from "@/constants/exerciseImages";
 import { calculateXP } from "@/constants/exercises";
@@ -286,6 +287,7 @@ const ExerciseDetailScreen: React.FC = () => {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
+        <AnimatedEntry index={0} from="down">
         <Pressable
           onPress={() => setGifFullscreen(true)}
           style={[styles.imageWrapper, { backgroundColor: C.surface }]}
@@ -307,7 +309,9 @@ const ExerciseDetailScreen: React.FC = () => {
             <Ionicons name="expand-outline" size={18} color={C.text} />
           </View>
         </Pressable>
+        </AnimatedEntry>
 
+        <AnimatedEntry index={1} from="down">
         <View style={[styles.card, { backgroundColor: C.surface }]}>
           <Text
             style={[
@@ -728,6 +732,7 @@ const ExerciseDetailScreen: React.FC = () => {
             </View>
           ) : null}
         </View>
+        </AnimatedEntry>
 
         {/* Countdown Timer */}
         <CountdownTimer

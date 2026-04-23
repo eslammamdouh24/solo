@@ -135,7 +135,7 @@ function RootLayoutNav() {
         headerShown: false,
         ...(Platform.OS === "web"
           ? { animation: "none", freezeOnBlur: true }
-          : {}),
+          : { animation: "slide_from_right", animationDuration: 280 }),
       }}
     >
       <Stack.Screen name="auth" />

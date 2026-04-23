@@ -1,4 +1,5 @@
 import { TopBar } from "@/components/TopBar";
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { isRTL as checkRTL } from "@/constants/enums";
 import { exerciseImages } from "@/constants/exerciseImages";
 import { fonts, getFont } from "@/constants/fonts";
@@ -97,7 +98,8 @@ const ExerciseListScreen: React.FC = () => {
     );
   };
 
-  const renderItem = ({ item }: { item: Exercise }) => (
+  const renderItem = ({ item, index }: { item: Exercise; index: number }) => (
+    <AnimatedEntry index={Math.min(index, 8)} stagger={40} from="down">
     <TouchableOpacity
       style={[
         styles.card,
@@ -213,6 +215,7 @@ const ExerciseListScreen: React.FC = () => {
         </View>
       </View>
     </TouchableOpacity>
+    </AnimatedEntry>
   );
 
   const muscleTitle = t(language, `muscles.${muscle}`);

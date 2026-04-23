@@ -1,4 +1,5 @@
 import { TopBar } from "@/components/TopBar";
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
 import { getFont } from "@/constants/fonts";
@@ -169,7 +170,8 @@ export default function LeaderboardScreen() {
           data={leaderboard}
           keyExtractor={(item) => item.user_id}
           style={styles.listContainer}
-          renderItem={({ item: entry }) => (
+          renderItem={({ item: entry, index }) => (
+            <AnimatedEntry index={Math.min(index, 10)} stagger={35} from="down">
             <View
               key={entry.user_id}
               style={[
@@ -290,6 +292,7 @@ export default function LeaderboardScreen() {
                 </View>
               </View>
             </View>
+            </AnimatedEntry>
           )}
         />
       )}

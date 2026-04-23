@@ -1,6 +1,7 @@
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
 import { TopBar } from "@/components/TopBar";
+import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { Colors } from "@/constants/colors";
 import {
     DAY_OPTIONS,
@@ -235,6 +236,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.main}>
             {/* Profile Card */}
+            <AnimatedEntry index={0}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <View style={styles.profileHeader}>
                 <TouchableOpacity
@@ -292,8 +294,10 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
+            </AnimatedEntry>
 
             {/* Personal Info */}
+            <AnimatedEntry index={1}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <View
                 style={[
@@ -766,8 +770,10 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
+            </AnimatedEntry>
 
             {/* Stats Summary */}
+            <AnimatedEntry index={2}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <Text
                 style={[
@@ -897,8 +903,10 @@ export default function ProfileScreen() {
                 </View>
               </View>
             </View>
+            </AnimatedEntry>
 
             {/* Detailed Stats */}
+            <AnimatedEntry index={3}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <Text
                 style={[
@@ -1067,8 +1075,10 @@ export default function ProfileScreen() {
                 </View>
               </View>
             </View>
+            </AnimatedEntry>
 
             {/* Milestones & Rewards */}
+            <AnimatedEntry index={4}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <Text
                 style={[
@@ -1199,8 +1209,10 @@ export default function ProfileScreen() {
                 </View>
               </ScrollView>
             </View>
+            </AnimatedEntry>
 
             {/* Dashboard & Leaderboard */}
+            <AnimatedEntry index={5}>
             <View
               style={[
                 styles.section,
@@ -1268,8 +1280,10 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               )}
             </View>
+            </AnimatedEntry>
 
             {/* Account Actions */}
+            <AnimatedEntry index={6}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <TouchableOpacity
                 style={styles.resetButton}
@@ -1298,8 +1312,10 @@ export default function ProfileScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+            </AnimatedEntry>
 
             {/* Danger Zone */}
+            <AnimatedEntry index={7}>
             <View style={[styles.section, { backgroundColor: C.surface }]}>
               <TouchableOpacity
                 style={styles.deleteButton}
@@ -1315,6 +1331,7 @@ export default function ProfileScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+            </AnimatedEntry>
           </View>
         </ScrollView>
       </View>
