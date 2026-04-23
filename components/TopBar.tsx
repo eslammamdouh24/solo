@@ -16,12 +16,14 @@ interface TopBarProps {
   showBack?: boolean;
   hideLogo?: boolean;
   title?: string;
+  showDashboard?: boolean;
 }
 
 export function TopBar({
   showBack = false,
   hideLogo = false,
   title,
+  showDashboard = false,
 }: TopBarProps) {
   const { language } = useApp();
   const { isOnline } = useNetwork();
@@ -100,13 +102,24 @@ export function TopBar({
           </View>
         )}
 
-        {/* Right side: Hamburger menu */}
+        {/* Right side: Dashboard + Hamburger menu */}
         <View
           style={[
             styles.rightSide,
             { flexDirection: isRTL ? "row-reverse" : "row" },
           ]}
         >
+          {showDashboard && (
+            <TouchableOpacity
+              onPress={() => router.push("/dashboard")}
+              style={[styles.button, { backgroundColor: C.primary + "18" }]}
+              hitSlop={8}
+              activeOpacity={0.7}
+              accessibilityLabel="View dashboard"
+            >
+              <MaterialCommunityIcons name="chart-box" size={20} color={C.primary} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={openDrawer}
             style={[styles.button, { backgroundColor: C.surfaceHighlight }]}

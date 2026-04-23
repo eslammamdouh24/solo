@@ -243,7 +243,7 @@ export default function HomeScreen() {
   return (
     <>
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        <TopBar />
+        <TopBar showDashboard={true} />
 
         <ScrollView
           contentContainerStyle={styles.content}

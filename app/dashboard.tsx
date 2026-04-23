@@ -8,13 +8,13 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import {
-    getEquipmentUsage,
-    getMuscleDistribution,
-    getRecentWorkouts,
-    getWeeklyActivity,
-    getWorkoutStats,
-    getXPProgress,
-    RecentWorkout,
+  getEquipmentUsage,
+  getMuscleDistribution,
+  getRecentWorkouts,
+  getWeeklyActivity,
+  getWorkoutStats,
+  getXPProgress,
+  RecentWorkout,
 } from "@/lib/dashboardApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -29,12 +29,12 @@ import {
   View,
 } from "react-native";
 import {
-    VictoryAxis,
-    VictoryBar,
-    VictoryChart,
-    VictoryLine,
-    VictoryPie,
-    VictoryTheme,
+  VictoryAxis,
+  VictoryBar,
+  VictoryChart,
+  VictoryLine,
+  VictoryPie,
+  VictoryTheme,
 } from "victory";
 
 export default function DashboardScreen() {
@@ -60,9 +60,6 @@ export default function DashboardScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
   const [cardAnims] = useState(() =>
-    Array.from({ length: 4 }, () => new Animated.Value(0)),
-  );
-  const [chartAnims] = useState(() =>
     Array.from({ length: 4 }, () => new Animated.Value(0)),
   );
 
@@ -133,16 +130,6 @@ export default function DashboardScreen() {
           useNativeDriver: true,
         }).start();
       });
-
-      // Stagger chart animations
-      chartAnims.forEach((anim, index) => {
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 500,
-          delay: 200 + index * 150,
-          useNativeDriver: true,
-        }).start();
-      });
     }
   }, [loading, stats]);
 
@@ -153,138 +140,54 @@ export default function DashboardScreen() {
 
   if (loading) {
     return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: C.background }]}
-      >
-        <ActivityIndicator size="large" color={C.primary} />
+      <View style={[styles.container, { backgroundColor: C.background }]}>
+        <TopBar
+          title={t(language, "dashboard.title")}
+          showBack
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={C.primary} />
+        </View>
       </View>
     );
   }
 
   if (!user) {
     return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: C.background }]}
-      >
-        <Text style={[styles.emptyText, { color: C.textSecondary }]}>
-          {t(language, "auth.pleaseLogin")}
-        </Text>
-      </View>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: C.background }]}
-      >
-        <Text style={[styles.emptyText, { color: C.textSecondary }]}>
-          No workout data yet. Start working out to see your dashboard!
-        </Text>
-      </View>
-    );
-  }
-
-  const StatCard = ({
-    icon,
-    label,
-    value,
-    color,
-    index,
-  }: {
-    icon: any;
-    label: string;
-    value: string | number;
-    color: string;
-    index: number;
-  }) => {
-    const anim = cardAnims[index];
-    return (
-      <Animated.View
-        style={[
-          styles.statCard,
-          {
-            backgroundColor: C.surface,
-            opacity: anim,
-            transform: [
-              {
-                translateY: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0],
-                }),
-              },
-              {
-                scale: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.9, 1],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View
-          style={[styles.statIconContainer, { backgroundColor: color + "20" }]}
-        >
-          <MaterialCommunityIcons name={icon} size={24} color={color} />
+      <View style={[styles.container, { backgroundColor: C.background }]}>
+        <TopBar
+          title={t(language, "dashboard.title")}
+          showBack
+        />
+        <View style={styles.loadingContainer}>
+          <MaterialCommunityIcons name="account-alert" size={64} color={C.textSecondary} />
+          <Text style={[styles.emptyText, { color: C.textSecondary, fontFamily: fontRegular }]}>
+            {t(language, "auth.pleaseLogin")}
+          </Text>
         </View>
-        <Text
-          style={[styles.statValue, { color: C.text, fontFamily: fontBold }]}
-        >
-          {value}
-        </Text>
-        <Text
-          style={[
-            styles.statLabel,
-            { color: C.textSecondary, fontFamily: fontRegular },
-          ]}
-        >
-          {label}
-        </Text>
-      </Animated.View>
+      </View>
     );
-  };
+  }
 
-  const ChartCard = ({
-    title,
-    children,
-    index,
-  }: {
-    title: string;
-    children: React.ReactNode;
-    index: number;
-  }) => {
-    const anim = chartAnims[index];
+  if (!stats || stats.totalWorkouts === 0) {
     return (
-      <Animated.View
-        style={[
-          styles.chartCard,
-          {
-            backgroundColor: C.surface,
-            opacity: anim,
-            transform: [
-              {
-                translateY: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.chartTitle,
-            { color: C.text, fontFamily: fontSemibold },
-          ]}
-        >
-          {title}
-        </Text>
-        {children}
-      </Animated.View>
+      <View style={[styles.container, { backgroundColor: C.background }]}>
+        <TopBar
+          title={t(language, "dashboard.title")}
+          showBack
+        />
+        <View style={styles.loadingContainer}>
+          <MaterialCommunityIcons name="chart-box-outline" size={64} color={C.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: C.text, fontFamily: fontBold }]}>
+            No Workout Data Yet
+          </Text>
+          <Text style={[styles.emptyText, { color: C.textSecondary, fontFamily: fontRegular }]}>
+            Start working out to see your progress here!{"\n"}Complete your first exercise to unlock dashboard analytics.
+          </Text>
+        </View>
+      </View>
     );
-  };
+  }
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -301,12 +204,80 @@ export default function DashboardScreen() {
     Colors.blue,
   ];
 
+  // Generate insights based on data
+  const getInsights = () => {
+    const insights = [];
+    
+    // Streak insights
+    if (stats.currentStreak >= 7) {
+      insights.push({
+        icon: "fire",
+        color: Colors.orange,
+        title: "🔥 On Fire!",
+        message: `Amazing ${stats.currentStreak}-day streak! Keep it going!`,
+      });
+    } else if (stats.currentStreak >= 3) {
+      insights.push({
+        icon: "trending-up",
+        color: Colors.green,
+        title: "Great Progress",
+        message: `${stats.currentStreak} days in a row. You're building momentum!`,
+      });
+    }
+
+    // Muscle balance insight
+    if (muscleDistribution.length > 0) {
+      const topMuscle = muscleDistribution[0];
+      const topPercentage = topMuscle.percentage;
+      
+      if (topPercentage > 40) {
+        insights.push({
+          icon: "alert-circle",
+          color: Colors.orange,
+          title: "Balance Your Workouts",
+          message: `${topMuscle.muscle} dominates ${topPercentage}% of your training. Try other muscle groups for balance!`,
+        });
+      }
+    }
+
+    // Consistency insight
+    const totalDays = weeklyActivity.reduce((sum, day) => sum + (day.count > 0 ? 1 : 0), 0);
+    if (totalDays >= 5) {
+      insights.push({
+        icon: "calendar-check",
+        color: Colors.green,
+        title: "Consistent Warrior",
+        message: `You trained ${totalDays} days this week! Excellent consistency.`,
+      });
+    } else if (totalDays <= 2 && stats.totalWorkouts > 5) {
+      insights.push({
+        icon: "calendar-alert",
+        color: Colors.gold,
+        title: "Stay Active",
+        message: "Only 2 workouts this week. Let's get back on track!",
+      });
+    }
+
+    // XP efficiency insight
+    if (stats.avgWorkoutsPerWeek >= 4) {
+      insights.push({
+        icon: "chart-line",
+        color: Colors.blue,
+        title: "Strong Routine",
+        message: `Averaging ${stats.avgWorkoutsPerWeek.toFixed(1)} workouts/week. You're crushing it!`,
+      });
+    }
+
+    return insights;
+  };
+
+  const insights = getInsights();
+
   return (
     <View style={[styles.container, { backgroundColor: C.background }]}>
       <TopBar
         title={t(language, "dashboard.title")}
         showBack
-        onBackPress={() => router.back()}
       />
 
       <Animated.ScrollView
@@ -319,6 +290,7 @@ export default function DashboardScreen() {
             colors={[C.primary]}
           />
         }
+        showsVerticalScrollIndicator={false}
       >
         {/* Quick Stats Grid */}
         <View style={styles.statsGrid}>
@@ -328,20 +300,24 @@ export default function DashboardScreen() {
             value={stats.totalWorkouts}
             color={C.primary}
             index={0}
+            anim={cardAnims[0]}
           />
           <StatCard
             icon="fire"
             label={t(language, "dashboard.currentStreak")}
-            value={`${stats.currentStreak} ${t(language, "dashboard.days")}`}
-            color={Colors.orange}
+            value={`${stats.currentStreak}`}
+            subtitle={t(language, "dashboard.days")}
+            color={stats.currentStreak >= 7 ? Colors.orange : Colors.gold}
             index={1}
+            anim={cardAnims[1]}
           />
           <StatCard
             icon="star"
             label={t(language, "dashboard.totalXP")}
-            value={stats.totalXP.toLocaleString()}
+            value={stats.totalXP >= 1000 ? `${(stats.totalXP / 1000).toFixed(1)}k` : stats.totalXP}
             color={Colors.gold}
             index={2}
+            anim={cardAnims[2]}
           />
           <StatCard
             icon="clock-outline"
@@ -349,24 +325,58 @@ export default function DashboardScreen() {
             value={formatDuration(stats.totalDuration)}
             color={Colors.blue}
             index={3}
+            anim={cardAnims[3]}
           />
         </View>
 
+        {/* Insights Section */}
+        {insights.length > 0 && (
+          <View style={styles.insightsSection}>
+            <Text style={[styles.sectionTitle, { color: C.text, fontFamily: fontBold }]}>
+              💡 Insights & Recommendations
+            </Text>
+            {insights.map((insight, index) => (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.insightCard,
+                  {
+                    backgroundColor: C.surface,
+                    borderLeftColor: insight.color,
+                  },
+                ]}
+              >
+                <View style={[styles.insightIconContainer, { backgroundColor: insight.color + "20" }]}>
+                  <MaterialCommunityIcons name={insight.icon} size={24} color={insight.color} />
+                </View>
+                <View style={styles.insightContent}>
+                  <Text style={[styles.insightTitle, { color: C.text, fontFamily: fontBold }]}>
+                    {insight.title}
+                  </Text>
+                  <Text style={[styles.insightMessage, { color: C.textSecondary, fontFamily: fontRegular }]}>
+                    {insight.message}
+                  </Text>
+                </View>
+              </Animated.View>
+            ))}
+          </View>
+        )}
+
         {/* Weekly Activity Bar Chart */}
-        {weeklyActivity.length > 0 && (
-          <ChartCard title={t(language, "dashboard.weeklyActivity")} index={0}>
+        {weeklyActivity.length > 0 && weeklyActivity.some(d => d.count > 0) && (
+          <ChartCard title={t(language, "dashboard.weeklyActivity")} C={C} fontSemibold={fontSemibold}>
             <VictoryChart
               theme={VictoryTheme.material}
-              height={200}
-              padding={{ left: 40, right: 20, top: 20, bottom: 40 }}
-              domainPadding={{ x: 20 }}
+              height={220}
+              padding={{ left: 45, right: 20, top: 20, bottom: 50 }}
+              domainPadding={{ x: 25 }}
             >
               <VictoryAxis
                 style={{
                   axis: { stroke: C.border },
                   tickLabels: {
                     fill: C.textSecondary,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontFamily: fontRegular,
                   },
                 }}
@@ -377,20 +387,26 @@ export default function DashboardScreen() {
                   axis: { stroke: C.border },
                   tickLabels: {
                     fill: C.textSecondary,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontFamily: fontRegular,
                   },
-                  grid: { stroke: C.border, strokeDasharray: "4,4" },
+                  grid: { stroke: C.border, strokeDasharray: "4,4", opacity: 0.3 },
                 }}
+                tickFormat={(t) => Math.floor(t)}
               />
               <VictoryBar
                 data={weeklyActivity}
                 x="day"
                 y="count"
                 style={{
-                  data: { fill: C.primary },
+                  data: { 
+                    fill: C.primary,
+                    stroke: C.primary,
+                    strokeWidth: 1,
+                  },
                 }}
-                cornerRadius={{ top: 4 }}
+                cornerRadius={{ top: 6 }}
+                barWidth={28}
                 animate={{
                   duration: 1000,
                   onLoad: { duration: 1000 },
@@ -401,23 +417,27 @@ export default function DashboardScreen() {
         )}
 
         {/* XP Progress Line Chart */}
-        {xpProgress.length > 0 && (
-          <ChartCard title={t(language, "dashboard.xpProgress")} index={1}>
+        {xpProgress.length >= 3 && (
+          <ChartCard title={t(language, "dashboard.xpProgress")} C={C} fontSemibold={fontSemibold}>
             <VictoryChart
               theme={VictoryTheme.material}
-              height={200}
-              padding={{ left: 50, right: 20, top: 20, bottom: 40 }}
+              height={220}
+              padding={{ left: 60, right: 20, top: 20, bottom: 50 }}
             >
               <VictoryAxis
                 style={{
                   axis: { stroke: C.border },
                   tickLabels: {
                     fill: C.textSecondary,
-                    fontSize: 9,
+                    fontSize: 10,
                     fontFamily: fontRegular,
                     angle: -45,
                     textAnchor: "end",
                   },
+                }}
+                tickFormat={(t) => {
+                  const date = new Date(t);
+                  return `${date.getMonth() + 1}/${date.getDate()}`;
                 }}
               />
               <VictoryAxis
@@ -426,18 +446,23 @@ export default function DashboardScreen() {
                   axis: { stroke: C.border },
                   tickLabels: {
                     fill: C.textSecondary,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontFamily: fontRegular,
                   },
-                  grid: { stroke: C.border, strokeDasharray: "4,4" },
+                  grid: { stroke: C.border, strokeDasharray: "4,4", opacity: 0.3 },
                 }}
+                tickFormat={(t) => t >= 1000 ? `${(t / 1000).toFixed(1)}k` : t}
               />
               <VictoryLine
                 data={xpProgress}
                 x="date"
                 y="cumulativeXp"
                 style={{
-                  data: { stroke: Colors.gold, strokeWidth: 3 },
+                  data: { 
+                    stroke: Colors.gold, 
+                    strokeWidth: 3,
+                    strokeLinecap: "round",
+                  },
                 }}
                 animate={{
                   duration: 1500,
@@ -449,27 +474,25 @@ export default function DashboardScreen() {
         )}
 
         {/* Muscle Distribution Pie Chart */}
-        {muscleDistribution.length > 0 && (
-          <ChartCard
-            title={t(language, "dashboard.muscleDistribution")}
-            index={2}
-          >
+        {muscleDistribution.length >= 2 && (
+          <ChartCard title={t(language, "dashboard.muscleDistribution")} C={C} fontSemibold={fontSemibold}>
             <View style={styles.pieChartContainer}>
               <VictoryPie
                 data={muscleDistribution}
                 x="muscle"
                 y="count"
                 colorScale={muscleColors}
-                height={220}
+                height={240}
+                innerRadius={50}
                 padding={{ left: 20, right: 20, top: 20, bottom: 20 }}
                 style={{
                   labels: {
-                    fontSize: 11,
+                    fontSize: 12,
                     fontFamily: fontSemibold,
                     fill: C.text,
                   },
                 }}
-                labelRadius={70}
+                labelRadius={85}
                 animate={{
                   duration: 1000,
                   onLoad: { duration: 1000 },
@@ -488,10 +511,18 @@ export default function DashboardScreen() {
                   <Text
                     style={[
                       styles.legendText,
-                      { color: C.text, fontFamily: fontRegular },
+                      { color: C.text, fontFamily: fontSemibold },
                     ]}
                   >
-                    {item.muscle} ({item.percentage}%)
+                    {item.muscle}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.legendPercentage,
+                      { color: C.textSecondary, fontFamily: fontRegular },
+                    ]}
+                  >
+                    {item.percentage}%
                   </Text>
                 </View>
               ))}
@@ -499,106 +530,20 @@ export default function DashboardScreen() {
           </ChartCard>
         )}
 
-        {/* Equipment Usage */}
-        {equipmentUsage.length > 0 && (
-          <ChartCard title={t(language, "dashboard.equipmentUsage")} index={3}>
-            <View style={styles.equipmentList}>
-              {equipmentUsage.map((item, index) => (
-                <Animated.View
-                  key={item.equipment}
-                  style={[
-                    styles.equipmentItem,
-                    {
-                      opacity: chartAnims[3],
-                      transform: [
-                        {
-                          translateX: chartAnims[3].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [isRTL ? 50 : -50, 0],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <View style={styles.equipmentInfo}>
-                    <Text
-                      style={[
-                        styles.equipmentName,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {item.equipment}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.equipmentCount,
-                        { color: C.textSecondary, fontFamily: fontRegular },
-                      ]}
-                    >
-                      {item.count} {t(language, "dashboard.workouts")}
-                    </Text>
-                  </View>
-                  <View style={styles.equipmentBarContainer}>
-                    <Animated.View
-                      style={[
-                        styles.equipmentBar,
-                        {
-                          backgroundColor: C.primary,
-                          width: chartAnims[3].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ["0%", `${item.percentage}%`],
-                          }),
-                        },
-                      ]}
-                    />
-                    <Text
-                      style={[
-                        styles.equipmentPercentage,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {item.percentage}%
-                    </Text>
-                  </View>
-                </Animated.View>
-              ))}
-            </View>
-          </ChartCard>
-        )}
-
         {/* Recent Workouts */}
         {recentWorkouts.length > 0 && (
-          <View
-            style={[
-              styles.chartCard,
-              { backgroundColor: C.surface, marginBottom: Spacing.lg },
-            ]}
-          >
-            <Text
-              style={[
-                styles.chartTitle,
-                { color: C.text, fontFamily: fontSemibold },
-              ]}
-            >
+          <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
+            <Text style={[styles.chartTitle, { color: C.text, fontFamily: fontBold }]}>
               {t(language, "dashboard.recentWorkouts")}
             </Text>
-            {recentWorkouts.map((workout, index) => (
-              <Animated.View
+            {recentWorkouts.slice(0, 5).map((workout, index) => (
+              <View
                 key={workout.id}
                 style={[
                   styles.workoutItem,
                   {
                     borderBottomColor: C.border,
-                    opacity: chartAnims[3],
-                    transform: [
-                      {
-                        translateY: chartAnims[3].interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [20, 0],
-                        }),
-                      },
-                    ],
+                    borderBottomWidth: index < 4 ? 1 : 0,
                   },
                 ]}
               >
@@ -611,22 +556,28 @@ export default function DashboardScreen() {
                   >
                     {workout.exercise_name}
                   </Text>
-                  <Text
-                    style={[
-                      styles.workoutMuscle,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {workout.muscle_group} •{" "}
-                    {formatDuration(workout.duration_seconds)}
-                  </Text>
+                  <View style={[styles.workoutMeta, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+                    <Text
+                      style={[
+                        styles.workoutMuscle,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {workout.muscle_group}
+                    </Text>
+                    <Text style={{ color: C.textSecondary }}> • </Text>
+                    <Text
+                      style={[
+                        styles.workoutDuration,
+                        { color: C.textSecondary, fontFamily: fontRegular },
+                      ]}
+                    >
+                      {formatDuration(workout.duration_seconds)}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.workoutXp}>
-                  <MaterialCommunityIcons
-                    name="star"
-                    size={16}
-                    color={Colors.gold}
-                  />
+                <View style={[styles.workoutXp, { backgroundColor: Colors.gold + "20" }]}>
+                  <MaterialCommunityIcons name="star" size={14} color={Colors.gold} />
                   <Text
                     style={[
                       styles.workoutXpText,
@@ -636,14 +587,109 @@ export default function DashboardScreen() {
                     {workout.xp}
                   </Text>
                 </View>
-              </Animated.View>
+              </View>
             ))}
           </View>
         )}
+
+        {/* Bottom padding */}
+        <View style={{ height: Spacing.xl }} />
       </Animated.ScrollView>
     </View>
   );
 }
+
+// Stat Card Component
+const StatCard = ({
+  icon,
+  label,
+  value,
+  subtitle,
+  color,
+  index,
+  anim,
+}: {
+  icon: any;
+  label: string;
+  value: string | number;
+  subtitle?: string;
+  color: string;
+  index: number;
+  anim: Animated.Value;
+}) => {
+  const C = useColors();
+  const { language } = useApp();
+  const fontBold = getFont(language, "bold");
+  const fontRegular = getFont(language, "regular");
+
+  return (
+    <Animated.View
+      style={[
+        styles.statCard,
+        {
+          backgroundColor: C.surface,
+          opacity: anim,
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            },
+            {
+              scale: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.9, 1],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <View style={[styles.statIconContainer, { backgroundColor: color + "18" }]}>
+        <MaterialCommunityIcons name={icon} size={28} color={color} />
+      </View>
+      <Text style={[styles.statValue, { color: C.text, fontFamily: fontBold }]}>
+        {value}
+        {subtitle && (
+          <Text style={[styles.statSubtitle, { color: C.textSecondary, fontFamily: fontRegular }]}>
+            {" "}{subtitle}
+          </Text>
+        )}
+      </Text>
+      <Text
+        style={[
+          styles.statLabel,
+          { color: C.textSecondary, fontFamily: fontRegular },
+        ]}
+      >
+        {label}
+      </Text>
+    </Animated.View>
+  );
+};
+
+// Chart Card Component
+const ChartCard = ({
+  title,
+  children,
+  C,
+  fontSemibold,
+}: {
+  title: string;
+  children: React.ReactNode;
+  C: any;
+  fontSemibold: string;
+}) => {
+  return (
+    <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
+      <Text style={[styles.chartTitle, { color: C.text, fontFamily: fontSemibold }]}>
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -653,12 +699,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: Spacing.lg,
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: FontSize.xl,
+    marginTop: Spacing.md,
   },
   emptyText: {
     fontSize: FontSize.md,
     textAlign: "center",
-    paddingHorizontal: Spacing.xl,
+    lineHeight: 22,
+    maxWidth: 300,
   },
   statsGrid: {
     flexDirection: "row",
@@ -667,124 +719,151 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   statCard: {
-    width: "48%",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    width: "47%",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   statIconContainer: {
-    width: 48,
-    height: 48,
+    width: 60,
+    height: 60,
     borderRadius: BorderRadius.round,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   statValue: {
-    fontSize: FontSize.xl,
+    fontSize: FontSize.xxl,
     marginBottom: Spacing.xs,
+    letterSpacing: -0.5,
+  },
+  statSubtitle: {
+    fontSize: FontSize.sm,
   },
   statLabel: {
     fontSize: FontSize.sm,
     textAlign: "center",
+    lineHeight: 18,
+  },
+  insightsSection: {
+    padding: Spacing.md,
+    paddingTop: 0,
+    gap: Spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: FontSize.lg,
+    marginBottom: Spacing.xs,
+    letterSpacing: 0.5,
+  },
+  insightCard: {
+    flexDirection: "row",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderLeftWidth: 4,
+    gap: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  insightIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  insightContent: {
+    flex: 1,
+    gap: Spacing.xs,
+  },
+  insightTitle: {
+    fontSize: FontSize.md,
+  },
+  insightMessage: {
+    fontSize: FontSize.sm,
+    lineHeight: 20,
   },
   chartCard: {
     margin: Spacing.md,
     marginTop: 0,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   chartTitle: {
     fontSize: FontSize.lg,
     marginBottom: Spacing.md,
+    letterSpacing: 0.5,
   },
   pieChartContainer: {
     alignItems: "center",
+    marginVertical: Spacing.sm,
   },
   legendContainer: {
     marginTop: Spacing.md,
+    gap: Spacing.sm,
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: Spacing.sm,
+    gap: Spacing.sm,
   },
   legendColor: {
-    width: 16,
-    height: 16,
+    width: 20,
+    height: 20,
     borderRadius: BorderRadius.sm,
-    marginRight: Spacing.sm,
   },
   legendText: {
-    fontSize: FontSize.sm,
-  },
-  equipmentList: {
-    gap: Spacing.md,
-  },
-  equipmentItem: {
-    gap: Spacing.xs,
-  },
-  equipmentInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  equipmentName: {
     fontSize: FontSize.md,
+    flex: 1,
   },
-  equipmentCount: {
+  legendPercentage: {
     fontSize: FontSize.sm,
-  },
-  equipmentBarContainer: {
-    height: 8,
-    backgroundColor: "rgba(0,0,0,0.1)",
-    borderRadius: BorderRadius.sm,
-    overflow: "hidden",
-    position: "relative",
-  },
-  equipmentBar: {
-    height: "100%",
-    borderRadius: BorderRadius.sm,
-  },
-  equipmentPercentage: {
-    position: "absolute",
-    right: Spacing.xs,
-    top: -18,
-    fontSize: FontSize.xs,
   },
   workoutItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
   },
   workoutInfo: {
     flex: 1,
+    gap: Spacing.xs,
   },
   workoutName: {
     fontSize: FontSize.md,
-    marginBottom: Spacing.xs,
+  },
+  workoutMeta: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   workoutMuscle: {
+    fontSize: FontSize.sm,
+  },
+  workoutDuration: {
     fontSize: FontSize.sm,
   },
   workoutXp: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.lg,
   },
   workoutXpText: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
+    fontWeight: "700",
   },
 });

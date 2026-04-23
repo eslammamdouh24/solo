@@ -43,33 +43,36 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({
           { flexDirection: isRTL ? "row-reverse" : "row" },
         ]}
       >
-        <MaterialCommunityIcons
-          name={STATS_HEADER_ICON}
-          size={16}
-          color={C.textSecondary}
-        />
-        <Text
-          style={[
-            styles.title,
-            { color: C.textSecondary, fontFamily: fontBold },
-          ]}
-        >
-          {t(language, "stats.title")}
-        </Text>
+        <View style={[styles.headerLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+          <MaterialCommunityIcons
+            name={STATS_HEADER_ICON}
+            size={18}
+            color={C.primary}
+          />
+          <Text
+            style={[
+              styles.title,
+              { color: C.text, fontFamily: fontBold },
+            ]}
+          >
+            {t(language, "stats.title")}
+          </Text>
+        </View>
         {skillPoints !== undefined && skillPoints > 0 && (
           <View
             style={[
               styles.skillPointsBadge,
-              { backgroundColor: `${C.primary}33` },
+              { backgroundColor: C.level, borderColor: C.level },
             ]}
           >
+            <MaterialCommunityIcons name="star" size={12} color="#FFF" />
             <Text
               style={[
                 styles.skillPointsText,
-                { color: C.primary, fontFamily: fontSemibold },
+                { color: "#FFF", fontFamily: fontBold },
               ]}
             >
-              {skillPoints} {t(language, "stats.sp")}
+              {skillPoints}
             </Text>
           </View>
         )}
@@ -108,28 +111,38 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm - 2,
-    marginBottom: Spacing.xs,
+    justifyContent: "space-between",
+    marginBottom: Spacing.md,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
   },
   title: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.lg,
     fontWeight: "700",
-    color: Colors.textSecondary,
-    letterSpacing: 2,
+    letterSpacing: 1,
   },
   skillPointsBadge: {
-    backgroundColor: "rgba(0, 229, 255, 0.2)",
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-    marginLeft: "auto",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.round,
+    borderWidth: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   skillPointsText: {
-    color: Colors.primary,
-    fontSize: FontSize.xs,
+    fontSize: FontSize.sm,
     fontWeight: "700",
   },
   statsContainer: {
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
 });
