@@ -154,25 +154,27 @@ export const getWeeklyActivity = async (
 
   if (error) throw error;
 
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const today = new Date().getDay();
-  const counts: Record<string, number> = {};
-
-  // Initialize all 7 days with 0
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const result: WeeklyActivity[] = [];
+  
+  // Build last 7 days in chronological order
   for (let i = 6; i >= 0; i--) {
-    const dayIndex = (today - i + 7) % 7;
-    counts[days[dayIndex]] = 0;
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    
+    const dayName = dayNames[date.getDay()];
+    const dateStr = date.toDateString();
+    
+    // Count workouts for this specific date
+    const count = data?.filter((w) => 
+      new Date(w.created_at).toDateString() === dateStr
+    ).length || 0;
+    
+    result.push({ day: dayName, count });
   }
-
-  // Count workouts per day
-  data?.forEach((workout) => {
-    const date = new Date(workout.created_at);
-    const dayName = days[date.getDay()];
-    counts[dayName] = (counts[dayName] || 0) + 1;
-  });
-
-  // Return in order (oldest to newest)
-  return Object.entries(counts).map(([day, count]) => ({ day, count }));
+  
+  return result;
 };
 
 /**

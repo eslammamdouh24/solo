@@ -8,7 +8,6 @@ import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import {
-  getEquipmentUsage,
   getMuscleDistribution,
   getRecentWorkouts,
   getWeeklyActivity,
@@ -17,25 +16,19 @@ import {
   RecentWorkout,
 } from "@/lib/dashboardApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import {
-  VictoryAxis,
-  VictoryBar,
-  VictoryChart,
-  VictoryLine,
-  VictoryPie,
-  VictoryTheme,
-} from "victory";
+
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 export default function DashboardScreen() {
   const { user } = useAuth();
@@ -46,6 +39,7 @@ export default function DashboardScreen() {
   const fontBold = getFont(language, "bold");
   const fontSemibold = getFont(language, "semibold");
   const fontRegular = getFont(language, "regular");
+  const fontBlack = getFont(language, "black");
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,15 +47,9 @@ export default function DashboardScreen() {
   const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
   const [muscleDistribution, setMuscleDistribution] = useState<any[]>([]);
   const [xpProgress, setXPProgress] = useState<any[]>([]);
-  const [equipmentUsage, setEquipmentUsage] = useState<any[]>([]);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
 
-  // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
-  const [cardAnims] = useState(() =>
-    Array.from({ length: 4 }, () => new Animated.Value(0)),
-  );
 
   const loadData = async () => {
     if (!user) {
@@ -71,27 +59,19 @@ export default function DashboardScreen() {
     }
 
     try {
-      const [
-        statsData,
-        weeklyData,
-        muscleData,
-        xpData,
-        equipmentData,
-        recentData,
-      ] = await Promise.all([
-        getWorkoutStats(user.id),
-        getWeeklyActivity(user.id),
-        getMuscleDistribution(user.id),
-        getXPProgress(user.id),
-        getEquipmentUsage(user.id),
-        getRecentWorkouts(user.id),
-      ]);
+      const [statsData, weeklyData, muscleData, xpData, recentData] =
+        await Promise.all([
+          getWorkoutStats(user.id),
+          getWeeklyActivity(user.id),
+          getMuscleDistribution(user.id),
+          getXPProgress(user.id),
+          getRecentWorkouts(user.id),
+        ]);
 
       setStats(statsData);
       setWeeklyActivity(weeklyData);
-      setMuscleDistribution(muscleData.slice(0, 5));
+      setMuscleDistribution(muscleData.slice(0, 6));
       setXPProgress(xpData);
-      setEquipmentUsage(equipmentData.slice(0, 5));
       setRecentWorkouts(recentData);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
@@ -107,29 +87,11 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     if (!loading && stats) {
-      // Fade in and slide up animation
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      // Stagger card animations
-      cardAnims.forEach((anim, index) => {
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 100,
-          useNativeDriver: true,
-        }).start();
-      });
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
     }
   }, [loading, stats]);
 
@@ -138,14 +100,18 @@ export default function DashboardScreen() {
     loadData();
   };
 
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        <TopBar
-          title={t(language, "dashboard.title")}
-          showBack
-        />
-        <View style={styles.loadingContainer}>
+        <TopBar title={t(language, "dashboard.title")} showBack />
+        <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={C.primary} />
         </View>
       </View>
@@ -155,14 +121,20 @@ export default function DashboardScreen() {
   if (!user) {
     return (
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        <TopBar
-          title={t(language, "dashboard.title")}
-          showBack
-        />
-        <View style={styles.loadingContainer}>
-          <MaterialCommunityIcons name="account-alert" size={64} color={C.textSecondary} />
-          <Text style={[styles.emptyText, { color: C.textSecondary, fontFamily: fontRegular }]}>
-            {t(language, "auth.pleaseLogin")}
+        <TopBar title={t(language, "dashboard.title")} showBack />
+        <View style={styles.centerContainer}>
+          <MaterialCommunityIcons
+            name="account-off-outline"
+            size={72}
+            color={C.textSecondary}
+          />
+          <Text
+            style={[
+              styles.emptyText,
+              { color: C.textSecondary, fontFamily: fontRegular },
+            ]}
+          >
+            Please login to view your dashboard
           </Text>
         </View>
       </View>
@@ -172,99 +144,68 @@ export default function DashboardScreen() {
   if (!stats || stats.totalWorkouts === 0) {
     return (
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        <TopBar
-          title={t(language, "dashboard.title")}
-          showBack
-        />
-        <View style={styles.loadingContainer}>
-          <MaterialCommunityIcons name="chart-box-outline" size={64} color={C.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: C.text, fontFamily: fontBold }]}>
-            No Workout Data Yet
+        <TopBar title={t(language, "dashboard.title")} showBack />
+        <View style={styles.centerContainer}>
+          <View
+            style={[
+              styles.emptyIconWrapper,
+              { backgroundColor: C.primary + "15" },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="chart-timeline-variant"
+              size={56}
+              color={C.primary}
+            />
+          </View>
+          <Text
+            style={[
+              styles.emptyTitle,
+              { color: C.text, fontFamily: fontBold },
+            ]}
+          >
+            Start Your Journey
           </Text>
-          <Text style={[styles.emptyText, { color: C.textSecondary, fontFamily: fontRegular }]}>
-            Start working out to see your progress here!{"\n"}Complete your first exercise to unlock dashboard analytics.
+          <Text
+            style={[
+              styles.emptyText,
+              { color: C.textSecondary, fontFamily: fontRegular },
+            ]}
+          >
+            Complete your first workout to unlock detailed analytics and track
+            your progress.
           </Text>
         </View>
       </View>
     );
   }
 
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
-
-  const muscleColors = [
-    C.primary,
-    Colors.purple,
-    Colors.orange,
-    Colors.green,
-    Colors.blue,
-  ];
-
-  // Calculate additional stats
-  const getAdditionalStats = () => {
-    const totalDays = weeklyActivity.reduce((sum, day) => sum + (day.count > 0 ? 1 : 0), 0);
-    const avgXPPerWorkout = stats.totalWorkouts > 0 ? Math.round(stats.totalXP / stats.totalWorkouts) : 0;
-    const avgDurationMins = stats.totalWorkouts > 0 ? Math.round((stats.totalDuration / stats.totalWorkouts) / 60) : 0;
-    
-    return [
-      {
-        icon: "chart-line",
-        label: "Avg Workouts/Week",
-        value: stats.avgWorkoutsPerWeek.toFixed(1),
-        color: Colors.green,
-      },
-      {
-        icon: "trophy",
-        label: "Best Streak",
-        value: stats.bestStreak,
-        subtitle: "days",
-        color: Colors.gold,
-      },
-      {
-        icon: "lightning-bolt",
-        label: "Avg XP/Workout",
-        value: avgXPPerWorkout,
-        color: Colors.purple,
-      },
-      {
-        icon: "timer-outline",
-        label: "Avg Duration",
-        value: avgDurationMins,
-        subtitle: "min",
-        color: Colors.blue,
-      },
-      {
-        icon: "calendar-week",
-        label: "This Week",
-        value: totalDays,
-        subtitle: "days",
-        color: C.primary,
-      },
-      {
-        icon: "bullseye-arrow",
-        label: "Most Trained",
-        value: stats.mostTrainedMuscle || "None",
-        isText: true,
-        color: Colors.orange,
-      },
-    ];
-  };
-
-  const additionalStats = getAdditionalStats();
+  // Derived metrics
+  const avgXPPerWorkout =
+    stats.totalWorkouts > 0
+      ? Math.round(stats.totalXP / stats.totalWorkouts)
+      : 0;
+  const avgDurationMins =
+    stats.totalWorkouts > 0
+      ? Math.round(stats.totalDuration / stats.totalWorkouts / 60)
+      : 0;
+  const weekDays = weeklyActivity.reduce(
+    (sum, day) => sum + (day.count > 0 ? 1 : 0),
+    0,
+  );
+  const maxWeeklyCount = Math.max(...weeklyActivity.map((d) => d.count), 1);
+  const maxMuscleCount = Math.max(
+    ...muscleDistribution.map((m: any) => m.count),
+    1,
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: C.background }]}>
-      <TopBar
-        title={t(language, "dashboard.title")}
-        showBack
-      />
+      <TopBar title={t(language, "dashboard.title")} showBack />
 
       <Animated.ScrollView
-        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+        style={{ opacity: fadeAnim }}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -275,407 +216,526 @@ export default function DashboardScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Quick Stats Grid */}
-        <View style={styles.statsGrid}>
-          <StatCard
-            icon="dumbbell"
-            label={t(language, "dashboard.totalWorkouts")}
-            value={stats.totalWorkouts}
-            color={C.primary}
-            index={0}
-            anim={cardAnims[0]}
-          />
-          <StatCard
-            icon="fire"
-            label={t(language, "dashboard.currentStreak")}
-            value={`${stats.currentStreak}`}
-            subtitle={t(language, "dashboard.days")}
-            color={stats.currentStreak >= 7 ? Colors.orange : Colors.gold}
-            index={1}
-            anim={cardAnims[1]}
-          />
-          <StatCard
-            icon="star"
-            label={t(language, "dashboard.totalXP")}
-            value={stats.totalXP >= 1000 ? `${(stats.totalXP / 1000).toFixed(1)}k` : stats.totalXP}
-            color={Colors.gold}
-            index={2}
-            anim={cardAnims[2]}
-          />
-          <StatCard
+        {/* Hero Card - Total XP with gradient */}
+        <LinearGradient
+          colors={[C.primary, Colors.purple]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroCard}
+        >
+          <View style={styles.heroContent}>
+            <Text
+              style={[styles.heroLabel, { fontFamily: fontSemibold }]}
+            >
+              TOTAL XP EARNED
+            </Text>
+            <Text style={[styles.heroValue, { fontFamily: fontBlack }]}>
+              {stats.totalXP.toLocaleString()}
+            </Text>
+            <View style={styles.heroMeta}>
+              <View style={styles.heroMetaItem}>
+                <MaterialCommunityIcons
+                  name="dumbbell"
+                  size={16}
+                  color="#FFF"
+                />
+                <Text
+                  style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
+                >
+                  {stats.totalWorkouts} workouts
+                </Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroMetaItem}>
+                <MaterialCommunityIcons name="fire" size={16} color="#FFF" />
+                <Text
+                  style={[styles.heroMetaText, { fontFamily: fontSemibold }]}
+                >
+                  {stats.currentStreak} day streak
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.heroBadge}>
+            <MaterialCommunityIcons name="trophy" size={28} color="#FFF" />
+          </View>
+        </LinearGradient>
+
+        {/* Key Metrics Row */}
+        <View style={styles.metricsRow}>
+          <MetricCard
             icon="clock-outline"
-            label={t(language, "dashboard.totalTime")}
             value={formatDuration(stats.totalDuration)}
-            color={Colors.blue}
-            index={3}
-            anim={cardAnims[3]}
+            label="Total Time"
+            C={C}
+            fontBold={fontBold}
+            fontRegular={fontRegular}
+          />
+          <MetricCard
+            icon="flash"
+            value={avgXPPerWorkout}
+            label="Avg XP"
+            C={C}
+            fontBold={fontBold}
+            fontRegular={fontRegular}
+          />
+          <MetricCard
+            icon="timer-sand"
+            value={`${avgDurationMins}m`}
+            label="Avg Time"
+            C={C}
+            fontBold={fontBold}
+            fontRegular={fontRegular}
           />
         </View>
 
-        {/* Additional Stats Grid */}
-        <View style={styles.additionalStatsSection}>
-          <Text style={[styles.sectionTitle, { color: C.text, fontFamily: fontBold }]}>
-            📊 Detailed Statistics
-          </Text>
-          <View style={styles.additionalStatsGrid}>
-            {additionalStats.map((stat, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.additionalStatCard,
-                  {
-                    backgroundColor: C.surface,
-                    borderLeftWidth: 3,
-                    borderLeftColor: stat.color,
-                  },
-                ]}
-              >
-                <MaterialCommunityIcons name={stat.icon} size={24} color={stat.color} style={styles.additionalStatIcon} />
-                <View style={styles.additionalStatContent}>
-                  <Text style={[styles.additionalStatValue, { color: C.text, fontFamily: fontBold }]}>
-                    {stat.value}
-                    {stat.subtitle && (
-                      <Text style={[styles.additionalStatSubtitle, { color: C.textSecondary, fontFamily: fontRegular }]}>
-                        {" "}{stat.subtitle}
-                      </Text>
-                    )}
-                  </Text>
-                  <Text style={[styles.additionalStatLabel, { color: C.textSecondary, fontFamily: fontRegular }]}>
-                    {stat.label}
-                  </Text>
-                </View>
-              </View>
-            ))}
+        {/* Performance Stats */}
+        <View style={[styles.section, { backgroundColor: C.surface }]}>
+          <View style={styles.sectionHeader}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                { color: C.text, fontFamily: fontBold },
+              ]}
+            >
+              Performance
+            </Text>
+          </View>
+
+          <View style={styles.performanceGrid}>
+            <PerformanceRow
+              icon="trophy-outline"
+              label="Best Streak"
+              value={`${stats.bestStreak} days`}
+              color={Colors.gold}
+              C={C}
+              fontSemibold={fontSemibold}
+              fontRegular={fontRegular}
+            />
+            <PerformanceRow
+              icon="chart-line-variant"
+              label="Avg Workouts / Week"
+              value={stats.avgWorkoutsPerWeek.toFixed(1)}
+              color={Colors.green}
+              C={C}
+              fontSemibold={fontSemibold}
+              fontRegular={fontRegular}
+            />
+            <PerformanceRow
+              icon="calendar-week"
+              label="Active Days This Week"
+              value={`${weekDays} / 7`}
+              color={C.primary}
+              C={C}
+              fontSemibold={fontSemibold}
+              fontRegular={fontRegular}
+            />
+            <PerformanceRow
+              icon="arm-flex"
+              label="Most Trained"
+              value={stats.mostTrainedMuscle || "—"}
+              color={Colors.orange}
+              C={C}
+              fontSemibold={fontSemibold}
+              fontRegular={fontRegular}
+              isLast
+            />
           </View>
         </View>
 
-        {/* Weekly Activity Bar Chart */}
-        {weeklyActivity.length > 0 && weeklyActivity.some(d => d.count > 0) && (
-          <ChartCard title={t(language, "dashboard.weeklyActivity")} C={C} fontSemibold={fontSemibold}>
-            <View style={{ paddingHorizontal: 0 }}>
-              <VictoryChart
-                theme={VictoryTheme.material}
-                height={200}
-                padding={{ left: 40, right: 15, top: 10, bottom: 35 }}
-                domainPadding={{ x: 20 }}
+        {/* Weekly Activity - Custom Bar Chart */}
+        {weeklyActivity.length > 0 && (
+          <View style={[styles.section, { backgroundColor: C.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
               >
-                <VictoryAxis
-                  style={{
-                    axis: { stroke: C.border, strokeWidth: 1 },
-                    tickLabels: {
-                      fill: C.textSecondary,
-                      fontSize: 11,
-                      fontFamily: fontRegular,
-                      padding: 5,
-                    },
-                  }}
-                />
-                <VictoryAxis
-                  dependentAxis
-                  style={{
-                    axis: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: C.textSecondary,
-                      fontSize: 11,
-                      fontFamily: fontRegular,
-                    },
-                    grid: { stroke: C.border, strokeWidth: 1, strokeDasharray: "3,3", opacity: 0.2 },
-                  }}
-                  tickFormat={(t) => Math.floor(t)}
-                />
-                <VictoryBar
-                  data={weeklyActivity}
-                  x="day"
-                  y="count"
-                  style={{
-                    data: { 
-                      fill: C.primary,
-                    },
-                  }}
-                  cornerRadius={{ top: 8, bottom: 0 }}
-                  barWidth={32}
-                  animate={{
-                    duration: 800,
-                    onLoad: { duration: 800 },
-                  }}
-                />
-              </VictoryChart>
+                Weekly Activity
+              </Text>
+              <Text
+                style={[
+                  styles.sectionSubtitle,
+                  { color: C.textSecondary, fontFamily: fontRegular },
+                ]}
+              >
+                {weekDays} active {weekDays === 1 ? "day" : "days"}
+              </Text>
             </View>
-          </ChartCard>
+
+            <View style={styles.barChartContainer}>
+              {weeklyActivity.map((item, index) => {
+                const heightPercent = (item.count / maxWeeklyCount) * 100;
+                const isToday = index === weeklyActivity.length - 1;
+                return (
+                  <View key={index} style={styles.barColumn}>
+                    <View style={styles.barWrapper}>
+                      {item.count > 0 && (
+                        <Text
+                          style={[
+                            styles.barValue,
+                            { color: C.text, fontFamily: fontBold },
+                          ]}
+                        >
+                          {item.count}
+                        </Text>
+                      )}
+                      <View
+                        style={[
+                          styles.barTrack,
+                          { backgroundColor: C.border + "40" },
+                        ]}
+                      >
+                        <AnimatedBar
+                          height={item.count > 0 ? heightPercent : 0}
+                          color={isToday ? Colors.orange : C.primary}
+                          delay={index * 100}
+                        />
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.barLabel,
+                        {
+                          color: isToday ? Colors.orange : C.textSecondary,
+                          fontFamily: isToday ? fontBold : fontRegular,
+                        },
+                      ]}
+                    >
+                      {item.day}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
         )}
 
-        {/* XP Progress Line Chart */}
-        {xpProgress.length >= 3 && (
-          <ChartCard title={t(language, "dashboard.xpProgress")} C={C} fontSemibold={fontSemibold}>
-            <VictoryChart
-              theme={VictoryTheme.material}
-              height={220}
-              padding={{ left: 60, right: 20, top: 20, bottom: 50 }}
-            >
-              <VictoryAxis
-                style={{
-                  axis: { stroke: C.border },
-                  tickLabels: {
-                    fill: C.textSecondary,
-                    fontSize: 10,
-                    fontFamily: fontRegular,
-                    angle: -45,
-                    textAnchor: "end",
-                  },
-                }}
-                tickFormat={(t) => {
-                  const date = new Date(t);
-                  return `${date.getMonth() + 1}/${date.getDate()}`;
-                }}
-              />
-              <VictoryAxis
-                dependentAxis
-                style={{
-                  axis: { stroke: C.border },
-                  tickLabels: {
-                    fill: C.textSecondary,
-                    fontSize: 11,
-                    fontFamily: fontRegular,
-                  },
-                  grid: { stroke: C.border, strokeDasharray: "4,4", opacity: 0.3 },
-                }}
-                tickFormat={(t) => t >= 1000 ? `${(t / 1000).toFixed(1)}k` : t}
-              />
-              <VictoryLine
-                data={xpProgress}
-                x="date"
-                y="cumulativeXp"
-                style={{
-                  data: { 
-                    stroke: Colors.gold, 
-                    strokeWidth: 3,
-                    strokeLinecap: "round",
-                  },
-                }}
-                animate={{
-                  duration: 1500,
-                  onLoad: { duration: 1500 },
-                }}
-              />
-            </VictoryChart>
-          </ChartCard>
-        )}
+        {/* Muscle Distribution */}
+        {muscleDistribution.length > 0 && (
+          <View style={[styles.section, { backgroundColor: C.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: C.text, fontFamily: fontBold },
+                ]}
+              >
+                Muscle Focus
+              </Text>
+              <Text
+                style={[
+                  styles.sectionSubtitle,
+                  { color: C.textSecondary, fontFamily: fontRegular },
+                ]}
+              >
+                {muscleDistribution.length}{" "}
+                {muscleDistribution.length === 1 ? "group" : "groups"}
+              </Text>
+            </View>
 
-        {/* Muscle Distribution Pie Chart */}
-        {muscleDistribution.length >= 2 && (
-          <ChartCard title={t(language, "dashboard.muscleDistribution")} C={C} fontSemibold={fontSemibold}>
-            <View style={styles.pieChartContainer}>
-              <VictoryPie
-                data={muscleDistribution}
-                x="muscle"
-                y="count"
-                colorScale={muscleColors}
-                height={240}
-                innerRadius={50}
-                padding={{ left: 20, right: 20, top: 20, bottom: 20 }}
-                style={{
-                  labels: {
-                    fontSize: 12,
-                    fontFamily: fontSemibold,
-                    fill: C.text,
-                  },
-                }}
-                labelRadius={85}
-                animate={{
-                  duration: 1000,
-                  onLoad: { duration: 1000 },
-                }}
-              />
+            <View style={styles.muscleList}>
+              {muscleDistribution.map((item: any, index: number) => {
+                const widthPercent = (item.count / maxMuscleCount) * 100;
+                const muscleColors = [
+                  C.primary,
+                  Colors.purple,
+                  Colors.orange,
+                  Colors.green,
+                  Colors.blue,
+                  Colors.gold,
+                ];
+                const barColor = muscleColors[index % muscleColors.length];
+
+                return (
+                  <View key={item.muscle} style={styles.muscleRow}>
+                    <View style={styles.muscleHeader}>
+                      <Text
+                        style={[
+                          styles.muscleName,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {item.muscle}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.muscleCount,
+                          { color: C.textSecondary, fontFamily: fontRegular },
+                        ]}
+                      >
+                        {item.count} · {item.percentage}%
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.muscleTrack,
+                        { backgroundColor: C.border + "30" },
+                      ]}
+                    >
+                      <AnimatedHorizontalBar
+                        width={widthPercent}
+                        color={barColor}
+                        delay={index * 80}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
             </View>
-            <View style={styles.legendContainer}>
-              {muscleDistribution.map((item, index) => (
-                <View key={item.muscle} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendColor,
-                      { backgroundColor: muscleColors[index] },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.legendText,
-                      { color: C.text, fontFamily: fontSemibold },
-                    ]}
-                  >
-                    {item.muscle}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.legendPercentage,
-                      { color: C.textSecondary, fontFamily: fontRegular },
-                    ]}
-                  >
-                    {item.percentage}%
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </ChartCard>
+          </View>
         )}
 
         {/* Recent Workouts */}
         {recentWorkouts.length > 0 && (
-          <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
-            <Text style={[styles.chartTitle, { color: C.text, fontFamily: fontBold }]}>
-              {t(language, "dashboard.recentWorkouts")}
-            </Text>
-            {recentWorkouts.slice(0, 5).map((workout, index) => (
-              <View
-                key={workout.id}
+          <View style={[styles.section, { backgroundColor: C.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Text
                 style={[
-                  styles.workoutItem,
-                  {
-                    borderBottomColor: C.border,
-                    borderBottomWidth: index < 4 ? 1 : 0,
-                  },
+                  styles.sectionTitle,
+                  { color: C.text, fontFamily: fontBold },
                 ]}
               >
-                <View style={[styles.workoutDot, { backgroundColor: C.primary }]} />
-                <View style={styles.workoutInfo}>
-                  <Text
+                Recent Workouts
+              </Text>
+              <Text
+                style={[
+                  styles.sectionSubtitle,
+                  { color: C.textSecondary, fontFamily: fontRegular },
+                ]}
+              >
+                Last {Math.min(5, recentWorkouts.length)}
+              </Text>
+            </View>
+
+            <View style={styles.workoutsList}>
+              {recentWorkouts.slice(0, 5).map((workout, index) => (
+                <View
+                  key={workout.id}
+                  style={[
+                    styles.workoutRow,
+                    {
+                      borderBottomColor: C.border,
+                      borderBottomWidth:
+                        index < Math.min(4, recentWorkouts.length - 1) ? 1 : 0,
+                    },
+                  ]}
+                >
+                  <View
                     style={[
-                      styles.workoutName,
-                      { color: C.text, fontFamily: fontSemibold },
+                      styles.workoutIcon,
+                      { backgroundColor: C.primary + "15" },
                     ]}
                   >
-                    {workout.exercise_name}
-                  </Text>
-                  <View style={[styles.workoutMeta, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+                    <MaterialCommunityIcons
+                      name="weight-lifter"
+                      size={18}
+                      color={C.primary}
+                    />
+                  </View>
+                  <View style={styles.workoutInfo}>
                     <Text
                       style={[
-                        styles.workoutMuscle,
-                        { color: C.textSecondary, fontFamily: fontRegular },
+                        styles.workoutName,
+                        { color: C.text, fontFamily: fontSemibold },
                       ]}
+                      numberOfLines={1}
                     >
-                      {workout.muscle_group}
+                      {workout.exercise_name}
                     </Text>
-                    <Text style={{ color: C.textSecondary }}> • </Text>
                     <Text
                       style={[
-                        styles.workoutDuration,
-                        { color: C.textSecondary, fontFamily: fontRegular },
+                        styles.workoutMeta,
+                        {
+                          color: C.textSecondary,
+                          fontFamily: fontRegular,
+                        },
                       ]}
                     >
+                      {workout.muscle_group} ·{" "}
                       {formatDuration(workout.duration_seconds)}
                     </Text>
                   </View>
-                </View>
-                <View style={styles.workoutXp}>
                   <Text
                     style={[
-                      styles.workoutXpText,
+                      styles.workoutXP,
                       { color: Colors.gold, fontFamily: fontBold },
                     ]}
                   >
-                    +{workout.xp} XP
+                    +{workout.xp}
                   </Text>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         )}
 
-        {/* Bottom padding */}
         <View style={{ height: Spacing.xl }} />
       </Animated.ScrollView>
     </View>
   );
 }
 
-// Stat Card Component
-const StatCard = ({
+// Metric Card (small top cards)
+const MetricCard = ({
+  icon,
+  value,
+  label,
+  C,
+  fontBold,
+  fontRegular,
+}: {
+  icon: IconName;
+  value: string | number;
+  label: string;
+  C: any;
+  fontBold: string;
+  fontRegular: string;
+}) => (
+  <View style={[styles.metricCard, { backgroundColor: C.surface }]}>
+    <MaterialCommunityIcons
+      name={icon}
+      size={20}
+      color={C.textSecondary}
+      style={{ marginBottom: 6 }}
+    />
+    <Text style={[styles.metricValue, { color: C.text, fontFamily: fontBold }]}>
+      {value}
+    </Text>
+    <Text
+      style={[
+        styles.metricLabel,
+        { color: C.textSecondary, fontFamily: fontRegular },
+      ]}
+    >
+      {label}
+    </Text>
+  </View>
+);
+
+// Performance Row
+const PerformanceRow = ({
   icon,
   label,
   value,
-  subtitle,
   color,
-  index,
-  anim,
+  C,
+  fontSemibold,
+  fontRegular,
+  isLast,
 }: {
-  icon: any;
+  icon: IconName;
   label: string;
   value: string | number;
-  subtitle?: string;
   color: string;
-  index: number;
-  anim: Animated.Value;
-}) => {
-  const C = useColors();
-  const { language } = useApp();
-  const fontBold = getFont(language, "bold");
-  const fontRegular = getFont(language, "regular");
-
-  return (
-    <Animated.View
-      style={[
-        styles.statCard,
-        {
-          backgroundColor: C.surface,
-          borderTopWidth: 3,
-          borderTopColor: color,
-          opacity: anim,
-          transform: [
-            {
-              translateY: anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [20, 0],
-              }),
-            },
-            {
-              scale: anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.9, 1],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
-      <MaterialCommunityIcons name={icon} size={32} color={color} style={styles.statIcon} />
-      <Text style={[styles.statValue, { color: C.text, fontFamily: fontBold }]}>
-        {value}
-        {subtitle && (
-          <Text style={[styles.statSubtitle, { color: C.textSecondary, fontFamily: fontRegular }]}>
-            {" "}{subtitle}
-          </Text>
-        )}
-      </Text>
+  C: any;
+  fontSemibold: string;
+  fontRegular: string;
+  isLast?: boolean;
+}) => (
+  <View
+    style={[
+      styles.perfRow,
+      {
+        borderBottomColor: C.border,
+        borderBottomWidth: isLast ? 0 : 1,
+      },
+    ]}
+  >
+    <View style={styles.perfLeft}>
+      <View style={[styles.perfIconDot, { backgroundColor: color + "20" }]}>
+        <MaterialCommunityIcons name={icon} size={18} color={color} />
+      </View>
       <Text
         style={[
-          styles.statLabel,
+          styles.perfLabel,
           { color: C.textSecondary, fontFamily: fontRegular },
         ]}
       >
         {label}
       </Text>
-    </Animated.View>
+    </View>
+    <Text
+      style={[styles.perfValue, { color: C.text, fontFamily: fontSemibold }]}
+    >
+      {value}
+    </Text>
+  </View>
+);
+
+// Animated Vertical Bar
+const AnimatedBar = ({
+  height,
+  color,
+  delay,
+}: {
+  height: number;
+  color: string;
+  delay: number;
+}) => {
+  const anim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 600,
+      delay,
+      useNativeDriver: false,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        styles.barFill,
+        {
+          backgroundColor: color,
+          height: anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ["0%", `${height}%`],
+          }),
+        },
+      ]}
+    />
   );
 };
 
-// Chart Card Component
-const ChartCard = ({
-  title,
-  children,
-  C,
-  fontSemibold,
+// Animated Horizontal Bar
+const AnimatedHorizontalBar = ({
+  width,
+  color,
+  delay,
 }: {
-  title: string;
-  children: React.ReactNode;
-  C: any;
-  fontSemibold: string;
+  width: number;
+  color: string;
+  delay: number;
 }) => {
+  const anim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 700,
+      delay,
+      useNativeDriver: false,
+    }).start();
+  }, []);
+
   return (
-    <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
-      <Text style={[styles.chartTitle, { color: C.text, fontFamily: fontSemibold }]}>
-        {title}
-      </Text>
-      {children}
-    </View>
+    <Animated.View
+      style={[
+        styles.muscleFill,
+        {
+          backgroundColor: color,
+          width: anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ["0%", `${width}%`],
+          }),
+        },
+      ]}
+    />
   );
 };
 
@@ -683,176 +743,272 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.xl,
     gap: Spacing.md,
   },
+  emptyIconWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
   emptyTitle: {
-    fontSize: FontSize.xl,
-    marginTop: Spacing.md,
+    fontSize: FontSize.xxl,
+    textAlign: "center",
   },
   emptyText: {
     fontSize: FontSize.md,
     textAlign: "center",
     lineHeight: 22,
-    maxWidth: 300,
+    maxWidth: 320,
   },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  scrollContent: {
     padding: Spacing.md,
     gap: Spacing.md,
   },
-  statCard: {
-    width: "47%",
-    padding: Spacing.lg,
+
+  // Hero
+  heroCard: {
     borderRadius: BorderRadius.xl,
+    padding: Spacing.lg + 2,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  statIcon: {
-    marginBottom: Spacing.sm,
+  heroContent: {
+    flex: 1,
   },
-  statValue: {
-    fontSize: FontSize.xxl,
-    marginBottom: Spacing.xs,
-    letterSpacing: -0.5,
+  heroLabel: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 11,
+    letterSpacing: 1.5,
+    marginBottom: 6,
   },
-  statSubtitle: {
-    fontSize: FontSize.sm,
+  heroValue: {
+    color: "#FFF",
+    fontSize: 40,
+    lineHeight: 44,
+    letterSpacing: -1,
+    marginBottom: Spacing.sm + 2,
   },
-  statLabel: {
-    fontSize: FontSize.sm,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  additionalStatsSection: {
-    padding: Spacing.md,
-    paddingTop: 0,
-  },
-  sectionTitle: {
-    fontSize: FontSize.lg,
-    marginBottom: Spacing.md,
-    letterSpacing: 0.5,
-  },
-  additionalStatsGrid: {
+  heroMeta: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     gap: Spacing.sm,
   },
-  additionalStatCard: {
-    width: "31.5%",
+  heroMetaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  heroMetaText: {
+    color: "#FFF",
+    fontSize: FontSize.sm,
+  },
+  heroDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: "rgba(255,255,255,0.4)",
+  },
+  heroBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // Metrics row
+  metricsRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  metricCard: {
+    flex: 1,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     alignItems: "center",
-    gap: Spacing.xs,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
-  additionalStatIcon: {
+  metricValue: {
+    fontSize: FontSize.xl,
     marginBottom: 2,
   },
-  additionalStatContent: {
-    alignItems: "center",
-    gap: 2,
-  },
-  additionalStatValue: {
-    fontSize: FontSize.xl,
-    textAlign: "center",
-  },
-  additionalStatSubtitle: {
-    fontSize: FontSize.sm,
-  },
-  additionalStatLabel: {
+  metricLabel: {
     fontSize: FontSize.xs,
-    textAlign: "center",
-    lineHeight: 16,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
-  chartCard: {
-    margin: Spacing.md,
-    marginTop: 0,
+
+  // Section
+  section: {
     padding: Spacing.lg,
     borderRadius: BorderRadius.xl,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  chartTitle: {
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    marginBottom: Spacing.lg,
+  },
+  sectionTitle: {
     fontSize: FontSize.lg,
-    marginBottom: Spacing.md,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
-  pieChartContainer: {
+  sectionSubtitle: {
+    fontSize: FontSize.sm,
+  },
+
+  // Performance rows
+  performanceGrid: {},
+  perfRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
-  legendContainer: {
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  legendItem: {
+  perfLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: Spacing.sm + 2,
+    flex: 1,
   },
-  legendColor: {
-    width: 20,
-    height: 20,
-    borderRadius: BorderRadius.sm,
+  perfIconDot: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  legendText: {
+  perfLabel: {
     fontSize: FontSize.md,
     flex: 1,
   },
-  legendPercentage: {
+  perfValue: {
+    fontSize: FontSize.md,
+    textTransform: "capitalize",
+  },
+
+  // Bar chart
+  barChartContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    height: 180,
+    gap: 6,
+  },
+  barColumn: {
+    flex: 1,
+    alignItems: "center",
+    gap: 8,
+    height: "100%",
+  },
+  barWrapper: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  barValue: {
+    fontSize: FontSize.xs,
+    marginBottom: 4,
+  },
+  barTrack: {
+    width: "100%",
+    height: "90%",
+    borderRadius: 8,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+  },
+  barFill: {
+    width: "100%",
+    borderRadius: 8,
+  },
+  barLabel: {
+    fontSize: FontSize.xs,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  // Muscle list
+  muscleList: {
+    gap: Spacing.md,
+  },
+  muscleRow: {
+    gap: 6,
+  },
+  muscleHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  muscleName: {
+    fontSize: FontSize.md,
+    textTransform: "capitalize",
+  },
+  muscleCount: {
     fontSize: FontSize.sm,
   },
-  workoutItem: {
+  muscleTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  muscleFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+
+  // Workouts list
+  workoutsList: {},
+  workoutRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.md,
     gap: Spacing.md,
   },
-  workoutDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  workoutIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
   },
   workoutInfo: {
     flex: 1,
-    gap: Spacing.xs,
+    gap: 2,
   },
   workoutName: {
     fontSize: FontSize.md,
+    textTransform: "capitalize",
   },
   workoutMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  workoutMuscle: {
     fontSize: FontSize.sm,
+    textTransform: "capitalize",
   },
-  workoutDuration: {
-    fontSize: FontSize.sm,
-  },
-  workoutXp: {
-    alignItems: "flex-end",
-  },
-  workoutXpText: {
+  workoutXP: {
     fontSize: FontSize.md,
-    fontWeight: "700",
     letterSpacing: 0.3,
   },
 });
