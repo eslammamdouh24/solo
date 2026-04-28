@@ -99,7 +99,8 @@ export function TopBar({
             <Text style={[styles.syncText, { color: C.error }]}>Offline</Text>
           </View>
         )}
-
+        {/* Spacer to keep burger menu position consistent */}
+        <View style={{ flex: 1 }} />
         {/* Right side: Hamburger menu */}
         <View
           style={[

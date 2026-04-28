@@ -250,213 +250,283 @@ export default function HomeScreen() {
         {gameState.loading ? (
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.main}>
-              {/* Profile skeleton */}
-              <View style={{ alignItems: "center", gap: 10 }}>
+              {/* Profile card skeleton */}
+              <View
+                style={[
+                  styles.profileCard,
+                  { backgroundColor: C.surface, alignItems: "center" },
+                ]}
+              >
                 <Skeleton width={70} height={70} borderRadius={35} />
-                <Skeleton width={140} height={22} borderRadius={8} />
+                <Skeleton width={140} height={24} borderRadius={8} />
               </View>
+
               {/* XP bar skeleton */}
-              <Skeleton height={80} borderRadius={16} />
-              {/* Stats skeleton */}
-              <Skeleton height={140} borderRadius={16} />
-              {/* Muscle grid skeleton */}
-              <Skeleton height={300} borderRadius={16} />
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <View style={{ gap: 8, paddingVertical: Spacing.md }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Skeleton width={80} height={18} borderRadius={6} />
+                    <Skeleton width={60} height={18} borderRadius={6} />
+                  </View>
+                  <Skeleton height={32} borderRadius={16} />
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Skeleton width={50} height={14} borderRadius={6} />
+                    <Skeleton width={50} height={14} borderRadius={6} />
+                  </View>
+                </View>
+              </View>
+
+              {/* Stats panel skeleton - 3 stat cards */}
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Skeleton width={120} height={20} borderRadius={8} />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: Spacing.md,
+                    marginTop: Spacing.md,
+                  }}
+                >
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <Skeleton height={60} borderRadius={12} />
+                  </View>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <Skeleton height={60} borderRadius={12} />
+                  </View>
+                  <View style={{ flex: 1, gap: 8 }}>
+                    <Skeleton height={60} borderRadius={12} />
+                  </View>
+                </View>
+                <Skeleton
+                  height={50}
+                  borderRadius={12}
+                  style={{ marginTop: Spacing.md }}
+                />
+              </View>
+
+              {/* Muscle grid skeleton - 2 columns */}
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Skeleton width={180} height={20} borderRadius={8} />
+                <View style={{ gap: Spacing.sm, marginTop: Spacing.md }}>
+                  {[0, 1, 2, 3, 4].map((row) => (
+                    <View
+                      key={row}
+                      style={{ flexDirection: "row", gap: Spacing.sm }}
+                    >
+                      <Skeleton flex={1} height={75} borderRadius={12} />
+                      <Skeleton flex={1} height={75} borderRadius={12} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+
               {/* Stretching skeleton */}
-              <Skeleton height={60} borderRadius={12} />
+              <View style={[styles.section, { backgroundColor: C.surface }]}>
+                <Skeleton height={60} borderRadius={12} />
+              </View>
             </View>
           </ScrollView>
         ) : (
-        <ScrollView
-          contentContainerStyle={styles.content}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={C.primary}
-              colors={[C.primary]}
-            />
-          }
-        >
-          <View style={styles.main}>
-            {/* Profile Card */}
-            <AnimatedEntry index={0}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.profileCard,
-                  {
-                    backgroundColor: C.surface,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-                onPress={() => router.push("/profile")}
-              >
-                {user?.user_metadata?.profile_image && !headerImageError ? (
-                  <Image
-                    source={{ uri: user.user_metadata.profile_image }}
-                    style={[styles.profileAvatar, { borderColor: C.primary }]}
-                    onError={() => setHeaderImageError(true)}
-                  />
-                ) : (
-                  <DefaultAvatar
-                    size={70}
-                    gender={user?.user_metadata?.gender}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.profileName,
-                    { color: C.text, fontFamily: fontBlack },
-                  ]}
-                >
-                  {user?.user_metadata?.username ||
-                    user?.email?.split("@")[0] ||
-                    ""}
-                </Text>
-              </Pressable>
-            </AnimatedEntry>
-
-            {/* Progress Section */}
-            <AnimatedEntry index={1}>
-              <View style={[styles.section, { backgroundColor: C.surface }]}>
-                <XPBar
-                  xp={safeXP}
-                  level={safeLevel}
-                  requiredXP={safeRequiredXP}
-                  streak={gameState.currentStreak}
-                />
-                <FloatingXPComponent />
-              </View>
-            </AnimatedEntry>
-
-            {/* Stats Section */}
-            <AnimatedEntry index={2}>
-              <View style={[styles.section, { backgroundColor: C.surface }]}>
-                <StatsPanel
-                  strength={gameState.strength}
-                  endurance={gameState.endurance}
-                  discipline={gameState.discipline}
-                  skillPoints={gameState.skillPoints}
-                  onUpgradeStrength={gameState.upgradeStrength}
-                  onUpgradeEndurance={gameState.upgradeEndurance}
-                  onUpgradeDiscipline={gameState.upgradeDiscipline}
-                />
-              </View>
-            </AnimatedEntry>
-
-            {/* Muscle Groups Section (includes cardio) */}
-            <AnimatedEntry index={3}>
-              <View style={[styles.section, { backgroundColor: C.surface }]}>
-                <MuscleGroupGrid
-                  muscleGroups={muscleGroups}
-                  onPress={(group) =>
-                    router.push({
-                      pathname: "/exercise-list",
-                      params: { muscle: group },
-                    })
-                  }
-                  labels={muscleLabels}
-                />
-              </View>
-            </AnimatedEntry>
-
-            {/* Stretching Checkbox */}
-            <AnimatedEntry index={4}>
-              <View style={[styles.section, { backgroundColor: C.surface }]}>
-                <Text
-                  style={[
-                    styles.sectionTitle,
-                    { color: C.textSecondary, fontFamily: fontBold },
-                  ]}
-                >
-                  {t(language, "home.stretching")}
-                </Text>
-                <TouchableOpacity
-                  style={[
-                    styles.stretchingContainer,
+          <ScrollView
+            contentContainerStyle={styles.content}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={C.primary}
+                colors={[C.primary]}
+              />
+            }
+          >
+            <View style={styles.main}>
+              {/* Profile Card */}
+              <AnimatedEntry index={0}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.profileCard,
                     {
-                      backgroundColor: C.surfaceHighlight,
-                      borderColor: C.surface,
-                      flexDirection: isRTL ? "row-reverse" : "row",
+                      backgroundColor: C.surface,
+                      opacity: pressed ? 0.8 : 1,
                     },
                   ]}
-                  onPress={() => {
-                    const newState = !stretchingDone;
-                    setStretchingDone(newState);
-
-                    const STRETCHING_XP = 50;
-
-                    if (newState) {
-                      // Grant stretching XP + stats
-                      stretchingBonusGiven.current = true;
-                      gameState.setXp((prev) => prev + STRETCHING_XP);
-                      updateStatsForWorkout({
-                        muscleGroup: "stretching",
-                        setStrength: gameState.setStrength,
-                        setEndurance: gameState.setEndurance,
-                        setDiscipline: gameState.setDiscipline,
-                      });
-                      playXPSound();
-                      showFloatingXP(STRETCHING_XP, [
-                        t(language, "home.stretchingComplete"),
-                      ]);
-                    } else {
-                      // Remove stretching XP when unchecked
-                      stretchingBonusGiven.current = false;
-                      gameState.setXp((prev) =>
-                        Math.max(0, prev - STRETCHING_XP),
-                      );
-                      showFloatingXP(-STRETCHING_XP, [
-                        t(language, "home.stretchingRemoved"),
-                      ]);
-                    }
-                  }}
+                  onPress={() => router.push("/profile")}
                 >
-                  <View
+                  {user?.user_metadata?.profile_image && !headerImageError ? (
+                    <Image
+                      source={{ uri: user.user_metadata.profile_image }}
+                      style={[styles.profileAvatar, { borderColor: C.primary }]}
+                      onError={() => setHeaderImageError(true)}
+                    />
+                  ) : (
+                    <DefaultAvatar
+                      size={70}
+                      gender={user?.user_metadata?.gender}
+                    />
+                  )}
+                  <Text
                     style={[
-                      styles.stretchingCheckbox,
-                      { borderColor: C.textSecondary },
-                      stretchingDone && {
-                        backgroundColor: C.success,
-                        borderColor: C.success,
-                      },
+                      styles.profileName,
+                      { color: C.text, fontFamily: fontBlack },
                     ]}
                   >
-                    {stretchingDone && (
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={20}
-                        color="#fff"
-                      />
-                    )}
-                  </View>
-                  <View style={styles.stretchingTextContainer}>
-                    <Text
-                      style={[
-                        styles.stretchingTitle,
-                        { color: C.text, fontFamily: fontSemibold },
-                      ]}
-                    >
-                      {t(language, "home.stretchingSubtitle")}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.stretchingSubtitle,
-                        { color: C.textSecondary, fontFamily: fontRegular },
-                      ]}
-                    >
-                      {t(language, "home.stretchingDuration")}
-                    </Text>
-                  </View>
-                  <MaterialCommunityIcons
-                    name="meditation"
-                    size={24}
-                    color={stretchingDone ? C.success : C.textSecondary}
+                    {user?.user_metadata?.username ||
+                      user?.email?.split("@")[0] ||
+                      ""}
+                  </Text>
+                </Pressable>
+              </AnimatedEntry>
+
+              {/* Progress Section */}
+              <AnimatedEntry index={1}>
+                <View style={[styles.section, { backgroundColor: C.surface }]}>
+                  <XPBar
+                    xp={safeXP}
+                    level={safeLevel}
+                    requiredXP={safeRequiredXP}
+                    streak={gameState.currentStreak}
                   />
-                </TouchableOpacity>
-              </View>
-            </AnimatedEntry>
-          </View>
-        </ScrollView>
+                  <FloatingXPComponent />
+                </View>
+              </AnimatedEntry>
+
+              {/* Stats Section */}
+              <AnimatedEntry index={2}>
+                <View style={[styles.section, { backgroundColor: C.surface }]}>
+                  <StatsPanel
+                    strength={gameState.strength}
+                    endurance={gameState.endurance}
+                    discipline={gameState.discipline}
+                    skillPoints={gameState.skillPoints}
+                    onUpgradeStrength={gameState.upgradeStrength}
+                    onUpgradeEndurance={gameState.upgradeEndurance}
+                    onUpgradeDiscipline={gameState.upgradeDiscipline}
+                  />
+                </View>
+              </AnimatedEntry>
+
+              {/* Muscle Groups Section (includes cardio) */}
+              <AnimatedEntry index={3}>
+                <View style={[styles.section, { backgroundColor: C.surface }]}>
+                  <MuscleGroupGrid
+                    muscleGroups={muscleGroups}
+                    onPress={(group) =>
+                      router.push({
+                        pathname: "/exercise-list",
+                        params: { muscle: group },
+                      })
+                    }
+                    labels={muscleLabels}
+                  />
+                </View>
+              </AnimatedEntry>
+
+              {/* Stretching Checkbox */}
+              <AnimatedEntry index={4}>
+                <View style={[styles.section, { backgroundColor: C.surface }]}>
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      { color: C.textSecondary, fontFamily: fontBold },
+                    ]}
+                  >
+                    {t(language, "home.stretching")}
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.stretchingContainer,
+                      {
+                        backgroundColor: C.surfaceHighlight,
+                        borderColor: C.surface,
+                        flexDirection: isRTL ? "row-reverse" : "row",
+                      },
+                    ]}
+                    onPress={() => {
+                      const newState = !stretchingDone;
+                      setStretchingDone(newState);
+
+                      const STRETCHING_XP = 50;
+
+                      if (newState) {
+                        // Grant stretching XP + stats
+                        stretchingBonusGiven.current = true;
+                        gameState.setXp((prev) => prev + STRETCHING_XP);
+                        updateStatsForWorkout({
+                          muscleGroup: "stretching",
+                          setStrength: gameState.setStrength,
+                          setEndurance: gameState.setEndurance,
+                          setDiscipline: gameState.setDiscipline,
+                        });
+                        playXPSound();
+                        showFloatingXP(STRETCHING_XP, [
+                          t(language, "home.stretchingComplete"),
+                        ]);
+                      } else {
+                        // Remove stretching XP when unchecked
+                        stretchingBonusGiven.current = false;
+                        gameState.setXp((prev) =>
+                          Math.max(0, prev - STRETCHING_XP),
+                        );
+                        showFloatingXP(-STRETCHING_XP, [
+                          t(language, "home.stretchingRemoved"),
+                        ]);
+                      }
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.stretchingCheckbox,
+                        { borderColor: C.textSecondary },
+                        stretchingDone && {
+                          backgroundColor: C.success,
+                          borderColor: C.success,
+                        },
+                      ]}
+                    >
+                      {stretchingDone && (
+                        <MaterialCommunityIcons
+                          name="check"
+                          size={20}
+                          color="#fff"
+                        />
+                      )}
+                    </View>
+                    <View style={styles.stretchingTextContainer}>
+                      <Text
+                        style={[
+                          styles.stretchingTitle,
+                          { color: C.text, fontFamily: fontSemibold },
+                        ]}
+                      >
+                        {t(language, "home.stretchingSubtitle")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.stretchingSubtitle,
+                          { color: C.textSecondary, fontFamily: fontRegular },
+                        ]}
+                      >
+                        {t(language, "home.stretchingDuration")}
+                      </Text>
+                    </View>
+                    <MaterialCommunityIcons
+                      name="meditation"
+                      size={24}
+                      color={stretchingDone ? C.success : C.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </AnimatedEntry>
+            </View>
+          </ScrollView>
         )}
       </View>
 

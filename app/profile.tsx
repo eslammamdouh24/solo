@@ -86,29 +86,40 @@ export default function ProfileScreen() {
         <TopBar title={t(language, "profile.title")} showBack />
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, gap: 16, alignItems: "center" }}
+          contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}
         >
-          {/* Avatar skeleton */}
-          <Skeleton width={100} height={100} borderRadius={50} />
-          <Skeleton width={150} height={24} borderRadius={8} />
-          <Skeleton width={200} height={14} borderRadius={6} />
-          {/* Stats skeleton */}
-          <View style={{ width: "100%", gap: 12, marginTop: 12 }}>
-            <View style={{ flexDirection: "row", gap: 12 }}>
+          {/* Avatar + Name skeleton */}
+          <View style={{ alignItems: "center", gap: Spacing.sm }}>
+            <Skeleton width={100} height={100} borderRadius={50} />
+            <Skeleton width={150} height={24} borderRadius={8} />
+            <Skeleton width={200} height={14} borderRadius={6} />
+          </View>
+
+          {/* Stats cards skeleton - 3 in a row */}
+          <View style={{ gap: Spacing.md }}>
+            <View style={{ flexDirection: "row", gap: Spacing.sm }}>
               <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={12} />
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
               </View>
               <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={12} />
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
               </View>
               <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={12} />
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
               </View>
             </View>
-            <Skeleton height={60} borderRadius={12} />
-            <Skeleton height={60} borderRadius={12} />
-            <Skeleton height={60} borderRadius={12} />
-            <Skeleton height={120} borderRadius={12} />
+            
+            {/* Edit button skeleton */}
+            <Skeleton height={48} borderRadius={BorderRadius.md} />
+            
+            {/* Settings sections skeleton */}
+            <View style={{ gap: Spacing.sm, marginTop: Spacing.md }}>
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={120} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+            </View>
           </View>
         </ScrollView>
       </View>

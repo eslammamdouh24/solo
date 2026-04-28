@@ -285,7 +285,9 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               </View>
             </TouchableOpacity>
           ) : (
-            <View
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => go("/auth")}
               style={[
                 styles.header,
                 {
@@ -297,13 +299,16 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
               <View
                 style={[
                   styles.avatar,
-                  { backgroundColor: C.surfaceHighlight, borderColor: C.border },
+                  {
+                    backgroundColor: C.primary + "20",
+                    borderColor: C.primary,
+                  },
                 ]}
               >
                 <MaterialCommunityIcons
-                  name="account-outline"
+                  name="login"
                   size={28}
-                  color={C.textSecondary}
+                  color={C.primary}
                 />
               </View>
               <View
@@ -315,25 +320,26 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                 <Text
                   style={[
                     styles.username,
-                    { color: C.textSecondary, fontFamily: fontBold },
+                    { color: C.text, fontFamily: fontBold },
                   ]}
                 >
                   {t(language, "auth.welcomeBack")}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => go("/auth")}
+                <Text
                   style={[
-                    styles.signInButton,
-                    { backgroundColor: C.primary },
+                    styles.signInPrompt,
+                    { color: C.primary, fontFamily: fontSemibold },
                   ]}
-                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.signInText, { fontFamily: fontSemibold }]}>
-                    {t(language, "auth.signIn")}
-                  </Text>
-                </TouchableOpacity>
+                  {t(language, "auth.tapToSignIn") || "Tap to sign in"}
+                </Text>
               </View>
-            </View>
+              <MaterialCommunityIcons
+                name={isRTL ? "chevron-left" : "chevron-right"}
+                size={24}
+                color={C.textSecondary}
+              />
+            </TouchableOpacity>
           )}
 
           {/* Menu */}
@@ -666,8 +672,8 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
 
             <View style={[styles.divider, { backgroundColor: C.border }]} />
 
-            {/* Sign out or Sign in */}
-            {user ? (
+            {/* Sign out (only show when authenticated) */}
+            {user && (
               <TouchableOpacity
                 style={[
                   styles.menuItem,
@@ -689,30 +695,6 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                   ]}
                 >
                   {t(language, "profile.signOut") || "Sign Out"}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.menuItem,
-                  styles.signOutItem,
-                  { flexDirection: isRTL ? "row-reverse" : "row" },
-                ]}
-                onPress={() => go("/auth")}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons
-                  name="login"
-                  size={22}
-                  color={C.primary}
-                />
-                <Text
-                  style={[
-                    styles.menuLabel,
-                    { color: C.primary, fontFamily: fontSemibold },
-                  ]}
-                >
-                  {t(language, "auth.signIn") || "Sign In"}
                 </Text>
               </TouchableOpacity>
             )}
@@ -791,11 +773,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.5,
   },
-  signInButton: {
-    marginTop: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+  signInPrompt: {
+    fontSize: FontSize.sm,
+    marginTop: 4,
     alignSelf: "flex-start",
   },
   signInText: {
