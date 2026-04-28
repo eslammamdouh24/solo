@@ -3,6 +3,7 @@ import { getFont } from "@/constants/fonts";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import {
@@ -45,6 +46,7 @@ const MuscleCard: React.FC<{
 }> = ({ group, onPress, isFullWidth = false, label, index }) => {
   const C = useColors();
   const { language } = useApp();
+  const haptics = useHaptics();
   const fontSemibold = getFont(language, "semibold");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -87,7 +89,10 @@ const MuscleCard: React.FC<{
   return (
     <TouchableOpacity
       activeOpacity={1}
-      onPress={onPress}
+      onPress={() => {
+        haptics.light();
+        onPress();
+      }}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={{ width: isFullWidth ? "100%" : "47%" }}

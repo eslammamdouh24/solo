@@ -2,6 +2,7 @@ import { getFont } from "@/constants/fonts";
 import { STAT_ICONS } from "@/constants/stats";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -23,6 +24,7 @@ export const StatRow: React.FC<StatRowProps> = ({
 }) => {
   const C = useColors();
   const { language } = useApp();
+  const haptics = useHaptics();
   const isRTL = language === "ar";
   const fontSemibold = getFont(language, "semibold");
   const fontBold = getFont(language, "bold");
@@ -67,7 +69,10 @@ export const StatRow: React.FC<StatRowProps> = ({
         </Text>
         {canUpgrade && onUpgrade && (
           <TouchableOpacity
-            onPress={onUpgrade}
+            onPress={() => {
+              haptics.medium();
+              onUpgrade();
+            }}
             style={[
               styles.upgradeButton,
               { backgroundColor: `${C.primary}33` },

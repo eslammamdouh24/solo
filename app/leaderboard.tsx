@@ -1,4 +1,5 @@
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { Skeleton } from "@/components/Skeleton";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
@@ -13,12 +14,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     FlatList,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 interface LeaderboardEntry {
@@ -162,8 +162,30 @@ export default function LeaderboardScreen() {
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={C.primary} />
+        <View style={styles.listContainer}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.entryCard,
+                { backgroundColor: C.surface, marginBottom: 12 },
+              ]}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+              >
+                <Skeleton width={40} height={40} borderRadius={20} />
+                <View style={{ flex: 1 }}>
+                  <Skeleton width="60%" height={16} />
+                  <Skeleton width="40%" height={12} style={{ marginTop: 6 }} />
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Skeleton width={60} height={16} />
+                  <Skeleton width={40} height={12} style={{ marginTop: 6 }} />
+                </View>
+              </View>
+            </View>
+          ))}
         </View>
       ) : (
         <FlatList
@@ -294,6 +316,45 @@ export default function LeaderboardScreen() {
               </View>
             </AnimatedEntry>
           )}
+          ListEmptyComponent={
+            <View style={styles.centerContainer}>
+              <AnimatedEntry index={0} direction="fade">
+                <View
+                  style={[
+                    styles.emptyIconWrapper,
+                    { backgroundColor: C.primary + "15" },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name="trophy-outline"
+                    size={56}
+                    color={C.primary}
+                  />
+                </View>
+              </AnimatedEntry>
+              <AnimatedEntry index={1} direction="down">
+                <Text
+                  style={[
+                    styles.emptyTitle,
+                    { color: C.text, fontFamily: fontBold },
+                  ]}
+                >
+                  No Champions Yet
+                </Text>
+              </AnimatedEntry>
+              <AnimatedEntry index={2} direction="down">
+                <Text
+                  style={[
+                    styles.emptyText,
+                    { color: C.textSecondary, fontFamily: fontRegular },
+                  ]}
+                >
+                  Be the first to complete a workout and claim your spot on the
+                  leaderboard!
+                </Text>
+              </AnimatedEntry>
+            </View>
+          }
         />
       )}
     </View>
@@ -393,5 +454,31 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
     fontWeight: "600",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  emptyIconWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  emptyTitle: {
+    fontSize: FontSize.xxl,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  emptyText: {
+    fontSize: FontSize.base,
+    textAlign: "center",
+    maxWidth: 300,
+    lineHeight: 22,
   },
 });

@@ -259,42 +259,50 @@ const ExerciseListScreen: React.FC = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
-      <Ionicons name="search-outline" size={64} color={C.textSecondary} />
-      <Text
-        style={[
-          styles.emptyStateTitle,
-          { color: C.text, fontFamily: fontBold, textAlign: "center" },
-        ]}
-      >
-        {t(language, "exerciseList.noResults")}
-      </Text>
-      <Text
-        style={[
-          styles.emptyStateText,
-          {
-            color: C.textSecondary,
-            fontFamily: fontSemibold,
-            textAlign: "center",
-          },
-        ]}
-      >
-        {t(language, "exerciseList.tryDifferentFilters")}
-      </Text>
-      {hasActiveFilters && (
-        <TouchableOpacity
-          style={[styles.clearButton, { backgroundColor: C.primary }]}
-          onPress={clearFilters}
-          activeOpacity={0.8}
+      <AnimatedEntry index={0} direction="fade">
+        <Ionicons name="search-outline" size={64} color={C.textSecondary} />
+      </AnimatedEntry>
+      <AnimatedEntry index={1} direction="down">
+        <Text
+          style={[
+            styles.emptyStateTitle,
+            { color: C.text, fontFamily: fontBold, textAlign: "center" },
+          ]}
         >
-          <Text
-            style={[
-              styles.clearButtonText,
-              { color: "#fff", fontFamily: fontBold, textAlign: "center" },
-            ]}
+          {t(language, "exerciseList.noResults")}
+        </Text>
+      </AnimatedEntry>
+      <AnimatedEntry index={2} direction="down">
+        <Text
+          style={[
+            styles.emptyStateText,
+            {
+              color: C.textSecondary,
+              fontFamily: fontSemibold,
+              textAlign: "center",
+            },
+          ]}
+        >
+          {t(language, "exerciseList.tryDifferentFilters")}
+        </Text>
+      </AnimatedEntry>
+      {hasActiveFilters && (
+        <AnimatedEntry index={3} direction="down">
+          <TouchableOpacity
+            style={[styles.clearButton, { backgroundColor: C.primary }]}
+            onPress={clearFilters}
+            activeOpacity={0.8}
           >
-            {t(language, "exerciseList.clearFilters")}
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.clearButtonText,
+                { color: "#fff", fontFamily: fontBold, textAlign: "center" },
+              ]}
+            >
+              {t(language, "exerciseList.clearFilters")}
+            </Text>
+          </TouchableOpacity>
+        </AnimatedEntry>
       )}
     </View>
   );

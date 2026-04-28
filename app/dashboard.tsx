@@ -1,4 +1,5 @@
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { Skeleton } from "@/components/Skeleton";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { FontSize } from "@/constants/font-size";
@@ -20,14 +21,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    Animated,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Animated, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -112,9 +106,37 @@ export default function DashboardScreen() {
     return (
       <View style={[styles.container, { backgroundColor: C.background }]}>
         <TopBar title={t(language, "dashboard.title")} showBack />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={C.primary} />
-        </View>
+        <Animated.ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            padding: 16,
+            gap: 16,
+          }}
+        >
+          {/* Stats cards skeleton */}
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={100} borderRadius={12} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={100} borderRadius={12} />
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={100} borderRadius={12} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={100} borderRadius={12} />
+            </View>
+          </View>
+          {/* Chart skeleton */}
+          <Skeleton height={250} borderRadius={16} />
+          {/* List skeleton */}
+          <Skeleton height={80} borderRadius={12} />
+          <Skeleton height={80} borderRadius={12} />
+          <Skeleton height={80} borderRadius={12} />
+        </Animated.ScrollView>
       </View>
     );
   }
@@ -124,19 +146,23 @@ export default function DashboardScreen() {
       <View style={[styles.container, { backgroundColor: C.background }]}>
         <TopBar title={t(language, "dashboard.title")} showBack />
         <View style={styles.centerContainer}>
-          <MaterialCommunityIcons
-            name="account-off-outline"
-            size={72}
-            color={C.textSecondary}
-          />
-          <Text
-            style={[
-              styles.emptyText,
-              { color: C.textSecondary, fontFamily: fontRegular },
-            ]}
-          >
-            Please login to view your dashboard
-          </Text>
+          <AnimatedEntry index={0} from="fade">
+            <MaterialCommunityIcons
+              name="account-off-outline"
+              size={72}
+              color={C.textSecondary}
+            />
+          </AnimatedEntry>
+          <AnimatedEntry index={1} from="down">
+            <Text
+              style={[
+                styles.emptyText,
+                { color: C.textSecondary, fontFamily: fontRegular },
+              ]}
+            >
+              Please login to view your dashboard
+            </Text>
+          </AnimatedEntry>
         </View>
       </View>
     );
@@ -147,32 +173,41 @@ export default function DashboardScreen() {
       <View style={[styles.container, { backgroundColor: C.background }]}>
         <TopBar title={t(language, "dashboard.title")} showBack />
         <View style={styles.centerContainer}>
-          <View
-            style={[
-              styles.emptyIconWrapper,
-              { backgroundColor: C.primary + "15" },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name="chart-timeline-variant"
-              size={56}
-              color={C.primary}
-            />
-          </View>
-          <Text
-            style={[styles.emptyTitle, { color: C.text, fontFamily: fontBold }]}
-          >
-            Start Your Journey
-          </Text>
-          <Text
-            style={[
-              styles.emptyText,
-              { color: C.textSecondary, fontFamily: fontRegular },
-            ]}
-          >
-            Complete your first workout to unlock detailed analytics and track
-            your progress.
-          </Text>
+          <AnimatedEntry index={0} from="fade">
+            <View
+              style={[
+                styles.emptyIconWrapper,
+                { backgroundColor: C.primary + "15" },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="chart-timeline-variant"
+                size={56}
+                color={C.primary}
+              />
+            </View>
+          </AnimatedEntry>
+          <AnimatedEntry index={1} from="down">
+            <Text
+              style={[
+                styles.emptyTitle,
+                { color: C.text, fontFamily: fontBold },
+              ]}
+            >
+              Start Your Journey
+            </Text>
+          </AnimatedEntry>
+          <AnimatedEntry index={2} from="down">
+            <Text
+              style={[
+                styles.emptyText,
+                { color: C.textSecondary, fontFamily: fontRegular },
+              ]}
+            >
+              Complete your first workout to unlock detailed analytics and track
+              your progress.
+            </Text>
+          </AnimatedEntry>
         </View>
       </View>
     );

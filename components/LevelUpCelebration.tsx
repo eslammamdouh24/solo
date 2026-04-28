@@ -1,4 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
+import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useMemo, useRef } from "react";
@@ -80,6 +81,7 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
     })),
   ).current;
   const { language } = useApp();
+  const haptics = useHaptics();
 
   const confettiPieces = useMemo(
     () =>
@@ -105,6 +107,9 @@ export const LevelUpCelebration: React.FC<LevelUpCelebrationProps> = ({
 
   useEffect(() => {
     if (visible) {
+      // Trigger success haptic
+      haptics.success();
+
       // Reset animations
       scaleAnim.setValue(0);
       rotateAnim.setValue(0);

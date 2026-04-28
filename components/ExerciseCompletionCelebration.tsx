@@ -1,6 +1,7 @@
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { useHaptics } from "@/hooks/useHaptics";
 import { useSound } from "@/hooks/useSound";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -92,6 +93,7 @@ export const ExerciseCompletionCelebration: React.FC<
   const { language } = useApp();
   const C = useColors();
   const { playXPSound } = useSound();
+  const haptics = useHaptics();
 
   const confettiPieces = useMemo(
     () =>
@@ -116,6 +118,9 @@ export const ExerciseCompletionCelebration: React.FC<
 
   useEffect(() => {
     if (visible) {
+      // Trigger success haptic
+      haptics.success();
+
       // Play XP gain sound
       playXPSound();
 

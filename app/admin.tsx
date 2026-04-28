@@ -1,4 +1,5 @@
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { Skeleton } from "@/components/Skeleton";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import { isRTL as checkRTL } from "@/constants/enums";
@@ -14,7 +15,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Platform,
     RefreshControl,
@@ -23,7 +23,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 
 // Error-only notification (success is reflected optimistically in UI)
@@ -303,10 +303,37 @@ export default function AdminScreen() {
   if (!adminChecked || (isAdmin && loading)) {
     return (
       <View style={[styles.container, { backgroundColor: C.background }]}>
-        <TopBar showBack />
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={accent} />
-        </View>
+        <TopBar showBack title={t(language, "admin.title")} />
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, gap: 16 }}
+        >
+          {/* Stats cards skeleton */}
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={90} borderRadius={12} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={90} borderRadius={12} />
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={90} borderRadius={12} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Skeleton height={90} borderRadius={12} />
+            </View>
+          </View>
+          {/* Chart skeleton */}
+          <Skeleton height={200} borderRadius={16} />
+          {/* Search skeleton */}
+          <Skeleton height={50} borderRadius={12} />
+          {/* User list skeleton */}
+          <Skeleton height={100} borderRadius={12} />
+          <Skeleton height={100} borderRadius={12} />
+          <Skeleton height={100} borderRadius={12} />
+        </ScrollView>
       </View>
     );
   }
@@ -348,12 +375,7 @@ export default function AdminScreen() {
         {stats && (
           <AnimatedEntry index={0}>
             <View style={styles.statsContainer}>
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons
                   name="account-group"
                   size={32}
@@ -372,12 +394,7 @@ export default function AdminScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons
                   name="dumbbell"
                   size={32}
@@ -396,12 +413,7 @@ export default function AdminScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons name="star" size={32} color={C.gold} />
                 <Text
                   style={[
@@ -416,12 +428,7 @@ export default function AdminScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons
                   name="chart-line"
                   size={32}
@@ -440,12 +447,7 @@ export default function AdminScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons
                   name="account-plus"
                   size={32}
@@ -464,12 +466,7 @@ export default function AdminScreen() {
                 </Text>
               </View>
 
-              <View
-                style={[
-                  styles.statCard,
-                  { backgroundColor: adminCard },
-                ]}
-              >
+              <View style={[styles.statCard, { backgroundColor: adminCard }]}>
                 <MaterialCommunityIcons
                   name="chart-bar"
                   size={32}
@@ -494,12 +491,7 @@ export default function AdminScreen() {
         {/* Signups last 7 days */}
         {signupsDaily.length > 0 && (
           <AnimatedEntry index={1}>
-            <View
-              style={[
-                styles.chartCard,
-                { backgroundColor: adminCard },
-              ]}
-            >
+            <View style={[styles.chartCard, { backgroundColor: adminCard }]}>
               <Text
                 style={[
                   styles.chartTitle,
@@ -535,9 +527,7 @@ export default function AdminScreen() {
                           <View
                             style={{
                               height: `${heightPct}%`,
-                              backgroundColor: isToday
-                                ? Colors.orange
-                                : accent,
+                              backgroundColor: isToday ? Colors.orange : accent,
                               borderRadius: 4,
                             }}
                           />
@@ -564,9 +554,7 @@ export default function AdminScreen() {
 
         {/* Search + Role Filter */}
         <AnimatedEntry index={2}>
-          <View
-            style={[styles.searchBar, { backgroundColor: adminCard }]}
-          >
+          <View style={[styles.searchBar, { backgroundColor: adminCard }]}>
             <MaterialCommunityIcons
               name="magnify"
               size={18}
@@ -603,9 +591,7 @@ export default function AdminScreen() {
                   style={[
                     styles.filterChip,
                     {
-                      backgroundColor: active
-                        ? accent + "22"
-                        : adminCard,
+                      backgroundColor: active ? accent + "22" : adminCard,
                       borderColor: active ? accent : "transparent",
                     },
                   ]}
@@ -755,8 +741,7 @@ export default function AdminScreen() {
                       style={[
                         styles.actionButtonText,
                         {
-                          color:
-                            userData.role === "admin" ? C.error : accent,
+                          color: userData.role === "admin" ? C.error : accent,
                         },
                       ]}
                     >
