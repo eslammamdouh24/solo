@@ -1,6 +1,7 @@
 import { AnimatedEntry } from "@/components/AnimatedEntry";
 import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { DropdownPicker } from "@/components/DropdownPicker";
+import { Skeleton } from "@/components/Skeleton";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
 import {
@@ -82,7 +83,34 @@ export default function ProfileScreen() {
       <View
         style={[styles.loadingContainer, { backgroundColor: C.background }]}
       >
-        <ActivityIndicator size="large" color={C.primary} />
+        <TopBar title={t(language, "profile.title")} showBack />
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, gap: 16, alignItems: "center" }}
+        >
+          {/* Avatar skeleton */}
+          <Skeleton width={100} height={100} borderRadius={50} />
+          <Skeleton width={150} height={24} borderRadius={8} />
+          <Skeleton width={200} height={14} borderRadius={6} />
+          {/* Stats skeleton */}
+          <View style={{ width: "100%", gap: 12, marginTop: 12 }}>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={12} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={12} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={12} />
+              </View>
+            </View>
+            <Skeleton height={60} borderRadius={12} />
+            <Skeleton height={60} borderRadius={12} />
+            <Skeleton height={60} borderRadius={12} />
+            <Skeleton height={120} borderRadius={12} />
+          </View>
+        </ScrollView>
       </View>
     );
   }

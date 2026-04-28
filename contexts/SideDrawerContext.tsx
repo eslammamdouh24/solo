@@ -207,8 +207,8 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
             },
           ]}
         >
-          {/* Header: user info */}
-          {user && (
+          {/* Header: user info or sign-in prompt */}
+          {user ? (
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => go("/profile")}
@@ -284,6 +284,56 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                 )}
               </View>
             </TouchableOpacity>
+          ) : (
+            <View
+              style={[
+                styles.header,
+                {
+                  borderBottomColor: C.border,
+                  flexDirection: isRTL ? "row-reverse" : "row",
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundColor: C.surfaceHighlight, borderColor: C.border },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="account-outline"
+                  size={28}
+                  color={C.textSecondary}
+                />
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: isRTL ? "flex-end" : "flex-start",
+                }}
+              >
+                <Text
+                  style={[
+                    styles.username,
+                    { color: C.textSecondary, fontFamily: fontBold },
+                  ]}
+                >
+                  {t(language, "auth.welcomeBack")}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => go("/auth")}
+                  style={[
+                    styles.signInButton,
+                    { backgroundColor: C.primary },
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.signInText, { fontFamily: fontSemibold }]}>
+                    {t(language, "auth.signIn")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
 
           {/* Menu */}
@@ -616,8 +666,8 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
 
             <View style={[styles.divider, { backgroundColor: C.border }]} />
 
-            {/* Sign out */}
-            {user && (
+            {/* Sign out or Sign in */}
+            {user ? (
               <TouchableOpacity
                 style={[
                   styles.menuItem,
@@ -639,6 +689,30 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
                   ]}
                 >
                   {t(language, "profile.signOut") || "Sign Out"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.menuItem,
+                  styles.signOutItem,
+                  { flexDirection: isRTL ? "row-reverse" : "row" },
+                ]}
+                onPress={() => go("/auth")}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons
+                  name="login"
+                  size={22}
+                  color={C.primary}
+                />
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    { color: C.primary, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {t(language, "auth.signIn") || "Sign In"}
                 </Text>
               </TouchableOpacity>
             )}
@@ -716,6 +790,18 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 0.5,
+  },
+  signInButton: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  signInText: {
+    color: "#fff",
+    fontSize: FontSize.sm,
+    fontWeight: "600",
   },
   menu: {
     flex: 1,

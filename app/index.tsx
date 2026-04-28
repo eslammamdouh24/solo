@@ -3,6 +3,7 @@ import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 import { MilestoneModal } from "@/components/MilestoneModal";
 import { MuscleGroupGrid } from "@/components/MuscleGroupGrid";
+import { Skeleton } from "@/components/Skeleton";
 import { StatsPanel } from "@/components/StatsPanel";
 import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
@@ -246,6 +247,25 @@ export default function HomeScreen() {
       <View style={[styles.container, { backgroundColor: C.background }]}>
         <TopBar />
 
+        {gameState.loading ? (
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.main}>
+              {/* Profile skeleton */}
+              <View style={{ alignItems: "center", gap: 10 }}>
+                <Skeleton width={70} height={70} borderRadius={35} />
+                <Skeleton width={140} height={22} borderRadius={8} />
+              </View>
+              {/* XP bar skeleton */}
+              <Skeleton height={80} borderRadius={16} />
+              {/* Stats skeleton */}
+              <Skeleton height={140} borderRadius={16} />
+              {/* Muscle grid skeleton */}
+              <Skeleton height={300} borderRadius={16} />
+              {/* Stretching skeleton */}
+              <Skeleton height={60} borderRadius={12} />
+            </View>
+          </ScrollView>
+        ) : (
         <ScrollView
           contentContainerStyle={styles.content}
           refreshControl={
@@ -437,6 +457,7 @@ export default function HomeScreen() {
             </AnimatedEntry>
           </View>
         </ScrollView>
+        )}
       </View>
 
       <Toast

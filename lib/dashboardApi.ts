@@ -130,8 +130,8 @@ export const getWorkoutStats = async (
       {} as Record<string, number>,
     ) || {};
 
-  const mostTrainedMuscle =
-    Object.entries(muscleCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
+  const sortedMuscles = Object.entries(muscleCounts as Record<string, number>).sort((a, b) => b[1] - a[1]);
+  const mostTrainedMuscle = sortedMuscles[0]?.[0] || "None";
 
   // Calculate best streak from workout history
   let bestStreak = 0;
