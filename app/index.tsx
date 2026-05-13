@@ -39,10 +39,7 @@ import {
 } from "@/utils/xpCalculations";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, {
-    useCallback,
-    useMemo
-} from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     Image,
     LayoutAnimation,

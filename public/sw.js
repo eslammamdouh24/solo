@@ -162,7 +162,10 @@ self.addEventListener("fetch", (event) => {
         if (cached) return cached;
         try {
           const res = await fetch(req);
-          if (res.ok) cache.put(req, res.clone());
+          // Skip partial (206) responses — Cache API rejects them
+          if (res.ok && res.status !== 206) {
+            cache.put(req, res.clone()).catch(() => {});
+          }
           return res;
         } catch (e) {
           return cached || Response.error();
@@ -176,7 +179,7 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       try {
         const res = await fetch(req);
-        if (res.ok && sameOrigin) {
+        if (res.ok && res.status !== 206 && sameOrigin) {
           const cache = await caches.open(SHELL_CACHE);
           cache.put(req, res.clone()).catch(() => {});
         }

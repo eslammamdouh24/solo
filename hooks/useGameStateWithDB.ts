@@ -419,9 +419,7 @@ export const useGameStateWithDB = () => {
       session_count: 0,
       updated_at: new Date().toISOString(),
       username:
-        user.user_metadata?.username ||
-        user.email?.split("@")[0] ||
-        "Unknown",
+        user.user_metadata?.username || user.email?.split("@")[0] || "Unknown",
     };
     const { error } = await saveGameStateToDb(user.id, dbPayload);
     if (error) {
