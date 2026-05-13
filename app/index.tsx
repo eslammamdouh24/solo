@@ -798,6 +798,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
+    overflow: "hidden",
     borderWidth: 3,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },

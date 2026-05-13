@@ -393,20 +393,7 @@ export const useGameStateWithDB = () => {
   const resetProgress = async () => {
     if (!user) return;
 
-    const initialState = {
-      level: 1,
-      xp: 0,
-      strength: 0,
-      endurance: 0,
-      discipline: 0,
-      skillPoints: 0,
-      currentStreak: 0,
-      lastWorkoutDate: null,
-      dailyBonusClaimed: null,
-      sessionCount: 0,
-    };
-
-    // Update local state
+    // Update local state immediately
     setLevel(1);
     setXp(0);
     setStrength(0);
@@ -418,15 +405,45 @@ export const useGameStateWithDB = () => {
     setDailyBonusClaimed(null);
     setSessionCount(0);
 
-    // Clear caches so any subsequent read sees the reset state
-    globalData.delete(user.id);
+    // Write directly to DB (bypass offline sync queue so refetch sees fresh data)
+    const dbPayload = {
+      level: 1,
+      xp: 0,
+      strength: 0,
+      endurance: 0,
+      discipline: 0,
+      skill_points: 0,
+      current_streak: 0,
+      last_workout_date: null,
+      daily_bonus_claimed: null,
+      session_count: 0,
+      updated_at: new Date().toISOString(),
+      username:
+        user.user_metadata?.username ||
+        user.email?.split("@")[0] ||
+        "Unknown",
+    };
+    const { error } = await saveGameStateToDb(user.id, dbPayload);
+    if (error) {
+      console.error("Failed to reset progress in DB:", error);
+      throw error;
+    }
+
+    // Clear caches and update them with reset state
     invalidateGameState(user.id);
-
-    // Update database
-    await saveGameState(initialState);
-
-    // Force refetch to update UI immediately
-    await refetch();
+    globalData.set(user.id, {
+      level: 1,
+      xp: 0,
+      strength: 0,
+      endurance: 0,
+      discipline: 0,
+      skillPoints: 0,
+      currentStreak: 0,
+      lastWorkoutDate: null,
+      dailyBonusClaimed: null,
+      sessionCount: 0,
+    });
+    persistCache(user.id, globalData.get(user.id)!);
   };
 
   return {
