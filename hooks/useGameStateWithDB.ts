@@ -184,8 +184,13 @@ export const useGameStateWithDB = () => {
   }, [user]);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     loadGameState();
-  }, [loadGameState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Save game state to database - batch update for multiple fields at once
   const saveGameState = async (state: Partial<GameStateData>) => {
@@ -419,6 +424,9 @@ export const useGameStateWithDB = () => {
 
     // Update database
     await saveGameState(initialState);
+
+    // Force refetch to update UI immediately
+    await refetch();
   };
 
   return {

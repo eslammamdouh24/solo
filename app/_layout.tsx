@@ -24,9 +24,11 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+import { FloatingTimer } from "@/components/FloatingTimer";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ConfirmDialogProvider } from "@/contexts/ConfirmDialogContext";
+import { FloatingTimerProvider } from "@/contexts/FloatingTimerContext";
 import { NetworkProvider } from "@/contexts/NetworkContext";
 import { SideDrawerProvider } from "@/contexts/SideDrawerContext";
 import { SyncQueueProvider } from "@/contexts/SyncQueueContext";
@@ -153,32 +155,35 @@ function ThemedApp() {
 
   return (
     <AuthProvider>
-      <SideDrawerProvider>
-        <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
-          <View
-            style={[
-              webStyles.outerContainer,
-              { backgroundColor: theme === "light" ? "#E2E8F0" : "#050816" },
-            ]}
-          >
+      <FloatingTimerProvider>
+        <SideDrawerProvider>
+          <ThemeProvider value={theme === "dark" ? DarkTheme : DefaultTheme}>
             <View
               style={[
-                webStyles.appContainer,
-                {
-                  borderColor:
-                    theme === "light"
-                      ? "rgba(0,0,0,0.08)"
-                      : "rgba(255, 255, 255, 0.06)",
-                  overflow: "hidden",
-                },
+                webStyles.outerContainer,
+                { backgroundColor: theme === "light" ? "#E2E8F0" : "#050816" },
               ]}
             >
-              <RootLayoutNav />
+              <View
+                style={[
+                  webStyles.appContainer,
+                  {
+                    borderColor:
+                      theme === "light"
+                        ? "rgba(0,0,0,0.08)"
+                        : "rgba(255, 255, 255, 0.06)",
+                    overflow: "hidden",
+                  },
+                ]}
+              >
+                <RootLayoutNav />
+                <FloatingTimer />
+              </View>
             </View>
-          </View>
-          <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        </ThemeProvider>
-      </SideDrawerProvider>
+            <StatusBar style={theme === "dark" ? "light" : "dark"} />
+          </ThemeProvider>
+        </SideDrawerProvider>
+      </FloatingTimerProvider>
     </AuthProvider>
   );
 }

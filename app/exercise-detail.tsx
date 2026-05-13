@@ -10,11 +10,14 @@ import { getFont } from "@/constants/fonts";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFloatingTimer } from "@/contexts/FloatingTimerContext";
 import { useColors } from "@/hooks/useColors";
 import { useGameStateWithDB } from "@/hooks/useGameStateWithDB";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useSound } from "@/hooks/useSound";
 import { getExerciseById, MuscleGroup } from "@/lib/exerciseApi";
+import { supabase } from "@/lib/supabase";
+import { getExerciseWorkoutHistory, WorkoutLogEntry } from "@/lib/workoutApi";
 import { calculateNewStreak, getStatGains } from "@/utils/workoutHelpers";
 import { processWorkout } from "@/utils/workoutProcessor";
 import { getToday } from "@/utils/xpCalculations";
@@ -41,7 +44,7 @@ const ExerciseDetailScreen: React.FC = () => {
   const exerciseId = (params as { exerciseId?: string }).exerciseId;
 
   const { user } = useAuth();
-  const { language } = useApp();
+  const { language, addWorkoutToSession } = useApp();
   const isRTL = checkRTL(language);
   const fontSemibold = getFont(language, "semibold");
   const fontBold = getFont(language, "bold");
@@ -58,8 +61,17 @@ const ExerciseDetailScreen: React.FC = () => {
     return getExerciseById(muscle, exerciseId);
   }, [muscle, exerciseId]);
 
-  const [seconds, setSeconds] = useState(0);
-  const [running, setRunning] = useState(false);
+  const floatingTimer = useFloatingTimer();
+
+  // Use timer from context if it exists for this exercise, otherwise local state
+  const isTimerForThisExercise =
+    floatingTimer.exerciseName === exercise?.name &&
+    floatingTimer.exerciseRoute?.muscle === muscle &&
+    floatingTimer.exerciseRoute?.exerciseId === exerciseId;
+
+  const seconds = isTimerForThisExercise ? floatingTimer.seconds : 0;
+  const running = isTimerForThisExercise ? floatingTimer.running : false;
+
   const [finished, setFinished] = useState(false);
   const [logged, setLogged] = useState(false);
   const [successVisible, setSuccessVisible] = useState(false);
@@ -69,7 +81,10 @@ const ExerciseDetailScreen: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [levelUpVisible, setLevelUpVisible] = useState(false);
   const [newLevel, setNewLevel] = useState(0);
+  const [leveledUp, setLeveledUp] = useState(false);
   const [gifFullscreen, setGifFullscreen] = useState(false);
+  const [workoutHistory, setWorkoutHistory] = useState<WorkoutLogEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const C = useColors();
 
   const xpEstimate = useMemo(() => {
@@ -83,15 +98,40 @@ const ExerciseDetailScreen: React.FC = () => {
     return calculateXP(difficultyWeight, exercise.reps, exercise.sets);
   }, [exercise]);
 
+  // Auto-sync timer state if returning to the same exercise
   useEffect(() => {
-    if (!running) return;
+    if (
+      floatingTimer.exerciseName === exercise?.name &&
+      floatingTimer.exerciseRoute?.muscle === muscle &&
+      floatingTimer.exerciseRoute?.exerciseId === exerciseId
+    ) {
+      setHasStarted(true); // Mark as started if timer already exists
+    }
+  }, [exercise?.name, muscle, exerciseId]);
 
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
+  // Cleanup timer when leaving the screen
+  useEffect(() => {
+    return () => {
+      // Keep timer running in minimized mode when unmounting
+    };
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [running]);
+  // Fetch workout history for this exercise
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user || !exerciseId) return;
+      setHistoryLoading(true);
+      try {
+        const history = await getExerciseWorkoutHistory(user.id, exerciseId, 5);
+        console.log("Workout history fetched:", history);
+        setWorkoutHistory(history);
+      } catch (error) {
+        console.error("Error fetching workout history:", error);
+      }
+      setHistoryLoading(false);
+    };
+    fetchHistory();
+  }, [user, exerciseId, logged]);
 
   if (!exercise) {
     return (
@@ -113,8 +153,7 @@ const ExerciseDetailScreen: React.FC = () => {
       return false;
 
     try {
-      // Queue workout log (works offline)
-      await logWorkoutOffline({
+      const workoutData = {
         user_id: user.id,
         muscle_group: muscle || "",
         exercise_id: exercise.id,
@@ -125,7 +164,28 @@ const ExerciseDetailScreen: React.FC = () => {
         xp: xpToLog,
         equipment: exercise.equipment,
         difficulty: exercise.difficulty,
-      });
+      };
+
+      console.log("Logging workout:", workoutData);
+
+      // If online, insert directly to database for immediate availability
+      if (isOnline) {
+        const { error: dbError } = await supabase
+          .from("workout_logs")
+          .insert(workoutData);
+
+        if (dbError) {
+          console.error("Direct database insert error:", dbError);
+          // Fall back to offline queue
+          await logWorkoutOffline(workoutData);
+        } else {
+          console.log("Workout logged directly to database");
+        }
+      } else {
+        // Queue for later when offline
+        await logWorkoutOffline(workoutData);
+        console.log("Workout queued for offline sync");
+      }
 
       // Process XP through level system (handles level-up, skill points, milestones)
       const result = processWorkout({
@@ -167,7 +227,10 @@ const ExerciseDetailScreen: React.FC = () => {
       // Check for level up
       if (result.newLevel > gameState.level) {
         setNewLevel(result.newLevel);
-        setLevelUpVisible(true);
+        setLeveledUp(true);
+        // Don't show level up modal on exercise screen
+        // It will be shown on home screen instead
+        // setLevelUpVisible(true);
       }
 
       return true;
@@ -188,12 +251,16 @@ const ExerciseDetailScreen: React.FC = () => {
   };
 
   const handleStart = () => {
-    if (!running && !hasStarted) {
+    if (!running && !hasStarted && !isTimerForThisExercise) {
       // First time starting - show countdown
       setCountdownVisible(true);
     } else {
       // Resume or pause
-      setRunning((prev) => !prev);
+      if (running) {
+        floatingTimer.pauseTimer();
+      } else {
+        floatingTimer.resumeTimer();
+      }
       if (finished) {
         setFinished(false);
         setEarnedXP(null);
@@ -204,20 +271,35 @@ const ExerciseDetailScreen: React.FC = () => {
   const handleCountdownComplete = () => {
     setCountdownVisible(false);
     setHasStarted(true);
-    setRunning(true);
+    if (exercise && muscle && exerciseId) {
+      floatingTimer.startTimer(exercise.name, muscle, exerciseId);
+    }
   };
 
   const handleReset = () => {
-    setRunning(false);
-    setSeconds(0);
+    floatingTimer.stopTimer(); // Stop completely, not just reset
     setFinished(false);
     setEarnedXP(null);
     setPerformanceFeedback("");
     setHasStarted(false);
   };
 
+  const handleMinimizeAndGoBack = () => {
+    // Minimize the timer first
+    floatingTimer.minimize();
+
+    // Small delay for smooth transition, then navigate back
+    setTimeout(() => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/");
+      }
+    }, 250);
+  };
+
   const handleFinish = async () => {
-    setRunning(false);
+    floatingTimer.pauseTimer();
     setFinished(true);
 
     // MINIMUM TIME GATE — industry-standard anti-cheat
@@ -276,7 +358,41 @@ const ExerciseDetailScreen: React.FC = () => {
     if (earned > 0) {
       playLevelUpSound();
       setSuccessVisible(true);
+
+      // Store workout in session for later animation on home
+      addWorkoutToSession({
+        earnedXP: earned,
+        leveledUp: leveledUp,
+        newLevel: leveledUp ? newLevel : 0,
+      });
     }
+  };
+
+  const formatTimeAgo = (date: Date, lang: string) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return lang === "ar" ? "الآن" : "Just now";
+    if (diffMins < 60)
+      return lang === "ar" ? `منذ ${diffMins} دقيقة` : `${diffMins}m ago`;
+    if (diffHours < 24)
+      return lang === "ar" ? `منذ ${diffHours} ساعة` : `${diffHours}h ago`;
+    if (diffDays < 7)
+      return lang === "ar" ? `منذ ${diffDays} يوم` : `${diffDays}d ago`;
+
+    return date.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -638,6 +754,109 @@ const ExerciseDetailScreen: React.FC = () => {
             )}
           </View>
 
+          {/* Workout History */}
+          <View style={[styles.card, { backgroundColor: C.surface }]}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: C.text,
+                  textAlign: isRTL ? "right" : "left",
+                  fontFamily: fontBold,
+                },
+              ]}
+            >
+              {t(language, "exerciseDetail.workoutHistory")}
+            </Text>
+
+            {historyLoading ? (
+              <View style={styles.historyEmpty}>
+                <Text
+                  style={[
+                    styles.historyEmptyText,
+                    { color: C.textSecondary, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {language === "ar" ? "جاري التحميل..." : "Loading..."}
+                </Text>
+              </View>
+            ) : workoutHistory.length > 0 ? (
+              <View style={styles.historyList}>
+                {workoutHistory.map((log, index) => {
+                  const date = new Date(log.created_at || "");
+                  const timeAgo = formatTimeAgo(date, language);
+                  const duration = formatDuration(log.duration_seconds);
+
+                  return (
+                    <View
+                      key={log.id || index}
+                      style={[
+                        styles.historyItem,
+                        {
+                          backgroundColor: C.background,
+                          borderBottomColor: C.surfaceHighlight,
+                          borderBottomWidth:
+                            index < workoutHistory.length - 1 ? 1 : 0,
+                        },
+                      ]}
+                    >
+                      <View style={styles.historyLeft}>
+                        <View
+                          style={[
+                            styles.historyDot,
+                            { backgroundColor: C.primary },
+                          ]}
+                        />
+                        <View>
+                          <Text
+                            style={[
+                              styles.historyDate,
+                              { color: C.text, fontFamily: fontBold },
+                            ]}
+                          >
+                            {timeAgo}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.historyDuration,
+                              {
+                                color: C.textSecondary,
+                                fontFamily: fontSemibold,
+                              },
+                            ]}
+                          >
+                            {duration}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text
+                        style={[
+                          styles.historyXP,
+                          { color: C.primary, fontFamily: fontBold },
+                        ]}
+                      >
+                        +{log.xp} XP
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.historyEmpty}>
+                <Text
+                  style={[
+                    styles.historyEmptyText,
+                    { color: C.textSecondary, fontFamily: fontSemibold },
+                  ]}
+                >
+                  {language === "ar"
+                    ? "لم تقم بهذا التمرين من قبل"
+                    : "No previous workouts yet"}
+                </Text>
+              </View>
+            )}
+          </View>
+
           <View style={[styles.card, { backgroundColor: C.surface }]}>
             <Text
               style={[
@@ -714,6 +933,28 @@ const ExerciseDetailScreen: React.FC = () => {
                 </Text>
               </Pressable>
             </View>
+            {running && (
+              <Pressable
+                onPress={handleMinimizeAndGoBack}
+                style={[
+                  styles.minimizeButton,
+                  {
+                    backgroundColor: C.surfaceHighlight,
+                    flexDirection: isRTL ? "row-reverse" : "row",
+                  },
+                ]}
+              >
+                <Ionicons name="contract-outline" size={18} color={C.primary} />
+                <Text
+                  style={[
+                    styles.minimizeButtonText,
+                    { color: C.primary, fontFamily: fontBold },
+                  ]}
+                >
+                  {t(language, "exerciseDetail.minimizeTimer")}
+                </Text>
+              </Pressable>
+            )}
             {finished && earnedXP !== null ? (
               <View style={styles.finishedRow}>
                 <Text
@@ -749,11 +990,14 @@ const ExerciseDetailScreen: React.FC = () => {
           performanceFeedback={performanceFeedback}
           onDismiss={() => {
             setSuccessVisible(false);
+            // Navigate back to exercise list to continue workout session
             if (muscle) {
               router.replace({
                 pathname: "/exercise-list",
                 params: { muscle },
               });
+            } else {
+              router.replace("/");
             }
           }}
         />
@@ -971,6 +1215,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
+  minimizeButton: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  minimizeButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
   finishedRow: {
     marginTop: 14,
     padding: 12,
@@ -988,6 +1245,47 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
+  },
+  historyList: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  historyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+  },
+  historyLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  historyDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  historyDate: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  historyDuration: {
+    fontSize: 12,
+  },
+  historyXP: {
+    fontSize: 14,
+  },
+  historyEmpty: {
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  historyEmptyText: {
+    fontSize: 14,
+    textAlign: "center",
   },
 });
 

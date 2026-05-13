@@ -5,7 +5,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import {
     Animated,
     Platform,
@@ -19,6 +19,7 @@ interface MuscleGroupGridProps {
   muscleGroups: MuscleGroup[];
   onPress: (group: MuscleGroup) => void;
   labels?: Record<MuscleGroup, string>;
+  hideTitle?: boolean;
 }
 
 const MUSCLE_ICONS: Record<
@@ -37,40 +38,21 @@ const MUSCLE_ICONS: Record<
   cardio: "run-fast",
 };
 
-const MuscleCard: React.FC<{
+const MuscleCard = React.memo<{
   group: MuscleGroup;
   onPress: () => void;
   isFullWidth?: boolean;
   label?: string;
   index: number;
-}> = ({ group, onPress, isFullWidth = false, label, index }) => {
+}>(({ group, onPress, isFullWidth = false, label, index }) => {
   const C = useColors();
   const { language } = useApp();
   const haptics = useHaptics();
-  const fontSemibold = getFont(language, "semibold");
+  const fontBold = getFont(language, "bold");
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => {
-    // Staggered fade-in and slide-up animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        delay: index * 50,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        delay: index * 50,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   const handlePressIn = () => {
+    haptics.light();
     Animated.spring(scaleAnim, {
       toValue: 0.95,
       useNativeDriver: Platform.OS !== "web",
@@ -90,7 +72,7 @@ const MuscleCard: React.FC<{
     <TouchableOpacity
       activeOpacity={1}
       onPress={() => {
-        haptics.light();
+        haptics.medium();
         onPress();
       }}
       onPressIn={handlePressIn}
@@ -102,8 +84,7 @@ const MuscleCard: React.FC<{
           styles.card,
           {
             backgroundColor: C.surfaceHighlight,
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
+            transform: [{ scale: scaleAnim }],
           },
         ]}
       >
@@ -114,7 +95,7 @@ const MuscleCard: React.FC<{
           style={styles.icon}
         />
         <Text
-          style={[styles.label, { color: C.text, fontFamily: fontSemibold }]}
+          style={[styles.label, { color: C.text, fontFamily: fontBold }]}
           numberOfLines={1}
         >
           {label || group.toUpperCase()}
@@ -122,37 +103,38 @@ const MuscleCard: React.FC<{
       </Animated.View>
     </TouchableOpacity>
   );
-};
+});
 
-export const MuscleGroupGrid: React.FC<MuscleGroupGridProps> = ({
-  muscleGroups,
-  onPress,
-  labels,
-}) => {
-  const C = useColors();
-  const { language } = useApp();
-  return (
-    <View style={styles.container}>
-      <Text style={[styles.title, { color: C.textSecondary }]}>
-        {t(language, "home.muscleGroups")}
-      </Text>
-      <View style={styles.grid}>
-        {muscleGroups.map((group, index) => (
-          <MuscleCard
-            key={group}
-            group={group}
-            index={index}
-            onPress={() => onPress(group)}
-            isFullWidth={
-              index === muscleGroups.length - 1 && muscleGroups.length % 2 !== 0
-            }
-            label={labels?.[group]}
-          />
-        ))}
+export const MuscleGroupGrid = React.memo<MuscleGroupGridProps>(
+  ({ muscleGroups, onPress, labels, hideTitle = false }) => {
+    const C = useColors();
+    const { language } = useApp();
+    return (
+      <View style={styles.container}>
+        {!hideTitle && (
+          <Text style={[styles.title, { color: C.textSecondary }]}>
+            {t(language, "home.muscleGroups")}
+          </Text>
+        )}
+        <View style={styles.grid}>
+          {muscleGroups.map((group, index) => (
+            <MuscleCard
+              key={group}
+              group={group}
+              index={index}
+              onPress={() => onPress(group)}
+              isFullWidth={
+                index === muscleGroups.length - 1 &&
+                muscleGroups.length % 2 !== 0
+              }
+              label={labels?.[group]}
+            />
+          ))}
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {

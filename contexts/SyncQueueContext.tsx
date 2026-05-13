@@ -1,11 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import { useNetwork } from "./NetworkContext";
 
@@ -62,8 +62,6 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => subscription.unsubscribe();
   }, []);
 
-  const user = userId ? { id: userId } : null;
-
   // Load queue from storage
   useEffect(() => {
     loadQueue();
@@ -99,26 +97,31 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const queueOperation = useCallback(
     async (type: SyncOperation["type"], data: any) => {
-      if (!user) return;
+      if (!userId) return;
 
       const operation: SyncOperation = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type,
         data,
         timestamp: Date.now(),
-        userId: user.id,
+        userId: userId,
       };
 
-      const newQueue = [...queue, operation];
-      await saveQueue(newQueue);
+      setQueue((prevQueue) => {
+        const newQueue = [...prevQueue, operation];
+        // Save asynchronously without blocking
+        AsyncStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(newQueue)).catch(
+          (error) => console.error("Failed to save sync queue:", error),
+        );
+        return newQueue;
+      });
 
       // If online, try to sync immediately
       if (isOnline) {
         setTimeout(() => syncNow(), 100);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, queue, isOnline],
+    [userId, isOnline],
   );
 
   const processOperation = async (
@@ -127,10 +130,18 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       switch (operation.type) {
         case "workout_log": {
+          console.log("Processing workout_log operation:", operation.data);
           const { error } = await supabase
             .from("workout_logs")
             .insert(operation.data);
-          return !error;
+
+          if (error) {
+            console.error("Error inserting workout log:", error);
+            return false;
+          }
+
+          console.log("Workout log inserted successfully");
+          return true;
         }
 
         case "xp_update": {
@@ -147,12 +158,26 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
             data: operation.data,
           });
 
-          // Also sync username to game_states if it changed
-          if (!authError && operation.data.username) {
-            await supabase
-              .from("game_states")
-              .update({ username: operation.data.username.toLowerCase() })
-              .eq("user_id", operation.userId);
+          // Sync relevant fields to game_states for admin dashboard access
+          if (!authError) {
+            const updateData: any = {};
+
+            if (operation.data.username) {
+              updateData.username = operation.data.username.toLowerCase();
+            }
+            if (operation.data.gender !== undefined) {
+              updateData.gender = operation.data.gender;
+            }
+            if (operation.data.profile_image !== undefined) {
+              updateData.profile_image = operation.data.profile_image;
+            }
+
+            if (Object.keys(updateData).length > 0) {
+              await supabase
+                .from("game_states")
+                .update(updateData)
+                .eq("user_id", operation.userId);
+            }
           }
 
           return !authError;
@@ -192,7 +217,11 @@ export const SyncQueueProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      await saveQueue(remainingQueue);
+      setQueue(remainingQueue);
+      AsyncStorage.setItem(
+        SYNC_QUEUE_KEY,
+        JSON.stringify(remainingQueue),
+      ).catch((error) => console.error("Failed to save sync queue:", error));
       setLastSyncTime(Date.now());
     } catch (error) {
       console.error("Sync failed:", error);

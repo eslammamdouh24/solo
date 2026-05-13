@@ -6,10 +6,20 @@ export const useFloatingXP = () => {
   const [floatingMessage, setFloatingMessage] = useState<string | null>(null);
   const floatAnim = useRef(new Animated.Value(0)).current;
   const floatOpacity = useRef(new Animated.Value(0)).current;
+  const isAnimatingRef = useRef(false);
+  const queueRef = useRef<Array<{ amount: number; messages: string[] }>>([]);
 
-  const showFloatingXP = (amount: number, messages: string[] = []) => {
-    setFloatingXP(amount);
-    setFloatingMessage(messages.length > 0 ? messages.join("\n") : null);
+  const processQueue = () => {
+    if (isAnimatingRef.current || queueRef.current.length === 0) return;
+
+    const next = queueRef.current.shift();
+    if (!next) return;
+
+    isAnimatingRef.current = true;
+    setFloatingXP(next.amount);
+    setFloatingMessage(
+      next.messages.length > 0 ? next.messages.join("\n") : null,
+    );
     floatAnim.setValue(0);
     floatOpacity.setValue(1);
 
@@ -27,11 +37,29 @@ export const useFloatingXP = () => {
     ]).start(() => {
       setFloatingXP(null);
       setFloatingMessage(null);
+      isAnimatingRef.current = false;
+      // Process next item in queue after a short delay
+      setTimeout(processQueue, 100);
     });
+  };
+
+  const showFloatingXP = (amount: number, messages: string[] = []) => {
+    queueRef.current.push({ amount, messages });
+    processQueue();
+  };
+
+  const clearQueue = () => {
+    queueRef.current = [];
+    setFloatingXP(null);
+    setFloatingMessage(null);
+    isAnimatingRef.current = false;
   };
 
   const FloatingXPComponent = () => {
     if (floatingXP === null) return null;
+
+    const isPositive = floatingXP > 0;
+    const sign = isPositive ? "+" : "";
 
     return (
       <Animated.Text
@@ -41,17 +69,18 @@ export const useFloatingXP = () => {
           alignSelf: "center",
           fontSize: 16,
           fontWeight: "800",
-          color: "#A855F7",
+          color: isPositive ? "#A855F7" : "#EF4444",
           letterSpacing: 1,
           opacity: floatOpacity,
           transform: [{ translateY: floatAnim }],
         }}
       >
-        +{floatingXP} XP
+        {sign}
+        {floatingXP} XP
         {floatingMessage && `\n${floatingMessage}`}
       </Animated.Text>
     );
   };
 
-  return { FloatingXPComponent, showFloatingXP };
+  return { FloatingXPComponent, showFloatingXP, clearQueue };
 };

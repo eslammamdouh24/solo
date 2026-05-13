@@ -1,4 +1,5 @@
 import { AnimatedEntry } from "@/components/AnimatedEntry";
+import { DefaultAvatar } from "@/components/DefaultAvatar";
 import { Skeleton } from "@/components/Skeleton";
 import { TopBar } from "@/components/TopBar";
 import { Colors } from "@/constants/colors";
@@ -23,7 +24,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 // Error-only notification (success is reflected optimistically in UI)
@@ -44,6 +45,8 @@ interface UserData {
   role: string;
   session_count: number;
   created_at: string;
+  gender?: string;
+  profile_image?: string;
 }
 
 interface AppStats {
@@ -81,13 +84,17 @@ export default function AdminScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all");
+  const hasRedirectChecked = React.useRef(false);
 
-  // Redirect only once admin status has been verified
+  // Redirect to home if not admin (only on initial mount)
   useEffect(() => {
-    if (adminChecked && !isAdmin) {
-      router.replace("/");
+    if (adminChecked && !hasRedirectChecked.current) {
+      hasRedirectChecked.current = true;
+      if (!isAdmin) {
+        router.replace("/");
+      }
     }
-  }, [adminChecked, isAdmin]);
+  }, [adminChecked, isAdmin, router]);
 
   const computeStats = (list: UserData[]): AppStats => {
     const totalUsers = list.length;
@@ -136,11 +143,11 @@ export default function AdminScreen() {
 
   const loadData = async () => {
     try {
-      // Single query — derive all stats from users list (no separate workout_logs fetch)
+      // Fetch game states with profile data
       const { data: usersData, error: usersError } = await supabase
         .from("game_states")
         .select(
-          "user_id, username, email, level, xp, role, session_count, created_at",
+          "user_id, username, email, level, xp, role, session_count, created_at, gender, profile_image",
         )
         .order("level", { ascending: false })
         .order("xp", { ascending: false });
@@ -176,13 +183,26 @@ export default function AdminScreen() {
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return users.filter((u) => {
+    const filtered = users.filter((u) => {
       if (roleFilter !== "all" && u.role !== roleFilter) return false;
       if (!q) return true;
       return (
         (u.username || "").toLowerCase().includes(q) ||
         (u.email || "").toLowerCase().includes(q)
       );
+    });
+
+    // Sort: admins first, then by level (desc), then by XP (desc)
+    return filtered.sort((a, b) => {
+      // Admin users always come first
+      if (a.role === "admin" && b.role !== "admin") return -1;
+      if (a.role !== "admin" && b.role === "admin") return 1;
+
+      // If same role, sort by level
+      if (b.level !== a.level) return b.level - a.level;
+
+      // If same level, sort by XP
+      return b.xp - a.xp;
     });
   }, [users, search, roleFilter]);
 
@@ -664,6 +684,11 @@ export default function AdminScreen() {
               ]}
             >
               <View style={styles.userHeader}>
+                <DefaultAvatar
+                  size={50}
+                  gender={userData.gender}
+                  imageUri={userData.profile_image}
+                />
                 <View style={styles.userInfo}>
                   <View style={styles.userTitleRow}>
                     <Text
@@ -857,8 +882,8 @@ const styles = StyleSheet.create({
   },
   userHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-start",
+    gap: Spacing.md,
   },
   userInfo: {
     flex: 1,

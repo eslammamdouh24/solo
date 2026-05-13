@@ -20,7 +20,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Animated, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
@@ -46,7 +46,7 @@ export default function DashboardScreen() {
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) {
       setLoading(false);
       setRefreshing(false);
@@ -74,7 +74,7 @@ export default function DashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     loadData();
@@ -90,17 +90,17 @@ export default function DashboardScreen() {
     }
   }, [loading, stats]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useCallback((seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
-  };
+  }, []);
 
   if (loading) {
     return (

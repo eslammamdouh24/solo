@@ -3,7 +3,13 @@ import { useColors } from "@/hooks/useColors";
 import { getGameState, invalidateGameState } from "@/lib/stateApi";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { Platform } from "react-native";
 
 interface AuthContextType {
@@ -472,25 +478,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const updateProfile = async (data: Record<string, any>) => {
-    try {
-      // Queue profile update (works offline)
-      await queueOperation("profile_update", data);
+  const updateProfile = useCallback(
+    async (data: Record<string, any>) => {
+      try {
+        // Queue profile update (works offline)
+        await queueOperation("profile_update", data);
 
-      // Update local user state immediately for better UX
-      if (user) {
-        setUser({
-          ...user,
-          user_metadata: {
-            ...user.user_metadata,
-            ...data,
-          },
+        // Update local user state immediately for better UX
+        setUser((prevUser) => {
+          if (!prevUser) return prevUser;
+          return {
+            ...prevUser,
+            user_metadata: {
+              ...prevUser.user_metadata,
+              ...data,
+            },
+          };
         });
+      } catch (error: any) {
+        throw new Error(error.message || "Failed to queue profile update");
       }
-    } catch (error: any) {
-      throw new Error(error.message || "Failed to queue profile update");
-    }
-  };
+    },
+    [queueOperation],
+  );
 
   const checkAdminStatus = async () => {
     if (!user) {

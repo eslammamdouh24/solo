@@ -50,9 +50,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         scaleAnim.setValue(0);
         fadeAnim.setValue(0);
 
-        // Play sound for GO!
-        playXPSound();
-
+        // GO! animation
         Animated.sequence([
           Animated.parallel([
             Animated.spring(scaleAnim, {
@@ -92,11 +90,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       }
 
       setCount(currentCount);
-
-      // Play tick sound
-      if (currentCount <= 3) {
-        playXPSound();
-      }
 
       // Reset animations
       scaleAnim.setValue(0);

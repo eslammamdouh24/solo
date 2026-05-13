@@ -377,6 +377,7 @@ export const translations = {
       reset: "Reset",
       finish: "Finish",
       finished: "Finished",
+      minimizeTimer: "Minimize & Back",
       exerciseLogged: "Exercise Logged",
       logExercise: "Log Exercise",
       exerciseNotFound: "Exercise not found.",
@@ -394,6 +395,7 @@ export const translations = {
       tooFast: "Too Fast! ⚡",
       perfectTiming: "Perfect Timing! 💪",
       completed: "Completed! ✅",
+      workoutHistory: "Workout History",
     },
     // Equipment names
     equipmentNames: {
@@ -865,6 +867,7 @@ export const translations = {
       reset: "إعادة",
       finish: "خلّص",
       finished: "خلص",
+      minimizeTimer: "صغّر وارجع",
       exerciseLogged: "التمرين اتسجل",
       logExercise: "سجّل التمرين",
       exerciseNotFound: "التمرين مش موجود.",
@@ -882,6 +885,7 @@ export const translations = {
       tooFast: "سريع أوي! ⚡",
       perfectTiming: "توقيت مثالي! 💪",
       completed: "خلص! ✅",
+      workoutHistory: "سجل التمارين",
     },
     // Equipment names
     equipmentNames: {

@@ -163,7 +163,7 @@ function SideDrawer({ visible, onClose }: SideDrawerProps) {
     {
       icon: "view-dashboard",
       label: t(language, "nav.dashboard") || "Dashboard",
-      onPress: () => go("/"),
+      onPress: () => go("/dashboard"),
     },
     {
       icon: "trophy",

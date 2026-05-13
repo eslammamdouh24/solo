@@ -1,15 +1,16 @@
 import { isRTL as checkRTL, isWeb } from "@/constants/enums";
 import { FontSize } from "@/constants/font-size";
-import { fonts, getFont } from "@/constants/fonts";
+import { getFont } from "@/constants/fonts";
 import { BorderRadius, Spacing } from "@/constants/spacing";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
+import { useFloatingTimer } from "@/contexts/FloatingTimerContext";
 import { useNetwork } from "@/contexts/NetworkContext";
 import { useSideDrawer } from "@/contexts/SideDrawerContext";
 import { useColors } from "@/hooks/useColors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React from "react";
+import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import React, { useRef } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface TopBarProps {
@@ -18,120 +19,168 @@ interface TopBarProps {
   title?: string;
 }
 
-export function TopBar({
-  showBack = false,
-  hideLogo = false,
-  title,
-}: TopBarProps) {
-  const { language } = useApp();
-  const { isOnline } = useNetwork();
-  const { open: openDrawer } = useSideDrawer();
-  const C = useColors();
-  const router = useRouter();
-  const isRTL = checkRTL(language);
-  const fontBlack = getFont(language, "black");
+export const TopBar = React.memo<TopBarProps>(
+  ({ showBack = false, hideLogo = false, title }) => {
+    const { language } = useApp();
+    const { isOnline } = useNetwork();
+    const { open: openDrawer } = useSideDrawer();
+    const floatingTimer = useFloatingTimer();
+    const pathname = usePathname();
+    const params = useLocalSearchParams();
+    const C = useColors();
+    const router = useRouter();
+    const isRTL = checkRTL(language);
+    const fontBlack = getFont(language, "black");
+    const isNavigatingRef = useRef(false);
 
-  return (
-    <View style={[styles.wrapper, { backgroundColor: C.background }]}>
-      <View
-        style={[
-          styles.container,
-          { flexDirection: isRTL ? "row-reverse" : "row" },
-        ]}
-      >
-        {/* Left side: Back arrow + SOLO logo + slogan */}
+    const handleBackPress = () => {
+      // Prevent multiple rapid clicks
+      if (isNavigatingRef.current) return;
+      isNavigatingRef.current = true;
+
+      // Reset after navigation completes
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
+
+      // Special handling for exercise-detail screen
+      if (pathname === "/exercise-detail") {
+        // Auto-minimize timer if running
+        if (
+          floatingTimer.exerciseName &&
+          floatingTimer.running &&
+          !floatingTimer.isMinimized
+        ) {
+          floatingTimer.minimize();
+          // Go directly to dashboard to see floating timer
+          router.replace("/");
+          return;
+        }
+
+        // No timer running - go back to exercise list
+        const muscle = params.muscle as string;
+        if (muscle) {
+          router.replace({
+            pathname: "/exercise-list",
+            params: { muscle },
+          });
+          return;
+        }
+      }
+
+      // Special handling for exercise-list screen - go directly to dashboard
+      if (pathname === "/exercise-list") {
+        router.replace("/");
+        return;
+      }
+
+      // Normal back navigation for other screens
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/");
+      }
+    };
+
+    return (
+      <View style={[styles.wrapper, { backgroundColor: C.background }]}>
         <View
           style={[
-            styles.leftSide,
+            styles.container,
             { flexDirection: isRTL ? "row-reverse" : "row" },
           ]}
         >
-          {showBack && (
-            <TouchableOpacity
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("/");
-                }
-              }}
-              style={styles.backButton}
-              hitSlop={8}
+          {/* Left side: Back arrow + SOLO logo + slogan */}
+          <View
+            style={[
+              styles.leftSide,
+              { flexDirection: isRTL ? "row-reverse" : "row" },
+            ]}
+          >
+            {showBack && (
+              <TouchableOpacity
+                onPress={handleBackPress}
+                style={styles.backButton}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                activeOpacity={0.6}
+              >
+                <MaterialCommunityIcons
+                  name={isRTL ? "arrow-right" : "arrow-left"}
+                  size={22}
+                  color={C.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
+            {!hideLogo && (
+              <TouchableOpacity
+                onPress={() => router.push("/")}
+                activeOpacity={0.7}
+                style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}
+              >
+                <Text
+                  style={[
+                    styles.logoText,
+                    { color: C.primary, fontFamily: fontBlack },
+                  ]}
+                >
+                  SOLO
+                </Text>
+                <Text style={[styles.sloganText, { color: C.gold }]}>
+                  {t(language, "auth.slogan")}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Center: Offline indicator only */}
+          {!isOnline && (
+            <View
+              style={[styles.syncStatus, { backgroundColor: C.error + "20" }]}
             >
               <MaterialCommunityIcons
-                name={isRTL ? "arrow-right" : "arrow-left"}
-                size={22}
-                color={C.textSecondary}
+                name="cloud-off-outline"
+                size={14}
+                color={C.error}
               />
-            </TouchableOpacity>
+              <Text style={[styles.syncText, { color: C.error }]}>Offline</Text>
+            </View>
           )}
-          {!hideLogo && (
-            <TouchableOpacity
-              onPress={() => router.push("/")}
-              activeOpacity={0.7}
-              style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}
-            >
-              <Text
-                style={[
-                  styles.logoText,
-                  { color: C.primary, fontFamily: fontBlack },
-                ]}
-              >
-                SOLO
-              </Text>
-              <Text style={[styles.sloganText, { color: C.gold }]}>
-                {t(language, "auth.slogan")}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Center: Offline indicator only */}
-        {!isOnline && (
+          {/* Spacer to keep burger menu position consistent */}
+          <View style={{ flex: 1 }} />
+          {/* Right side: Hamburger menu */}
           <View
-            style={[styles.syncStatus, { backgroundColor: C.error + "20" }]}
+            style={[
+              styles.rightSide,
+              { flexDirection: isRTL ? "row-reverse" : "row" },
+            ]}
           >
-            <MaterialCommunityIcons
-              name="cloud-off-outline"
-              size={14}
-              color={C.error}
-            />
-            <Text style={[styles.syncText, { color: C.error }]}>Offline</Text>
+            <TouchableOpacity
+              onPress={openDrawer}
+              style={[styles.iconOnlyButton]}
+              hitSlop={8}
+              activeOpacity={0.6}
+              accessibilityLabel="Open menu"
+            >
+              <MaterialCommunityIcons name="menu" size={24} color={C.text} />
+            </TouchableOpacity>
           </View>
-        )}
-        {/* Spacer to keep burger menu position consistent */}
-        <View style={{ flex: 1 }} />
-        {/* Right side: Hamburger menu */}
-        <View
-          style={[
-            styles.rightSide,
-            { flexDirection: isRTL ? "row-reverse" : "row" },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={openDrawer}
-            style={[styles.iconOnlyButton]}
-            hitSlop={8}
-            activeOpacity={0.6}
-            accessibilityLabel="Open menu"
-          >
-            <MaterialCommunityIcons name="menu" size={24} color={C.text} />
-          </TouchableOpacity>
         </View>
+        {title ? (
+          <Text
+            style={[
+              styles.screenTitle,
+              { color: C.text, fontFamily: fontBlack },
+            ]}
+          >
+            {title}
+          </Text>
+        ) : null}
       </View>
-      {title ? (
-        <Text
-          style={[
-            styles.screenTitle,
-            { color: C.text, fontFamily: fonts.en.black },
-          ]}
-        >
-          {title}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
+    );
+  },
+);
+
+TopBar.displayName = "TopBar";
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -177,7 +226,7 @@ const styles = StyleSheet.create({
   },
   iconOnlyButton: {
     padding: 8,
-    borderRadius: BorderRadius.round,
+    borderRadius: BorderRadius.full,
     justifyContent: "center",
     alignItems: "center",
   },

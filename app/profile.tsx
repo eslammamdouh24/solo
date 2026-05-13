@@ -23,7 +23,7 @@ import { uploadAvatarToStorage } from "@/lib/profileApi";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -78,73 +78,20 @@ export default function ProfileScreen() {
     setImageError(false);
   }, [user?.user_metadata?.profile_image]);
 
-  if (gameState.loading) {
-    return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: C.background }]}
-      >
-        <TopBar title={t(language, "profile.title")} showBack />
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}
-        >
-          {/* Avatar + Name skeleton */}
-          <View style={{ alignItems: "center", gap: Spacing.sm }}>
-            <Skeleton width={100} height={100} borderRadius={50} />
-            <Skeleton width={150} height={24} borderRadius={8} />
-            <Skeleton width={200} height={14} borderRadius={6} />
-          </View>
+  // Profile data is automatically synced when user saves profile or uploads image
+  // No need for auto-sync on mount as it causes duplicate API calls
 
-          {/* Stats cards skeleton - 3 in a row */}
-          <View style={{ gap: Spacing.md }}>
-            <View style={{ flexDirection: "row", gap: Spacing.sm }}>
-              <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={BorderRadius.md} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={BorderRadius.md} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Skeleton height={80} borderRadius={BorderRadius.md} />
-              </View>
-            </View>
-            
-            {/* Edit button skeleton */}
-            <Skeleton height={48} borderRadius={BorderRadius.md} />
-            
-            {/* Settings sections skeleton */}
-            <View style={{ gap: Spacing.sm, marginTop: Spacing.md }}>
-              <Skeleton height={60} borderRadius={BorderRadius.md} />
-              <Skeleton height={60} borderRadius={BorderRadius.md} />
-              <Skeleton height={60} borderRadius={BorderRadius.md} />
-              <Skeleton height={120} borderRadius={BorderRadius.md} />
-              <Skeleton height={60} borderRadius={BorderRadius.md} />
-            </View>
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  const totalStats =
-    gameState.strength + gameState.endurance + gameState.discipline;
-  const accountAge = user?.created_at
-    ? Math.floor(
-        (Date.now() - new Date(user.created_at).getTime()) /
-          (1000 * 60 * 60 * 24),
-      )
-    : 0;
-
-  const handleSignOut = async () => {
+  // All hooks must be called before any conditional returns
+  const handleSignOut = useCallback(async () => {
     try {
       await signOut();
       router.replace("/auth");
     } catch (error) {
       console.error("Sign out error:", error);
     }
-  };
+  }, [signOut, router]);
 
-  const handleResetProgress = async () => {
+  const handleResetProgress = useCallback(async () => {
     try {
       await gameState.resetProgress();
       Alert.alert(
@@ -157,9 +104,9 @@ export default function ProfileScreen() {
         t(language, "profile.resetError"),
       );
     }
-  };
+  }, [gameState, language]);
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = useCallback(async () => {
     try {
       await deleteAccount();
       router.replace("/auth");
@@ -169,9 +116,9 @@ export default function ProfileScreen() {
         error.message || t(language, "profile.deleteError"),
       );
     }
-  };
+  }, [deleteAccount, router, language]);
 
-  const confirmReset = async () => {
+  const confirmReset = useCallback(async () => {
     const ok = await confirm({
       title: t(language, "profile.resetTitle"),
       message: t(language, "profile.resetMessage"),
@@ -182,9 +129,9 @@ export default function ProfileScreen() {
       iconColor: Colors.warning,
     });
     if (ok) handleResetProgress();
-  };
+  }, [confirm, language, handleResetProgress]);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     const ok = await confirm({
       title: t(language, "profile.deleteTitle"),
       message: t(language, "profile.deleteMessage"),
@@ -195,9 +142,9 @@ export default function ProfileScreen() {
       iconColor: Colors.error,
     });
     if (ok) handleDeleteAccount();
-  };
+  }, [confirm, language, handleDeleteAccount]);
 
-  const handlePickImage = async () => {
+  const handlePickImage = useCallback(async () => {
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -237,9 +184,9 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error("Image picker error:", error);
     }
-  };
+  }, [language, user?.id, updateProfile]);
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = useCallback(async () => {
     setSaving(true);
     try {
       await updateProfile({
@@ -260,7 +207,75 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [
+    updateProfile,
+    editUsername,
+    editFullName,
+    editBirthDay,
+    editBirthMonth,
+    editBirthYear,
+    editGender,
+    user?.email,
+    language,
+  ]);
+
+  if (gameState.loading) {
+    return (
+      <View
+        style={[styles.loadingContainer, { backgroundColor: C.background }]}
+      >
+        <TopBar title={t(language, "profile.title")} showBack />
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}
+        >
+          {/* Avatar + Name skeleton */}
+          <View style={{ alignItems: "center", gap: Spacing.sm }}>
+            <Skeleton width={100} height={100} borderRadius={50} />
+            <Skeleton width={150} height={24} borderRadius={8} />
+            <Skeleton width={200} height={14} borderRadius={6} />
+          </View>
+
+          {/* Stats cards skeleton - 3 in a row */}
+          <View style={{ gap: Spacing.md }}>
+            <View style={{ flexDirection: "row", gap: Spacing.sm }}>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Skeleton height={80} borderRadius={BorderRadius.md} />
+              </View>
+            </View>
+
+            {/* Edit button skeleton */}
+            <Skeleton height={48} borderRadius={BorderRadius.md} />
+
+            {/* Settings sections skeleton */}
+            <View style={{ gap: Spacing.sm, marginTop: Spacing.md }}>
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+              <Skeleton height={120} borderRadius={BorderRadius.md} />
+              <Skeleton height={60} borderRadius={BorderRadius.md} />
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  const totalStats =
+    gameState.strength + gameState.endurance + gameState.discipline;
+
+  const accountAge = user?.created_at
+    ? Math.floor(
+        (Date.now() - new Date(user.created_at).getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
+    : 0;
 
   const meta = user?.user_metadata || {};
 

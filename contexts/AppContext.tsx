@@ -7,6 +7,12 @@ import { Language, Theme } from "@/constants/enums";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+export interface WorkoutSessionData {
+  earnedXP: number;
+  leveledUp: boolean;
+  newLevel: number;
+}
+
 interface AppContextType {
   theme: Theme;
   language: Language;
@@ -16,6 +22,10 @@ interface AppContextType {
   setLanguage: (lang: Language) => void;
   setAccent: (accent: AccentThemeId) => void;
   setSoundEnabled: (enabled: boolean) => void;
+  // Workout session tracking
+  workoutSession: WorkoutSessionData[];
+  addWorkoutToSession: (data: WorkoutSessionData) => void;
+  clearWorkoutSession: () => void;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -27,6 +37,9 @@ const AppContext = createContext<AppContextType>({
   setLanguage: () => {},
   setAccent: () => {},
   setSoundEnabled: () => {},
+  workoutSession: [],
+  addWorkoutToSession: () => {},
+  clearWorkoutSession: () => {},
 });
 
 export const useApp = () => {
@@ -45,6 +58,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [accent, setAccentState] = useState<AccentThemeId>(DEFAULT_ACCENT);
   const [soundEnabled, setSoundEnabledState] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [workoutSession, setWorkoutSession] = useState<WorkoutSessionData[]>(
+    [],
+  );
 
   useEffect(() => {
     // Load saved preferences
@@ -110,6 +126,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const addWorkoutToSession = (data: WorkoutSessionData) => {
+    setWorkoutSession((prev) => [...prev, data]);
+  };
+
+  const clearWorkoutSession = () => {
+    setWorkoutSession([]);
+  };
+
   if (!isReady) {
     return null; // or a loading screen
   }
@@ -125,6 +149,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setLanguage,
         setAccent,
         setSoundEnabled,
+        workoutSession,
+        addWorkoutToSession,
+        clearWorkoutSession,
       }}
     >
       {children}

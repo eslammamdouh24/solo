@@ -38,23 +38,38 @@ import {
     safeNumber,
 } from "@/utils/xpCalculations";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, {
+    useCallback,
+    useMemo
+} from "react";
 import {
     Image,
+    LayoutAnimation,
+    Platform,
     Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
+    UIManager,
     View,
 } from "react-native";
+
+// Enable LayoutAnimation for Android
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function HomeScreen() {
   // Custom hooks
   const router = useRouter();
-  const { language } = useApp();
+  const params = useLocalSearchParams();
+  const { language, workoutSession, clearWorkoutSession } = useApp();
   const { user } = useAuth();
   const C = useColors();
   const isRTL = language === "ar";
@@ -63,19 +78,25 @@ export default function HomeScreen() {
   const fontBold = getFont(language, "bold");
   const fontBlack = getFont(language, "black");
   const gameState = useGameStateWithDB();
+
+  // Profile data is now synced only when user updates their profile
+  // This prevents duplicate API calls on mount/refresh
   const diminishingReturns = useDiminishingReturns();
   const { playXPSound, playLevelUpSound } = useSound();
-  const { FloatingXPComponent, showFloatingXP } = useFloatingXP();
+  const { FloatingXPComponent, showFloatingXP, clearQueue } = useFloatingXP();
   const [refreshing, setRefreshing] = React.useState(false);
   const [headerImageError, setHeaderImageError] = React.useState(false);
   const [stretchingDone, setStretchingDone] = React.useState(false);
   const stretchingBonusGiven = React.useRef(false);
+  const [statsCollapsed, setStatsCollapsed] = React.useState(false);
+  const [musclesCollapsed, setMusclesCollapsed] = React.useState(false);
   const [toastVisible, setToastVisible] = React.useState(false);
   const [milestoneVisible, setMilestoneVisible] = React.useState(false);
   const [milestoneLevel, setMilestoneLevel] = React.useState(0);
   const [levelUpVisible, setLevelUpVisible] = React.useState(false);
   const [newLevel, setNewLevel] = React.useState(0);
   const penaltyApplied = React.useRef(false);
+  const sessionAnimationShown = React.useRef(false);
 
   // No useFocusEffect refetch: the shared cache in lib/stateApi + the hook's
   // in-memory cache already serve cached data instantly. Mutations that change
@@ -114,133 +135,206 @@ export default function HomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.lastWorkoutDate, gameState.loading]);
 
+  // Show accumulated XP animations when returning to home after workout session
+  React.useEffect(() => {
+    if (
+      workoutSession.length > 0 &&
+      !sessionAnimationShown.current &&
+      !gameState.loading
+    ) {
+      sessionAnimationShown.current = true;
+
+      // Calculate total XP and check for level ups
+      const totalXP = workoutSession.reduce((sum, w) => sum + w.earnedXP, 0);
+      const didLevelUp = workoutSession.some((w) => w.leveledUp);
+      const finalLevel = workoutSession.reduce(
+        (max, w) => (w.leveledUp && w.newLevel > max ? w.newLevel : max),
+        0,
+      );
+
+      // Small delay to let screen settle
+      setTimeout(() => {
+        playXPSound();
+
+        // Show floating XP with number of workouts completed
+        const workoutCount = workoutSession.length;
+        const workoutText =
+          workoutCount === 1
+            ? language === "ar"
+              ? "تمرين واحد"
+              : "1 workout"
+            : `${workoutCount} ${t(language, "dashboard.workouts")}`;
+
+        showFloatingXP(totalXP, [
+          t(language, "exerciseDetail.completed"),
+          workoutText,
+          `+${totalXP} XP`,
+        ]);
+
+        // Show level up celebration if leveled up
+        if (didLevelUp && finalLevel > 0) {
+          setTimeout(() => {
+            playLevelUpSound();
+            setNewLevel(finalLevel);
+            setLevelUpVisible(true);
+          }, 1500); // Show after XP animation
+        }
+
+        // Clear workout session after showing animations
+        clearWorkoutSession();
+
+        // Reset flag for next session
+        setTimeout(() => {
+          sessionAnimationShown.current = false;
+        }, 3000);
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutSession.length, gameState.loading]);
+
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     await gameState.refetch();
     setRefreshing(false);
   }, [gameState.refetch]);
 
-  const handleLogWorkout = (muscleGroup: MuscleGroup) => {
-    const {
-      level,
-      xp,
-      strength,
-      discipline,
-      currentStreak,
-      dailyBonusClaimed,
-      sessionCount,
-      setDailyBonusClaimed,
-      setSessionCount,
-    } = gameState;
-
-    // Calculate base XP with diminishing returns
-    const dimMultiplier = diminishingReturns.calculateMultiplier(muscleGroup);
-    const exercises = EXERCISES[muscleGroup];
-    let baseXP = exercises.reduce((acc) => acc + calculateXP(60, 10, 3), 0);
-    baseXP = Math.floor(baseXP * dimMultiplier);
-
-    // Calculate bonuses
-    const statBonus = calculateStatBonus(strength);
-    const { xp: sessionXP, messages } = calculateBonuses({
-      baseXP,
-      currentStreak,
-      statBonus,
-      discipline,
-      dailyBonusClaimed,
-      sessionCount,
-      setDailyBonusClaimed,
-      setSessionCount,
-      language,
-    });
-
-    // Process workout results
-    const result = processWorkout({
-      sessionXP,
-      currentState: {
-        xp,
+  const handleLogWorkout = useCallback(
+    (muscleGroup: MuscleGroup) => {
+      const {
         level,
-        skillPoints: gameState.skillPoints,
+        xp,
+        strength,
         discipline,
         currentStreak,
         dailyBonusClaimed,
-      },
-      setDailyBonusClaimed,
-    });
+        sessionCount,
+        setDailyBonusClaimed,
+        setSessionCount,
+      } = gameState;
 
-    // Check for milestone bonus XP and add it to the result
-    let finalXp = result.newXp;
-    if (result.milestoneReached && result.milestoneLevel) {
-      const bonusXP = getMilestoneBonusXP(result.milestoneLevel);
-      finalXp += bonusXP;
-    }
+      // Calculate base XP with diminishing returns
+      const dimMultiplier = diminishingReturns.calculateMultiplier(muscleGroup);
+      const exercises = EXERCISES[muscleGroup];
+      let baseXP = exercises.reduce((acc) => acc + calculateXP(60, 10, 3), 0);
+      baseXP = Math.floor(baseXP * dimMultiplier);
 
-    // Batch update: single DB write with all values
-    const statGains = getStatGains(muscleGroup);
-    const newStreak = calculateNewStreak(
-      gameState.lastWorkoutDate,
-      currentStreak,
-    );
-    const today = getToday();
+      // Calculate bonuses
+      const statBonus = calculateStatBonus(strength);
+      const { xp: sessionXP, messages } = calculateBonuses({
+        baseXP,
+        currentStreak,
+        statBonus,
+        discipline,
+        dailyBonusClaimed,
+        sessionCount,
+        setDailyBonusClaimed,
+        setSessionCount,
+        language,
+      });
 
-    gameState.batchUpdate({
-      level: result.newLevel,
-      xp: finalXp,
-      skillPoints: result.newSkillPoints,
-      strength: gameState.strength + statGains.strength,
-      endurance: gameState.endurance + statGains.endurance,
-      discipline: discipline + statGains.discipline,
-      currentStreak: newStreak,
-      lastWorkoutDate: today,
-    });
+      // Process workout results
+      const result = processWorkout({
+        sessionXP,
+        currentState: {
+          xp,
+          level,
+          skillPoints: gameState.skillPoints,
+          discipline,
+          currentStreak,
+          dailyBonusClaimed,
+        },
+        setDailyBonusClaimed,
+      });
 
-    if (result.newLevel > level) {
-      playLevelUpSound();
-      // Show level-up celebration
-      setNewLevel(result.newLevel);
-      setLevelUpVisible(true);
-    } else if (sessionXP > 0) {
-      playXPSound();
-    }
+      // Check for milestone bonus XP and add it to the result
+      let finalXp = result.newXp;
+      if (result.milestoneReached && result.milestoneLevel) {
+        const bonusXP = getMilestoneBonusXP(result.milestoneLevel);
+        finalXp += bonusXP;
+      }
 
-    // Check for milestone
-    if (result.milestoneReached && result.milestoneLevel) {
-      setMilestoneLevel(result.milestoneLevel);
-      setMilestoneVisible(true);
-    }
+      // Batch update: single DB write with all values
+      const statGains = getStatGains(muscleGroup);
+      const newStreak = calculateNewStreak(
+        gameState.lastWorkoutDate,
+        currentStreak,
+      );
+      const today = getToday();
 
-    // Show feedback
-    showFloatingXP(sessionXP, [...messages, ...result.messages]);
-  };
+      gameState.batchUpdate({
+        level: result.newLevel,
+        xp: finalXp,
+        skillPoints: result.newSkillPoints,
+        strength: gameState.strength + statGains.strength,
+        endurance: gameState.endurance + statGains.endurance,
+        discipline: discipline + statGains.discipline,
+        currentStreak: newStreak,
+        lastWorkoutDate: today,
+      });
+
+      if (result.newLevel > level) {
+        playLevelUpSound();
+        // Show level-up celebration
+        setNewLevel(result.newLevel);
+        setLevelUpVisible(true);
+      } else if (sessionXP > 0) {
+        playXPSound();
+      }
+
+      // Check for milestone
+      if (result.milestoneReached && result.milestoneLevel) {
+        setMilestoneLevel(result.milestoneLevel);
+        setMilestoneVisible(true);
+      }
+
+      // Show feedback
+      showFloatingXP(sessionXP, [...messages, ...result.messages]);
+    },
+    [
+      gameState,
+      diminishingReturns,
+      playXPSound,
+      playLevelUpSound,
+      showFloatingXP,
+      language,
+    ],
+  );
 
   const safeXP = safeNumber(gameState.xp, 0, 0);
   const safeLevel = safeNumber(gameState.level, 1, 1);
   const safeRequiredXP = getRequiredXP(safeLevel);
 
-  const muscleGroups: MuscleGroup[] = [
-    "chest",
-    "waist_core",
-    "back",
-    "shoulders",
-    "upper_legs",
-    "lower_legs",
-    "biceps",
-    "triceps",
-    "lower_arms",
-    "cardio",
-  ];
+  const muscleGroups = useMemo<MuscleGroup[]>(
+    () => [
+      "chest",
+      "waist_core",
+      "back",
+      "shoulders",
+      "upper_legs",
+      "lower_legs",
+      "biceps",
+      "triceps",
+      "lower_arms",
+      "cardio",
+    ],
+    [],
+  );
 
-  const muscleLabels: Record<MuscleGroup, string> = {
-    chest: t(language, "muscles.chest"),
-    back: t(language, "muscles.back"),
-    upper_legs: t(language, "muscles.upper_legs"),
-    lower_legs: t(language, "muscles.lower_legs"),
-    shoulders: t(language, "muscles.shoulders"),
-    biceps: t(language, "muscles.biceps"),
-    triceps: t(language, "muscles.triceps"),
-    waist_core: t(language, "muscles.waist_core"),
-    lower_arms: t(language, "muscles.lower_arms"),
-    cardio: t(language, "muscles.cardio"),
-  };
+  const muscleLabels = useMemo<Record<MuscleGroup, string>>(
+    () => ({
+      chest: t(language, "muscles.chest"),
+      back: t(language, "muscles.back"),
+      upper_legs: t(language, "muscles.upper_legs"),
+      lower_legs: t(language, "muscles.lower_legs"),
+      shoulders: t(language, "muscles.shoulders"),
+      biceps: t(language, "muscles.biceps"),
+      triceps: t(language, "muscles.triceps"),
+      waist_core: t(language, "muscles.waist_core"),
+      lower_arms: t(language, "muscles.lower_arms"),
+      cardio: t(language, "muscles.cardio"),
+    }),
+    [language],
+  );
 
   return (
     <>
@@ -401,31 +495,135 @@ export default function HomeScreen() {
               {/* Stats Section */}
               <AnimatedEntry index={2}>
                 <View style={[styles.section, { backgroundColor: C.surface }]}>
-                  <StatsPanel
-                    strength={gameState.strength}
-                    endurance={gameState.endurance}
-                    discipline={gameState.discipline}
-                    skillPoints={gameState.skillPoints}
-                    onUpgradeStrength={gameState.upgradeStrength}
-                    onUpgradeEndurance={gameState.upgradeEndurance}
-                    onUpgradeDiscipline={gameState.upgradeDiscipline}
-                  />
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => {
+                      LayoutAnimation.configureNext({
+                        duration: 300,
+                        update: {
+                          type: LayoutAnimation.Types.easeInEaseOut,
+                          property: LayoutAnimation.Properties.scaleY,
+                        },
+                        delete: {
+                          type: LayoutAnimation.Types.easeInEaseOut,
+                          property: LayoutAnimation.Properties.opacity,
+                        },
+                      });
+                      setStatsCollapsed(!statsCollapsed);
+                    }}
+                    style={[
+                      styles.collapsibleHeader,
+                      { flexDirection: isRTL ? "row-reverse" : "row" },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.collapsibleTitleRow,
+                        { flexDirection: isRTL ? "row-reverse" : "row" },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.collapsibleTitle,
+                          { color: C.text, fontFamily: fontBold },
+                        ]}
+                      >
+                        {t(language, "stats.title")}
+                      </Text>
+                      {gameState.skillPoints > 0 && (
+                        <View
+                          style={[
+                            styles.skillPointsBadgeSmall,
+                            { backgroundColor: C.level },
+                          ]}
+                        >
+                          <MaterialCommunityIcons
+                            name="star"
+                            size={12}
+                            color="#FFF"
+                          />
+                          <Text style={styles.skillPointsTextSmall}>
+                            {gameState.skillPoints}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <MaterialCommunityIcons
+                      name={statsCollapsed ? "chevron-down" : "chevron-up"}
+                      size={24}
+                      color={C.textSecondary}
+                    />
+                  </TouchableOpacity>
+                  {!statsCollapsed && (
+                    <View style={{ marginTop: Spacing.md }}>
+                      <StatsPanel
+                        strength={gameState.strength}
+                        endurance={gameState.endurance}
+                        discipline={gameState.discipline}
+                        skillPoints={gameState.skillPoints}
+                        onUpgradeStrength={gameState.upgradeStrength}
+                        onUpgradeEndurance={gameState.upgradeEndurance}
+                        onUpgradeDiscipline={gameState.upgradeDiscipline}
+                        hideTitle={true}
+                      />
+                    </View>
+                  )}
                 </View>
               </AnimatedEntry>
 
               {/* Muscle Groups Section (includes cardio) */}
               <AnimatedEntry index={3}>
                 <View style={[styles.section, { backgroundColor: C.surface }]}>
-                  <MuscleGroupGrid
-                    muscleGroups={muscleGroups}
-                    onPress={(group) =>
-                      router.push({
-                        pathname: "/exercise-list",
-                        params: { muscle: group },
-                      })
-                    }
-                    labels={muscleLabels}
-                  />
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => {
+                      LayoutAnimation.configureNext({
+                        duration: 300,
+                        update: {
+                          type: LayoutAnimation.Types.easeInEaseOut,
+                          property: LayoutAnimation.Properties.scaleY,
+                        },
+                        delete: {
+                          type: LayoutAnimation.Types.easeInEaseOut,
+                          property: LayoutAnimation.Properties.opacity,
+                        },
+                      });
+                      setMusclesCollapsed(!musclesCollapsed);
+                    }}
+                    style={[
+                      styles.collapsibleHeader,
+                      { flexDirection: isRTL ? "row-reverse" : "row" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.collapsibleTitle,
+                        { color: C.text, fontFamily: fontBold },
+                      ]}
+                    >
+                      {t(language, "home.muscleGroups")}
+                    </Text>
+                    <MaterialCommunityIcons
+                      name={musclesCollapsed ? "chevron-down" : "chevron-up"}
+                      size={24}
+                      color={C.textSecondary}
+                    />
+                  </TouchableOpacity>
+                  {!musclesCollapsed && (
+                    <View style={{ marginTop: Spacing.md }}>
+                      <MuscleGroupGrid
+                        muscleGroups={muscleGroups}
+                        onPress={(group) =>
+                          router.push({
+                            pathname: "/exercise-list",
+                            params: { muscle: group },
+                          })
+                        }
+                        labels={muscleLabels}
+                        hideTitle={true}
+                      />
+                    </View>
+                  )}
                 </View>
               </AnimatedEntry>
 
@@ -450,6 +648,9 @@ export default function HomeScreen() {
                       },
                     ]}
                     onPress={() => {
+                      // Clear any pending XP animations to prevent queue buildup
+                      clearQueue();
+
                       const newState = !stretchingDone;
                       setStretchingDone(newState);
 
@@ -470,10 +671,15 @@ export default function HomeScreen() {
                           t(language, "home.stretchingComplete"),
                         ]);
                       } else {
-                        // Remove stretching XP when unchecked
+                        // Remove stretching XP + stats when unchecked
                         stretchingBonusGiven.current = false;
                         gameState.setXp((prev) =>
                           Math.max(0, prev - STRETCHING_XP),
+                        );
+                        // Remove stats (stretching gives +1 endurance, +1 discipline)
+                        gameState.setEndurance((prev) => Math.max(0, prev - 1));
+                        gameState.setDiscipline((prev) =>
+                          Math.max(0, prev - 1),
                         );
                         showFloatingXP(-STRETCHING_XP, [
                           t(language, "home.stretchingRemoved"),
@@ -577,33 +783,89 @@ const styles = StyleSheet.create({
 
   profileCard: {
     alignItems: "center",
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.xl,
     borderRadius: BorderRadius.lg,
-    gap: Spacing.sm,
+    gap: Spacing.md,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
   },
   profileAvatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 2,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   profileName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "900",
-    letterSpacing: 1,
+    letterSpacing: 1.2,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   section: {
     width: "100%",
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.xl,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
+  },
+  sectionHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    marginBottom: Spacing.lg,
+  },
+  collapsibleHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    width: "100%",
+  },
+  collapsibleTitleRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: Spacing.sm,
+  },
+  collapsibleTitle: {
+    fontSize: FontSize.base,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  skillPointsBadgeSmall: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  skillPointsTextSmall: {
+    fontSize: FontSize.xs,
+    fontWeight: "700",
+    color: "#FFF",
   },
   sectionTitle: {
     fontSize: FontSize.sm,
     fontWeight: "700",
     color: Colors.textSecondary,
     letterSpacing: 2,
-    marginBottom: Spacing.lg,
     textTransform: "uppercase" as const,
   },
   stretchingContainer: {

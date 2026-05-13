@@ -3,43 +3,46 @@ import { getFont } from "@/constants/fonts";
 import { t } from "@/constants/translations";
 import { useApp } from "@/contexts/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { useHaptics } from "@/hooks/useHaptics";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import {
-  Animated,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 interface CardioGridProps {
   onPress: (cardioType: CardioType) => void;
 }
 
-const CardioCard: React.FC<{
+const CardioCard = React.memo<{
   name: string;
   icon: string;
   onPress: () => void;
-}> = ({ name, icon, onPress }) => {
+}>(({ name, icon, onPress }) => {
   const C = useColors();
   const { language } = useApp();
-  const fontSemibold = getFont(language, "semibold");
+  const haptics = useHaptics();
+  const fontBold = getFont(language, "bold");
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
-    Animated.timing(scaleAnim, {
+    haptics.light();
+    Animated.spring(scaleAnim, {
       toValue: 0.95,
-      duration: 100,
       useNativeDriver: Platform.OS !== "web",
     }).start();
   };
 
   const handlePressOut = () => {
-    Animated.timing(scaleAnim, {
+    Animated.spring(scaleAnim, {
       toValue: 1,
-      duration: 150,
+      friction: 3,
+      tension: 40,
       useNativeDriver: Platform.OS !== "web",
     }).start();
   };
@@ -47,7 +50,10 @@ const CardioCard: React.FC<{
   return (
     <TouchableOpacity
       activeOpacity={1}
-      onPress={onPress}
+      onPress={() => {
+        haptics.medium();
+        onPress();
+      }}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={{ width: "47%" }}
@@ -68,7 +74,7 @@ const CardioCard: React.FC<{
           style={styles.icon}
         />
         <Text
-          style={[styles.label, { color: C.text, fontFamily: fontSemibold }]}
+          style={[styles.label, { color: C.text, fontFamily: fontBold }]}
           numberOfLines={1}
         >
           {name.toUpperCase()}
@@ -76,20 +82,23 @@ const CardioCard: React.FC<{
       </Animated.View>
     </TouchableOpacity>
   );
-};
+});
 
-export const CardioGrid: React.FC<CardioGridProps> = ({ onPress }) => {
+export const CardioGrid = React.memo<CardioGridProps>(({ onPress }) => {
   const C = useColors();
   const { language } = useApp();
 
-  const cardioLabels: Record<string, string> = {
-    Walking: t(language, "cardio.walking"),
-    Running: t(language, "cardio.running"),
-    Cycling: t(language, "cardio.cycling"),
-    Elliptical: t(language, "cardio.elliptical"),
-    "Jump Rope": t(language, "cardio.jumpRope"),
-    "Stair Climb": t(language, "cardio.stairClimb"),
-  };
+  const cardioLabels = useMemo<Record<string, string>>(
+    () => ({
+      Walking: t(language, "cardio.walking"),
+      Running: t(language, "cardio.running"),
+      Cycling: t(language, "cardio.cycling"),
+      Elliptical: t(language, "cardio.elliptical"),
+      "Jump Rope": t(language, "cardio.jumpRope"),
+      "Stair Climb": t(language, "cardio.stairClimb"),
+    }),
+    [language],
+  );
 
   return (
     <View style={styles.container}>
@@ -108,7 +117,7 @@ export const CardioGrid: React.FC<CardioGridProps> = ({ onPress }) => {
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
