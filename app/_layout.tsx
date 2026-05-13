@@ -1,21 +1,21 @@
 import {
-    Cairo_400Regular,
-    Cairo_600SemiBold,
-    Cairo_700Bold,
-    Cairo_900Black,
+  Cairo_400Regular,
+  Cairo_600SemiBold,
+  Cairo_700Bold,
+  Cairo_900Black,
 } from "@expo-google-fonts/cairo";
 import {
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_900Black,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_900Black,
 } from "@expo-google-fonts/inter";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -77,15 +77,40 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
       transition: background-color 5000s ease-in-out 0s;
       caret-color: #FFFFFF;
     }
-    /* Prevent aria-hidden focus trap from React Navigation */
+    /* Prevent pointer events leaking into aria-hidden screens */
     [aria-hidden="true"] * {
       pointer-events: none !important;
     }
-    [aria-hidden="true"]:focus-within {
-      display: none !important;
-    }
   `;
   document.head.appendChild(style);
+
+  // Blur the active element when an ancestor becomes aria-hidden, so focus
+  // is not retained inside a hidden subtree (accessibility violation).
+  const blurIfHidden = () => {
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || active === document.body) return;
+    let el: HTMLElement | null = active;
+    while (el) {
+      if (el.getAttribute && el.getAttribute("aria-hidden") === "true") {
+        active.blur();
+        return;
+      }
+      el = el.parentElement;
+    }
+  };
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === "attributes" && m.attributeName === "aria-hidden") {
+        blurIfHidden();
+        return;
+      }
+    }
+  });
+  observer.observe(document.body, {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ["aria-hidden"],
+  });
 }
 
 function RootLayoutNav() {
